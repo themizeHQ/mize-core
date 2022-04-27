@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 	"os"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"mize.app/server_response"
 )
 
 func main() {
@@ -17,6 +19,14 @@ func main() {
 	}
 
 	server := gin.Default()
+
+	server.GET("/who-is-the-goat", func(ctx *gin.Context) {
+		server_response.Response(ctx, http.StatusOK, "Lionel Messi is the GOAT!", true, nil)
+	})
+
+	server.NoRoute(func(ctx *gin.Context) {
+		server_response.Response(ctx, http.StatusNotFound, "This route does not exist", false, nil)
+	})
 
 	server.Run(":" + os.Getenv("PORT"))
 }
