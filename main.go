@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"os"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -20,6 +20,14 @@ func main() {
 
 	server := gin.Default()
 
+	// start all services
+	StartServices()
+
+	defer func() {
+		// clean up resources
+		CleanUp()
+	}()
+
 	server.GET("/who-is-the-goat", func(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusOK, "Lionel Messi is the GOAT!", true, nil)
 	})
@@ -29,4 +37,5 @@ func main() {
 	})
 
 	server.Run(":" + os.Getenv("PORT"))
+
 }
