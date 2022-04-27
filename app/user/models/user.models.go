@@ -1,6 +1,8 @@
 package user
 
 import (
+	"encoding/json"
+
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,6 +19,10 @@ type User struct {
 	OrgsCreated []primitive.ObjectID `bson:"orgsCreated"`
 	CreatedAt   primitive.Timestamp  `bson:"createdAt"`
 	UpdatedAt   primitive.Timestamp  `bson:"updatedAt"`
+}
+
+func (user *User) MarshalBinary() ([]byte, error) {
+	return json.Marshal(user)
 }
 
 func (user *User) Validate() error {

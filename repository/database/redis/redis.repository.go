@@ -15,7 +15,7 @@ var (
 )
 
 type RedisRepository struct {
-	Clinet redis.Client
+	Clinet *redis.Client
 }
 
 func (redisRepo *RedisRepository) CreateEntry(ctx *gin.Context, key string, payload interface{}, ttl time.Duration) bool {
@@ -37,5 +37,5 @@ func (redisRepo *RedisRepository) CreateEntry(ctx *gin.Context, key string, payl
 }
 
 func SetUpRedisRepo() {
-	RedisRepo = RedisRepository{Clinet: *redisDb.Client}
+	RedisRepo = RedisRepository{Clinet: redisDb.Client}
 }

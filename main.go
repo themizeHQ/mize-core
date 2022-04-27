@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"mize.app/server_response"
+
+	userControllers "mize.app/app/user/controllers"
 )
 
 func main() {
@@ -27,6 +29,17 @@ func main() {
 		// clean up resources
 		CleanUp()
 	}()
+
+	
+	// set up routing
+	v1 := server.Group("/api/v1")
+	{
+		userV1 := v1.Group("/user")
+		{
+			userV1.POST("/create", userControllers.CacheUser)
+		}
+	}
+
 
 	server.GET("/who-is-the-goat", func(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusOK, "Lionel Messi is the GOAT!", true, nil)
