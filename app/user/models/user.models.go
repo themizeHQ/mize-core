@@ -1,6 +1,7 @@
 package user
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 
 	"github.com/go-ozzo/ozzo-validation"
@@ -34,4 +35,16 @@ func (user *User) Validate() error {
 		validation.Field(&user.Region, validation.Required.Error("Please pass in your region"), is.CountryCode2.Error("Please pass in a valid country code")),
 		validation.Field(&user.Password, validation.Length(6, 30).Error("Password cannot be less than 6 digits"), validation.Required.Error("Password is a required field")),
 	)
+}
+
+func (user *User) RunBeforeModifyHooks() *User {
+	user.beforeInsertHook()
+
+	return user
+}
+
+func (user *User) beforeInsertHook() *User {
+	hashedPassword := sha256.Sum256([]byte(user.Password))
+	user.Password = string(hashedPassword[:])
+	return user
 }

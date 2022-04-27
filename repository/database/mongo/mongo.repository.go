@@ -49,6 +49,10 @@ func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter interfa
 	err := cursor.Decode(&resultDecoded)
 	fmt.Println(resultDecoded)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result"{
+			return nil
+		}
+		
 		ctx.Abort()
 		app_errors.ErrorHandler(ctx, err)
 		return nil
