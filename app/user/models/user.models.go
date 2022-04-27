@@ -1,12 +1,13 @@
 package user
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"mize.app/cryptography"
 )
 
 type User struct {
@@ -44,7 +45,7 @@ func (user *User) RunBeforeModifyHooks() *User {
 }
 
 func (user *User) beforeInsertHook() *User {
-	hashedPassword := sha256.Sum256([]byte(user.Password))
-	user.Password = string(hashedPassword[:])
+	password, _ := cryptography.HashString(user.Password, nil)
+	user.Password = string(password)
 	return user
 }
