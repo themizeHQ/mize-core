@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,7 +21,7 @@ func CreateUserUseCase(ctx *gin.Context, userEmail string) (*mongo.InsertOneResu
 	payload.OrgsCreated = []primitive.ObjectID{}
 	err := payload.Validate()
 	if err != nil {
-		app_errors.ErrorHandler(ctx, err)
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return nil, err
 	}
 	response := userRepo.UserRepository.CreateOne(ctx, &payload)

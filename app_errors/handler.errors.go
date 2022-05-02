@@ -1,8 +1,6 @@
 package app_errors
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"mize.app/server_response"
 )
@@ -11,7 +9,7 @@ type MizeErrors interface {
 	RequestError
 }
 
-func ErrorHandler(ctx *gin.Context, err error) {
+func ErrorHandler(ctx *gin.Context, err error, code int) {
 	ctx.Abort()
-	server_response.Response(ctx, http.StatusInternalServerError, err. Error(), false, nil)
+	server_response.Response(ctx, code, err.Error(), false, nil)
 }

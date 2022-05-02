@@ -10,17 +10,18 @@ import (
 	useCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
 	"mize.app/authentication"
+	"mize.app/emails"
 	"mize.app/server_response"
 )
 
 func CacheUser(ctx *gin.Context) {
 	var payload userModel.User
 	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, err)
+		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		app_errors.ErrorHandler(ctx, err)
+		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
 		return
 	}
 	response, err := useCases.CacheUserUseCase(ctx, &payload)
@@ -33,6 +34,7 @@ func CacheUser(ctx *gin.Context) {
 		return
 	}
 	authentication.SaveOTP(ctx, payload.Email, otp, 5*time.Minute)
+	emails.SendEmail(payload.Email, "Activate your Mize account", "otp", map[string]string{"OTP": string(otp)})
 	server_response.Response(ctx, http.StatusCreated, "User created successfuly", true, response)
 }
 
@@ -43,7 +45,7 @@ func VerifyUser(ctx *gin.Context) {
 	}
 	var payload VerifyData
 	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, err)
+		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
 		return
 	}
 	valid, err := authentication.VerifyOTP(ctx, fmt.Sprintf("%s-otp", payload.Email), payload.Otp)
@@ -51,7 +53,6 @@ func VerifyUser(ctx *gin.Context) {
 		return
 	}
 	if !valid {
-		ctx.Abort()
 		server_response.Response(ctx, http.StatusUnauthorized, "Wrong otp provided", false, nil)
 		return
 	}
@@ -59,5 +60,6 @@ func VerifyUser(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
+	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
 	server_response.Response(ctx, http.StatusCreated, "Account verified", true, result)
 }

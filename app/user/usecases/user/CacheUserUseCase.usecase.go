@@ -22,18 +22,18 @@ func CacheUserUseCase(ctx *gin.Context, payload *user.User) (bool, error) {
 	var unexprectedError app_errors.RequestError
 	if emailExists != nil {
 		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("user with email already exists")}
-		app_errors.ErrorHandler(ctx, unexprectedError)
+		app_errors.ErrorHandler(ctx, unexprectedError, http.StatusInternalServerError)
 		return false, unexprectedError
 	}
 	if usernameExists != nil {
 		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("user with username already exists")}
-		app_errors.ErrorHandler(ctx, unexprectedError)
+		app_errors.ErrorHandler(ctx, unexprectedError, http.StatusInternalServerError)
 		return false, unexprectedError
 	}
 	result := redis.RedisRepo.CreateEntry(ctx, fmt.Sprintf("%s-user", payload.Email), payload, 20*time.Minute)
 	if !result {
 		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("something went wrong while creating user")}
-		app_errors.ErrorHandler(ctx, unexprectedError)
+		app_errors.ErrorHandler(ctx, unexprectedError, http.StatusInternalServerError)
 		return false, unexprectedError
 	}
 	return result, nil

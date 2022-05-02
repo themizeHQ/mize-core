@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"mize.app/emails"
 	"mize.app/server_response"
 
 	userControllers "mize.app/app/user/controllers"

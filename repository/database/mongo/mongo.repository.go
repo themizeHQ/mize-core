@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ func (repo *MongoRepository[T]) CreateOne(ctx *gin.Context, payload *T, opts ...
 	result, err := repo.Model.InsertOne(c, payload, opts...)
 
 	if err != nil {
-		app_errors.ErrorHandler(ctx, err)
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 	}
 
 	defer func() {
@@ -49,14 +50,13 @@ func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter interfa
 	err := cursor.Decode(&resultDecoded)
 	fmt.Println(resultDecoded)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result"{
+		if err.Error() == "mongo: no documents in result" {
 			return nil
 		}
-		
-		ctx.Abort()
-		app_errors.ErrorHandler(ctx, err)
+
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return nil
 	}
-	
+
 	return &resultDecoded
 }

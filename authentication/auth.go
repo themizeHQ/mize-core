@@ -43,7 +43,7 @@ func VerifyOTP(ctx *gin.Context, key string, otp string) (bool, error) {
 	data := redis.RedisRepo.FindOne(ctx, key)
 	if data == nil {
 		err := errors.New("account not found. create a account and try again")
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{StatusCode: http.StatusNotFound, Err: errors.New("account not found. create a account and try again")})
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{StatusCode: http.StatusNotFound, Err: errors.New("account not found. create a account and try again")}, http.StatusNotFound)
 		return false, err
 	}
 	return cryptography.VerifyData(*data, otp), nil
