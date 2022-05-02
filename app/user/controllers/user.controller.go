@@ -24,6 +24,7 @@ func CacheUser(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
 		return
 	}
+	payload.RunHooks()
 	response, err := useCases.CacheUserUseCase(ctx, &payload)
 	if err != nil {
 		return

@@ -34,18 +34,15 @@ func (user *User) Validate() error {
 		validation.Field(&user.UserName, validation.Required.Error("UserName is a required field")),
 		validation.Field(&user.Email, validation.Required.Error("Email is a required field"), is.Email.Error("Field must be a valid email")),
 		validation.Field(&user.Region, validation.Required.Error("Please pass in your region"), is.CountryCode2.Error("Please pass in a valid country code")),
-		validation.Field(&user.Password, validation.Length(6, 30).Error("Password cannot be less than 6 digits"), validation.Required.Error("Password is a required field")),
+		validation.Field(&user.Password, validation.Length(6, 100).Error("Password cannot be less than 6 digits"), validation.Required.Error("Password is a required field")),
 	)
 }
 
-func (user *User) RunBeforeModifyHooks() *User {
+func (user *User) RunHooks() {
 	user.beforeInsertHook()
-
-	return user
 }
 
-func (user *User) beforeInsertHook() *User {
+func (user *User) beforeInsertHook() {
 	password := cryptography.HashString(user.Password, nil)
 	user.Password = string(password)
-	return user
 }
