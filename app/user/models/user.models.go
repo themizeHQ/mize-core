@@ -45,7 +45,7 @@ func (user *User) RunBeforeModifyHooks() *User {
 }
 
 func (user *User) beforeInsertHook() *User {
-	password, _ := cryptography.HashString(user.Password, nil)
+	password := cryptography.HashString(user.Password, nil)
 	user.Password = string(password)
 	return user
 }

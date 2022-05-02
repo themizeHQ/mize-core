@@ -1,53 +1,38 @@
 package cryptography
 
 import (
-	"crypto/rand"
+	"log"
 
-	"golang.org/x/crypto/argon2"
+	"github.com/matthewhartstonge/argon2"
 )
 
-type Options struct {
-	Memory      uint32
-	Iterations  uint32
-	Parallelism uint8
-	SaltLength  uint32
-	KeyLength   uint32
+func HashString(data string, cfg *argon2.Config) []byte {
+	defaultCfg := argon2.DefaultConfig()
+
+	if cfg == nil {
+		cfg = &defaultCfg
+	}
+
+	raw, err := cfg.Hash([]byte(data), nil)
+	if err != nil {
+		log.Fatalln("Error while hashing data")
+		panic(err)
+	}
+
+	return raw.Encode()
 }
 
-var (
-	defaultOpts = Options{
-		Memory:      64 * 1024,
-		Iterations:  3,
-		Parallelism: 2,
-		SaltLength:  16,
-		KeyLength:   32,
-	}
-)
-
-func HashString(data string, opts *Options) (hash []byte, err error) {
-	if opts == nil {
-		opts = &defaultOpts
-	}
-	// Generate a cryptographically secure random salt.
-	salt, err := generateRandomBytes(opts.SaltLength)
+func VerifyData(hash string, password string) bool {
+	raw, err := argon2.Decode([]byte(hash))
 	if err != nil {
-		return nil, err
+		log.Fatalln("Error while decoding hash")
+		panic(err)
 	}
-
-	// Pass the plaintext data, salt and parameters to the argon2.IDKey
-	// function. This will generate a hash of the data using the Argon2id
-	// variant.
-	hash = argon2.IDKey([]byte(data), salt, opts.Iterations, opts.Memory, opts.Parallelism, opts.KeyLength)
-
-	return hash, nil
-}
-
-func generateRandomBytes(n uint32) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
+	ok, err := raw.Verify([]byte(password))
 	if err != nil {
-		return nil, err
+		log.Fatalln("Error while verifying data")
+		panic(err)
 	}
 
-	return b, nil
+	return ok
 }

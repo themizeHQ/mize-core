@@ -30,16 +30,16 @@ func main() {
 		CleanUp()
 	}()
 
-	
 	// set up routing
 	v1 := server.Group("/api/v1")
 	{
 		userV1 := v1.Group("/user")
 		{
 			userV1.POST("/create", userControllers.CacheUser)
+
+			userV1.POST("/verify", userControllers.VerifyUser)
 		}
 	}
-
 
 	server.GET("/who-is-the-goat", func(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusOK, "Lionel Messi is the GOAT!", true, nil)

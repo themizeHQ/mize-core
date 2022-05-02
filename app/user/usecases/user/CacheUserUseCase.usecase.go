@@ -30,7 +30,7 @@ func CacheUserUseCase(ctx *gin.Context, payload *user.User) (bool, error) {
 		app_errors.ErrorHandler(ctx, unexprectedError)
 		return false, unexprectedError
 	}
-	result := redis.RedisRepo.CreateEntry(ctx, fmt.Sprintf("%s-user", payload.Email), payload, 5*time.Minute)
+	result := redis.RedisRepo.CreateEntry(ctx, fmt.Sprintf("%s-user", payload.Email), payload, 20*time.Minute)
 	if !result {
 		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("something went wrong while creating user")}
 		app_errors.ErrorHandler(ctx, unexprectedError)
