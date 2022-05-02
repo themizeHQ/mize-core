@@ -5,4 +5,8 @@ type event struct {
 	Action interface{}
 }
 
-var EventsArray = []event{}
+var UserCreatedEvent = event{Name: "USER_CREATED_EVENT", Action: func() {
+
+}}
+
+var EventsArray = []event{UserCreatedEvent}
