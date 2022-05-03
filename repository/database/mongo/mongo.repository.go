@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -48,7 +47,6 @@ func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter interfa
 	var resultDecoded user.User
 	cursor := repo.Model.FindOne(c, filter, opts...)
 	err := cursor.Decode(&resultDecoded)
-	fmt.Println(resultDecoded)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			return nil

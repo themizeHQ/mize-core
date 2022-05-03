@@ -16,7 +16,7 @@ import (
 
 func CacheUserUseCase(ctx *gin.Context, payload *user.User) (bool, error) {
 	payload.Verified = false
-	payload.OrgsCreated = []primitive.ObjectID{}
+	payload.AppsCreated = []primitive.ObjectID{}
 	emailExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"email": payload.Email})
 	usernameExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"username": payload.UserName})
 	var unexprectedError app_errors.RequestError
