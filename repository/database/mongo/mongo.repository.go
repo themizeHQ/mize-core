@@ -9,12 +9,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	appModel "mize.app/app/application/models"
 	"mize.app/app/user/models"
 	"mize.app/app_errors"
 )
 
 type MongoModels interface {
-	user.User
+	user.User | appModel.Application
 }
 
 type MongoRepository[T MongoModels] struct {
