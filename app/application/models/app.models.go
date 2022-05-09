@@ -2,15 +2,9 @@ package application
 
 import (
 	"encoding/json"
-	"errors"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	userRepo "mize.app/app/user/repository"
-	"mize.app/app_errors"
 )
 
 type Application struct {
@@ -45,14 +39,4 @@ func (app *Application) Validate() error {
 		validation.Field(app.RegionAvailable, is.CountryCode2.Error("Pass in a valid country code")),
 		validation.Field(app.RequiredData, validation.Required.Error("Pass in the user information you need")),
 	)
-}
-
-func (app *Application) ValidateID(ctx *gin.Context) error {
-	var err error
-	createdBy := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"id": app.CreatedBy})
-	if createdBy == nil {
-		err = errors.New("account assigned to the createdBy id does ot exist")
-		app_errors.ErrorHandler(ctx, err, http.StatusNotFound)
-	}
-	return err
 }
