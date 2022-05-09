@@ -18,7 +18,7 @@ func CacheUserUseCase(ctx *gin.Context, payload *user.User) (bool, error) {
 	payload.Verified = false
 	payload.AppsCreated = []primitive.ObjectID{}
 	emailExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"email": payload.Email})
-	usernameExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"username": payload.UserName})
+	usernameExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"userName": payload.UserName})
 	var unexprectedError app_errors.RequestError
 	if emailExists != nil {
 		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("user with email already exists")}

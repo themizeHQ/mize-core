@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	userModel "mize.app/app/user/models"
 	useCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
@@ -61,6 +62,30 @@ func VerifyUser(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
+	accessToken, err := authentication.GenerateAuthToken(ctx, authentication.ClaimsData{
+		Issuer:   "mizehq",
+		Type:     authentication.ACCESS_TOKEN,
+		Role:     authentication.USER,
+		ExpireAt: 20 * time.Minute,
+		UserId:   result.InsertedID.(primitive.ObjectID).String(),
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	refreshToken, err := authentication.GenerateAuthToken(ctx, authentication.ClaimsData{
+		Issuer:   "mizehq",
+		Type:     authentication.REFRESH_TOKEN,
+		Role:     authentication.USER,
+		ExpireAt: 24 * 20 * time.Hour, // 20 days
+		UserId:   result.InsertedID.(primitive.ObjectID).String(),
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	ctx.SetCookie(string(authentication.ACCESS_TOKEN), *accessToken, int(20*time.Minute), "/", "mize.app", true, true)
+	ctx.SetCookie(string(authentication.REFRESH_TOKEN), *refreshToken, int(24*20*time.Hour), "/", "mize.app", true, true)
 	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
 	server_response.Response(ctx, http.StatusCreated, "Account verified", true, result)
 }
