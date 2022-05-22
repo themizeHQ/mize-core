@@ -18,6 +18,8 @@ type Application struct {
 	WorkSpaceOnly     primitive.ObjectID
 	RegionAvailable   []string
 	RequiredData      []string
+	Approved          bool
+	Active            bool
 	// ---  not provided by user ---
 	Rating    int
 	UserCount int
