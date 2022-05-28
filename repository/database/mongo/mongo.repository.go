@@ -59,3 +59,18 @@ func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter interfa
 
 	return &resultDecoded
 }
+
+func (repo *MongoRepository[T]) CountDocs(ctx *gin.Context, filter interface{}, opts ...*options.CountOptions) int64 {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+
+	count, err := repo.Model.CountDocuments(c, filter, opts...)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return 0
+	}
+	return count
+}

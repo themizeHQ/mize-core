@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"mize.app/server_response"
 
+	appControllers "mize.app/app/application/controllers"
 	userControllers "mize.app/app/user/controllers"
 )
 
@@ -38,6 +39,11 @@ func main() {
 			userV1.POST("/create", userControllers.CacheUser)
 
 			userV1.POST("/verify", userControllers.VerifyUser)
+		}
+
+		appV1 := v1.Group("/application")
+		{
+			appV1.POST("/create", appControllers.CreateApplication)
 		}
 	}
 
