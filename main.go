@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"mize.app/middlewares"
 	"mize.app/server_response"
 
 	appControllers "mize.app/app/application/controllers"
@@ -43,7 +44,7 @@ func main() {
 			userV1.POST("/login", userControllers.LoginUser)
 		}
 
-		appV1 := v1.Group("/application")
+		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware)
 		{
 			appV1.POST("/create", appControllers.CreateApplication)
 		}
