@@ -39,6 +39,8 @@ func main() {
 			userV1.POST("/create", userControllers.CacheUser)
 
 			userV1.POST("/verify", userControllers.VerifyUser)
+
+			userV1.POST("/login", userControllers.LoginUser)
 		}
 
 		appV1 := v1.Group("/application")

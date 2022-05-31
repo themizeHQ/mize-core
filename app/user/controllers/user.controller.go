@@ -122,3 +122,77 @@ func VerifyUser(ctx *gin.Context) {
 	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
 	server_response.Response(ctx, http.StatusCreated, "Account verified", true, result)
 }
+
+func LoginUser(ctx *gin.Context) {
+	type LoginDetails struct {
+		Password string
+		Account  string
+	}
+	var payload LoginDetails
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
+		return
+	}
+	success, profile := useCases.LoginUserUseCase(ctx, payload.Account, payload.Password)
+	if !success && profile == nil {
+		server_response.Response(ctx, http.StatusNotFound, "Account not found", false, nil)
+		return
+	}
+	if !success {
+		server_response.Response(ctx, http.StatusUnauthorized, "Incorrect password", false, nil)
+		return
+	}
+	access_token_id := uuid.GenerateUUID()
+	accessToken, err := authentication.GenerateAuthToken(ctx, authentication.ClaimsData{
+		Issuer:   "mizehq",
+		Type:     authentication.ACCESS_TOKEN,
+		Role:     authentication.USER,
+		ExpireAt: 20 * time.Minute,
+		UserId:   profile.Id,
+		TokenId:  access_token_id,
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	saved_access_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-access-token",
+		profile.Id), float64(time.Now().Unix()), access_token_id)
+	if !saved_access_token {
+		err := errors.New("failed to save access token to db")
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	refresh_token_id := uuid.GenerateUUID()
+	refreshToken, err := authentication.GenerateAuthToken(ctx, authentication.ClaimsData{
+		Issuer:   "mizehq",
+		Type:     authentication.REFRESH_TOKEN,
+		Role:     authentication.USER,
+		ExpireAt: 24 * 20 * time.Hour, // 20 days
+		UserId:   profile.Id,
+		TokenId:  refresh_token_id,
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	saved_refresh_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-refresh-token",
+		profile.Id), float64(time.Now().Unix()), refresh_token_id)
+	if !saved_refresh_token {
+		err := errors.New("failed to save access token to db")
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	refresh_token_ttl, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRY_TIME"))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	access_token_ttl, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_TIME"))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	ctx.SetCookie(string(authentication.REFRESH_TOKEN), *refreshToken, refresh_token_ttl, "/", os.Getenv("APP_DOMAIN"), false, true)
+	ctx.SetCookie(string(authentication.ACCESS_TOKEN), *accessToken, access_token_ttl, "/", os.Getenv("APP_DOMAIN"), false, true)
+	server_response.Response(ctx, http.StatusCreated, "Login Successful", true, profile)
+}
