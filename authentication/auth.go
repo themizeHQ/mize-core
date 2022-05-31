@@ -67,6 +67,7 @@ const (
 type ClaimsData struct {
 	Issuer   string
 	UserId   string
+	TokenId  string
 	Role     RoleType
 	ExpireAt time.Duration
 	Type     TokenType
@@ -78,6 +79,7 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"Issuer":   claimsData.Issuer,
 		"UserId":   claimsData.UserId,
+		"TokenId":  claimsData.TokenId,
 		"Role":     claimsData.Role,
 		"ExpireAt": claimsData.ExpireAt,
 	}).SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))

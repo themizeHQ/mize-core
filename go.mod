@@ -14,6 +14,7 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0 // indirect
 )
 

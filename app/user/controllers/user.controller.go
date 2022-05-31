@@ -17,6 +17,7 @@ import (
 	"mize.app/authentication"
 	"mize.app/emails"
 	"mize.app/server_response"
+	"mize.app/uuid"
 )
 
 func CacheUser(ctx *gin.Context) {
@@ -66,37 +67,41 @@ func VerifyUser(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
+	access_token_id := uuid.GenerateUUID()
 	accessToken, err := authentication.GenerateAuthToken(ctx, authentication.ClaimsData{
 		Issuer:   "mizehq",
 		Type:     authentication.ACCESS_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 20 * time.Minute,
 		UserId:   result.InsertedID.(primitive.ObjectID).Hex(),
+		TokenId:  access_token_id,
 	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return
 	}
 	saved_access_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-access-token",
-		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), *accessToken)
+		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), access_token_id)
 	if !saved_access_token {
 		err := errors.New("failed to save access token to db")
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return
 	}
+	refresh_token_id := uuid.GenerateUUID()
 	refreshToken, err := authentication.GenerateAuthToken(ctx, authentication.ClaimsData{
 		Issuer:   "mizehq",
 		Type:     authentication.REFRESH_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 24 * 20 * time.Hour, // 20 days
 		UserId:   result.InsertedID.(primitive.ObjectID).Hex(),
+		TokenId:  refresh_token_id,
 	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return
 	}
 	saved_refresh_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-refresh-token",
-		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), *refreshToken)
+		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), refresh_token_id)
 	if !saved_refresh_token {
 		err := errors.New("failed to save access token to db")
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
