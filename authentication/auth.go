@@ -87,22 +87,25 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 	return &tokenString, nil
 }
 
-func DecodeAuthToken(ctx *gin.Context, tokenString string) bool {
-	claims := ClaimsData{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
+func DecodeAuthToken(ctx *gin.Context, tokenString string) *jwt.Token {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SIGNING_KEY")), nil
 	})
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
 			app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
-			return false
+			return nil
 		}
 		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
-		return false
+		return nil
 	}
 	if !token.Valid {
 		app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
-		return false
+		return nil
 	}
-	return token.Valid
+	return token
+}
+
+func SaveAuthToken(ctx *gin.Context, key string, score float64, payload string) bool {
+	return redis.RedisRepo.CreateInSet(ctx, key, score, payload)
 }
