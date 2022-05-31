@@ -6,4 +6,4 @@ import (
 	"mize.app/repository/database/mongo"
 )
 
-var AppRepository = repository.MongoRepository[appModel.Application]{Model: &db.UserModel}
+var AppRepository = repository.MongoRepository[appModel.Application]{Model: &db.AppModel}
