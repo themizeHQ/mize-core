@@ -1,9 +1,13 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
+
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -67,9 +71,16 @@ func VerifyUser(ctx *gin.Context) {
 		Type:     authentication.ACCESS_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 20 * time.Minute,
-		UserId:   result.InsertedID.(primitive.ObjectID).String(),
+		UserId:   result.InsertedID.(primitive.ObjectID).Hex(),
 	})
 	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	saved_access_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-access-token",
+		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), *accessToken)
+	if !saved_access_token {
+		err := errors.New("failed to save access token to db")
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return
 	}
@@ -78,14 +89,31 @@ func VerifyUser(ctx *gin.Context) {
 		Type:     authentication.REFRESH_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 24 * 20 * time.Hour, // 20 days
-		UserId:   result.InsertedID.(primitive.ObjectID).String(),
+		UserId:   result.InsertedID.(primitive.ObjectID).Hex(),
 	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return
 	}
-	ctx.SetCookie(string(authentication.ACCESS_TOKEN), *accessToken, int(20*time.Minute), "/", "mize.app", true, true)
-	ctx.SetCookie(string(authentication.REFRESH_TOKEN), *refreshToken, int(24*20*time.Hour), "/", "mize.app", true, true)
+	saved_refresh_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-refresh-token",
+		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), *refreshToken)
+	if !saved_refresh_token {
+		err := errors.New("failed to save access token to db")
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	refresh_token_ttl, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRY_TIME"))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	access_token_ttl, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_TIME"))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	ctx.SetCookie(string(authentication.REFRESH_TOKEN), *refreshToken, refresh_token_ttl, "/", os.Getenv("APP_DOMAIN"), false, true)
+	ctx.SetCookie(string(authentication.ACCESS_TOKEN), *accessToken, access_token_ttl, "/", os.Getenv("APP_DOMAIN"), false, true)
 	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
 	server_response.Response(ctx, http.StatusCreated, "Account verified", true, result)
 }
