@@ -14,6 +14,7 @@ import (
 var (
 	UserModel      mongo.Collection
 	WorkSpaceModel mongo.Collection
+	AppModel       mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -44,6 +45,12 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		Options: options.Index().SetUnique(true),
 	}, {
 		Keys:    bson.D{{Key: "userName", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}})
+
+	AppModel = *db.Collection("Apps")
+	AppModel.Indexes().CreateMany(ctx, []mongo.IndexModel{{
+		Keys:    bson.D{{Key: "name", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}})
 
