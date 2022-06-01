@@ -17,12 +17,6 @@ func CreateApplication(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
 		return
 	}
-	payload.Approved = false
-	payload.Active = false
-	if err := payload.Validate(); err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
-		return
-	}
 	result, err := useCases.CreateAppUseCase(ctx, payload)
 	if err != nil {
 		return

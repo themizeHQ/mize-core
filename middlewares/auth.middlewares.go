@@ -23,14 +23,13 @@ func AuthenticationMiddleware(ctx *gin.Context) {
 
 	valid_access_token := authentication.DecodeAuthToken(ctx, access_token.Value)
 	if !valid_access_token.Valid {
-		err := errors.New("invalid access token used 1")
+		err := errors.New("invalid access token used")
 		app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
 		return
 	}
 
 	access_token_claims := valid_access_token.Claims.(jwt.MapClaims)
 	access_tokens := redis.RedisRepo.FindSet(ctx, fmt.Sprintf("%s-access-token", access_token_claims["UserId"]))
-	fmt.Println(access_tokens)
 	var token_exists bool
 	for _, val := range *access_tokens {
 		if val == access_token_claims["TokenId"] {
@@ -38,9 +37,11 @@ func AuthenticationMiddleware(ctx *gin.Context) {
 		}
 	}
 	if !token_exists {
-		err := errors.New("invalid access token used 2")
+		err := errors.New("invalid access token used")
 		app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
 		return
 	}
+	ctx.Set("UserId", access_token_claims["UserId"])
+	ctx.Set("Role", access_token_claims["Role"])
 	ctx.Next()
 }
