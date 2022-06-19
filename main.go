@@ -12,6 +12,7 @@ import (
 
 	appControllers "mize.app/app/application/controllers"
 	userControllers "mize.app/app/user/controllers"
+	workspaceControllers "mize.app/app/workspace/controllers"
 )
 
 func main() {
@@ -47,6 +48,11 @@ func main() {
 		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware)
 		{
 			appV1.POST("/create", appControllers.CreateApplication)
+		}
+
+		workspaceV1 := v1.Group("/workspace", middlewares.AuthenticationMiddleware)
+		{
+			workspaceV1.POST("/create", workspaceControllers.CreateWorkspace)
 		}
 	}
 

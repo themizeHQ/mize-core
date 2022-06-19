@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 
 	application "mize.app/app/application/models"
 	appRepo "mize.app/app/application/repository"
@@ -16,7 +15,7 @@ import (
 
 var accessibleUserData = []string{"firstName", "lastName", "userName", "email", "region"}
 
-func CreateAppUseCase(ctx *gin.Context, payload application.Application) (*mongo.InsertOneResult, error) {
+func CreateAppUseCase(ctx *gin.Context, payload application.Application) (*string, error) {
 	appNameExists := appRepo.AppRepository.CountDocs(ctx, map[string]interface{}{"name": payload.Name})
 	user := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"_id": ctx.GetString("UserId")})
 	if user == nil {
@@ -24,7 +23,7 @@ func CreateAppUseCase(ctx *gin.Context, payload application.Application) (*mongo
 		app_errors.ErrorHandler(ctx, err, http.StatusNotFound)
 		return nil, err
 	}
-	payload.CreatedBy = user.Id
+	payload.CreatedBy = user.Id.Hex()
 	payload.Email = user.Email
 	payload.Approved = false
 	payload.Active = false
@@ -52,5 +51,5 @@ func CreateAppUseCase(ctx *gin.Context, payload application.Application) (*mongo
 		}
 	}
 	response := appRepo.AppRepository.CreateOne(ctx, &payload)
-	return &response, nil
+	return response, nil
 }

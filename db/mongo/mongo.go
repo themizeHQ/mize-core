@@ -13,7 +13,7 @@ import (
 
 var (
 	UserModel      mongo.Collection
-	WorkSpaceModel mongo.Collection
+	WorkspaceModel mongo.Collection
 	AppModel       mongo.Collection
 )
 
@@ -54,12 +54,5 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		Options: options.Index().SetUnique(true),
 	}})
 
-	WorkSpaceModel = *db.Collection("WorkSpaces")
-	WorkSpaceModel.Indexes().CreateMany(ctx, []mongo.IndexModel{{
-		Keys:    bson.D{{Key: "email", Value: 1}},
-		Options: options.Index().SetUnique(true),
-	}, {
-		Keys:    bson.D{{Key: "workSpaceId", Value: 1}},
-		Options: options.Index().SetUnique(true),
-	}})
+	WorkspaceModel = *db.Collection("Workspaces")
 }

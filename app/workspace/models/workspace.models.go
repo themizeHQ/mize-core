@@ -9,13 +9,16 @@ import (
 )
 
 type Workspace struct {
-	Id   string `bson:"_id" json:"id"`
-	Name string `bson:"name"`
-	Email string `bson:"email"`
-	Censor string `bson:"censor"`
-	
-	CreatedAt   primitive.Timestamp  `bson:"createdAt"`
-	UpdatedAt   primitive.Timestamp  `bson:"updatedAt"`
+	Id        primitive.ObjectID   `bson:"_id"`
+	Name      string               `bson:"name"`
+	Email     string               `bson:"email"`
+	Censor    bool                 `bson:"censor"`
+	CreatedBy primitive.ObjectID   `bson:"createdBy"`
+	Admins    []primitive.ObjectID `bson:"admins"`
+	Banned    []string             `bson:"banned"`
+
+	CreatedAt primitive.Timestamp `bson:"createdAt"`
+	UpdatedAt primitive.Timestamp `bson:"updatedAt"`
 }
 
 func (workspace *Workspace) MarshalBinary() ([]byte, error) {
@@ -28,4 +31,3 @@ func (workspace *Workspace) Validate() error {
 		validation.Field(&workspace.Email, validation.Required.Error("Email is a required field"), is.Email.Error("Field must be a valid email")),
 	)
 }
-

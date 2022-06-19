@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	userModel "mize.app/app/user/models"
 	useCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
@@ -73,7 +72,7 @@ func VerifyUser(ctx *gin.Context) {
 		Type:     authentication.ACCESS_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 20 * time.Minute,
-		UserId:   result.InsertedID.(primitive.ObjectID).Hex(),
+		UserId:   *result,
 		TokenId:  access_token_id,
 	})
 	if err != nil {
@@ -81,7 +80,7 @@ func VerifyUser(ctx *gin.Context) {
 		return
 	}
 	saved_access_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-access-token",
-		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), access_token_id)
+		*result), float64(time.Now().Unix()), access_token_id)
 	if !saved_access_token {
 		err := errors.New("failed to save access token to db")
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
@@ -93,7 +92,7 @@ func VerifyUser(ctx *gin.Context) {
 		Type:     authentication.REFRESH_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 24 * 20 * time.Hour, // 20 days
-		UserId:   result.InsertedID.(primitive.ObjectID).Hex(),
+		UserId:   *result,
 		TokenId:  refresh_token_id,
 	})
 	if err != nil {
@@ -101,7 +100,7 @@ func VerifyUser(ctx *gin.Context) {
 		return
 	}
 	saved_refresh_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-refresh-token",
-		result.InsertedID.(primitive.ObjectID).Hex()), float64(time.Now().Unix()), refresh_token_id)
+		*result), float64(time.Now().Unix()), refresh_token_id)
 	if !saved_refresh_token {
 		err := errors.New("failed to save access token to db")
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
@@ -148,7 +147,7 @@ func LoginUser(ctx *gin.Context) {
 		Type:     authentication.ACCESS_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 20 * time.Minute,
-		UserId:   profile.Id,
+		UserId:   profile.Id.Hex(),
 		TokenId:  access_token_id,
 	})
 	if err != nil {
@@ -156,7 +155,7 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 	saved_access_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-access-token",
-		profile.Id), float64(time.Now().Unix()), access_token_id)
+		profile.Id.Hex()), float64(time.Now().Unix()), access_token_id)
 	if !saved_access_token {
 		err := errors.New("failed to save access token to db")
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
@@ -168,7 +167,7 @@ func LoginUser(ctx *gin.Context) {
 		Type:     authentication.REFRESH_TOKEN,
 		Role:     authentication.USER,
 		ExpireAt: 24 * 20 * time.Hour, // 20 days
-		UserId:   profile.Id,
+		UserId:   profile.Id.Hex(),
 		TokenId:  refresh_token_id,
 	})
 	if err != nil {
@@ -176,7 +175,7 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 	saved_refresh_token := authentication.SaveAuthToken(ctx, fmt.Sprintf("%s-refresh-token",
-		profile.Id), float64(time.Now().Unix()), refresh_token_id)
+		profile.Id.Hex()), float64(time.Now().Unix()), refresh_token_id)
 	if !saved_refresh_token {
 		err := errors.New("failed to save access token to db")
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)

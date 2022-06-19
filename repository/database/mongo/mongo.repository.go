@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,12 +13,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	appModel "mize.app/app/application/models"
-	"mize.app/app/user/models"
+	user "mize.app/app/user/models"
+	workspace "mize.app/app/workspace/models"
 	"mize.app/app_errors"
 )
 
 type MongoModels interface {
-	user.User | appModel.Application
+	user.User | appModel.Application | workspace.Workspace
 }
 
 type MongoRepository[T MongoModels] struct {
@@ -25,9 +27,10 @@ type MongoRepository[T MongoModels] struct {
 	Payload interface{}
 }
 
-func (repo *MongoRepository[T]) CreateOne(ctx *gin.Context, payload *T, opts ...*options.InsertOneOptions) mongo.InsertOneResult {
+func (repo *MongoRepository[T]) CreateOne(ctx *gin.Context, payload *T, opts ...*options.InsertOneOptions) *string {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	result, err := repo.Model.InsertOne(c, payload, opts...)
+	parsed_payload := parsePayload(*payload)
+	result, err := repo.Model.InsertOne(c, parsed_payload, opts...)
 
 	if err != nil {
 		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
@@ -36,11 +39,13 @@ func (repo *MongoRepository[T]) CreateOne(ctx *gin.Context, payload *T, opts ...
 	defer func() {
 		cancel()
 	}()
-
-	return *result
+	result_val := *result
+	result_string, _ := result_val.InsertedID.(primitive.ObjectID)
+	to_string := result_string.Hex()
+	return &to_string
 }
 
-func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter map[string]interface{}, opts ...*options.FindOneOptions) *user.User {
+func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter map[string]interface{}, opts ...*options.FindOneOptions) *T {
 	filter = parseFilter(ctx, filter)
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
@@ -48,7 +53,7 @@ func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter map[str
 		cancel()
 	}()
 
-	var resultDecoded user.User
+	var resultDecoded T
 	cursor := repo.Model.FindOne(c, filter, opts...)
 	err := cursor.Decode(&resultDecoded)
 	if err != nil {
@@ -90,4 +95,22 @@ func parseFilter(ctx *gin.Context, filter map[string]interface{}) map[string]int
 		filter["_id"] = objId
 	}
 	return filter
+}
+
+func parsePayload[T MongoModels](payload T) *T {
+	byteA := dataToByteA(payload)
+	payload_map := *byteAToData[map[string]interface{}](byteA)
+	payload_map["Id"] = primitive.NewObjectID()
+	return byteAToData[T](dataToByteA(payload_map))
+}
+
+func byteAToData[T interface{}](payload []byte) *T {
+	var data T
+	json.Unmarshal(payload, &data)
+	return &data
+}
+
+func dataToByteA(payload interface{}) []byte {
+	data, _ := json.Marshal(payload)
+	return data
 }

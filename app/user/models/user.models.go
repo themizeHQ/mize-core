@@ -11,17 +11,18 @@ import (
 )
 
 type User struct {
-	Id          string               `bson:"_id" json:"id"`
-	FirstName   string               `bson:"firstName"`
-	LastName    string               `bson:"lastName"`
-	UserName    string               `bson:"userName"`
-	Email       string               `bson:"email"`
-	Region      string               `bson:"region"`
-	Password    string               `bson:"password" json:"-"`
-	Verified    bool                 `bson:"verified"`
-	AppsCreated []primitive.ObjectID `bson:"appsCreated"`
-	CreatedAt   primitive.Timestamp  `bson:"createdAt"`
-	UpdatedAt   primitive.Timestamp  `bson:"updatedAt"`
+	Id               primitive.ObjectID   `bson:"_id"`
+	FirstName        string               `bson:"firstName"`
+	LastName         string               `bson:"lastName"`
+	UserName         string               `bson:"userName"`
+	Email            string               `bson:"email"`
+	Region           string               `bson:"region"`
+	Password         string               `bson:"password"`
+	Verified         bool                 `bson:"verified"`
+	AppsCreated      []primitive.ObjectID `bson:"appsCreated"`
+	WorkspaceCreated []primitive.ObjectID `bson:"workspaceCreated"`
+	CreatedAt        primitive.Timestamp  `bson:"createdAt"`
+	UpdatedAt        primitive.Timestamp  `bson:"updatedAt"`
 }
 
 func (user *User) MarshalBinary() ([]byte, error) {
