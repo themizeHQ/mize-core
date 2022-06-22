@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"mize.app/app/auth"
 	"mize.app/middlewares"
 	"mize.app/server_response"
 
@@ -53,6 +54,11 @@ func main() {
 		workspaceV1 := v1.Group("/workspace", middlewares.AuthenticationMiddleware)
 		{
 			workspaceV1.POST("/create", workspaceControllers.CreateWorkspace)
+		}
+
+		authV1 := v1.Group("/auth")
+		{
+			authV1.GET("/generate-access-token", auth.GenerateAccessToken)
 		}
 	}
 

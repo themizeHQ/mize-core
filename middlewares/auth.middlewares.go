@@ -17,6 +17,7 @@ import (
 func AuthenticationMiddleware(ctx *gin.Context) {
 	access_token, err := ctx.Request.Cookie(string(authentication.ACCESS_TOKEN))
 	if err != nil {
+		err = errors.New("no auth tokens provided")
 		app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
 		return
 	}
