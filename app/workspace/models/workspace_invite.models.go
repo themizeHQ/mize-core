@@ -9,9 +9,10 @@ import (
 )
 
 type WorkspaceInvite struct {
-	Id      primitive.ObjectID `bson:"_id"`
-	Email   string
-	Success bool
+	Id       primitive.ObjectID `bson:"_id"`
+	Email    string
+	Accepted *bool
+	Success  bool
 }
 
 func (invite *WorkspaceInvite) MarshalBinary() ([]byte, error) {

@@ -25,11 +25,11 @@ func SendEmail(toEmail string, subject string, templateName string, opts interfa
 		log.Println(err)
 		return false
 	} else {
+		fmt.Println(response.Body)
 		fmt.Println(response.StatusCode)
 		if response.StatusCode != 200 {
 			return false
 		}
-		fmt.Println(response.Body)
 		return true
 	}
 }
