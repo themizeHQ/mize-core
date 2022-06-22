@@ -7,3 +7,4 @@ import (
 )
 
 var WorkspaceRepository = repository.MongoRepository[workspace.Workspace]{Model: &db.WorkspaceModel}
+var WorkspaceInviteRepository = repository.MongoRepository[workspace.WorkspaceInvite]{Model: &db.WorkspaceInvite}

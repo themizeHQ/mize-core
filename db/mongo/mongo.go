@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	UserModel      mongo.Collection
-	WorkspaceModel mongo.Collection
-	AppModel       mongo.Collection
+	UserModel       mongo.Collection
+	WorkspaceModel  mongo.Collection
+	AppModel        mongo.Collection
+	WorkspaceInvite mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -55,4 +56,6 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	}})
 
 	WorkspaceModel = *db.Collection("Workspaces")
+
+	WorkspaceInvite = *db.Collection("WorkspaceInvites")
 }

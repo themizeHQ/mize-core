@@ -14,7 +14,7 @@ import (
 
 var dir, _ = os.Getwd()
 
-func SendEmail(toEmail string, subject string, templateName string, opts interface{}) {
+func SendEmail(toEmail string, subject string, templateName string, opts interface{}) bool {
 	from := mail.NewEmail("Emeka from Mize", os.Getenv("MIZE_EMAIL"))
 	to := mail.NewEmail("Example User", toEmail)
 	buffer := loadTemplates(templateName, opts)
@@ -23,9 +23,14 @@ func SendEmail(toEmail string, subject string, templateName string, opts interfa
 	response, err := client.Send(message)
 	if err != nil {
 		log.Println(err)
+		return false
 	} else {
 		fmt.Println(response.StatusCode)
-		fmt.Printf("Email sent to %s", toEmail)
+		if response.StatusCode != 200 {
+			return false
+		}
+		fmt.Println(response.Body)
+		return true
 	}
 }
 

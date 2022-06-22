@@ -54,6 +54,8 @@ func main() {
 		workspaceV1 := v1.Group("/workspace", middlewares.AuthenticationMiddleware)
 		{
 			workspaceV1.POST("/create", workspaceControllers.CreateWorkspace)
+
+			workspaceV1.POST("/invite", workspaceControllers.InviteToWorkspace)
 		}
 
 		authV1 := v1.Group("/auth")
