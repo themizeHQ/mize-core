@@ -13,6 +13,7 @@ import (
 
 	"mize.app/app_errors"
 	"mize.app/authentication"
+	"mize.app/emails"
 	redis "mize.app/repository/database/redis"
 	"mize.app/server_response"
 	"mize.app/uuid"
@@ -73,4 +74,19 @@ func GenerateAccessToken(ctx *gin.Context) {
 	}
 	ctx.SetCookie(string(authentication.ACCESS_TOKEN), *accessToken, access_token_ttl, "/", os.Getenv("APP_DOMAIN"), false, true)
 	server_response.Response(ctx, http.StatusCreated, "token generated", true, nil)
+}
+
+func ResendOtp(ctx *gin.Context) {
+	email := ctx.Query("email")
+	if email == "" {
+		server_response.Response(ctx, http.StatusBadRequest, "pass in a valid email to recieve the otp", false, nil)
+	}
+	otp, err := authentication.GenerateOTP(6)
+	if err != nil {
+		server_response.Response(ctx, http.StatusInternalServerError, "Something went wrong while generating otp", false, nil)
+		return
+	}
+	authentication.SaveOTP(ctx, email, otp, 5*time.Minute)
+	emails.SendEmail(email, "Activate your Mize account", "otp", map[string]string{"OTP": string(otp)})
+	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
 }

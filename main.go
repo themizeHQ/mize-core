@@ -61,6 +61,8 @@ func main() {
 		authV1 := v1.Group("/auth")
 		{
 			authV1.GET("/generate-access-token", auth.GenerateAccessToken)
+
+			authV1.GET("/resend-otp", auth.ResendOtp)
 		}
 	}
 
