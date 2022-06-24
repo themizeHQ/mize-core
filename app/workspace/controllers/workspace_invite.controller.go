@@ -13,8 +13,8 @@ import (
 
 func InviteToWorkspace(ctx *gin.Context) {
 	var payload struct {
-		Emails        []string
-		WorkspaceName string
+		Emails      []string
+		WorkspaceId string
 	}
 	if err := ctx.ShouldBind(&payload); err != nil {
 		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
@@ -24,11 +24,11 @@ func InviteToWorkspace(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusBadRequest, "Pass in an array of emails to get invites", false, nil)
 		return
 	}
-	if payload.WorkspaceName == "" {
+	if payload.WorkspaceId == "" {
 		server_response.Response(ctx, http.StatusBadRequest, "Pass in the workspace name", false, nil)
 		return
 	}
-	err := workspaceUseCases.SendInvitesUseCase(ctx, payload.Emails, payload.WorkspaceName)
+	err := workspaceUseCases.SendInvitesUseCase(ctx, payload.Emails, payload.WorkspaceId)
 	if err != nil {
 		return
 	}
