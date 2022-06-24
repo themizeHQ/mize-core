@@ -80,6 +80,7 @@ func ResendOtp(ctx *gin.Context) {
 	email := ctx.Query("email")
 	if email == "" {
 		server_response.Response(ctx, http.StatusBadRequest, "pass in a valid email to recieve the otp", false, nil)
+		return
 	}
 	otp, err := authentication.GenerateOTP(6)
 	if err != nil {
