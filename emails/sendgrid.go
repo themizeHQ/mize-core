@@ -27,10 +27,7 @@ func SendEmail(toEmail string, subject string, templateName string, opts interfa
 	} else {
 		fmt.Println(response.Body)
 		fmt.Println(response.StatusCode)
-		if response.StatusCode != 200 {
-			return false
-		}
-		return true
+		return response.StatusCode == 202
 	}
 }
 
