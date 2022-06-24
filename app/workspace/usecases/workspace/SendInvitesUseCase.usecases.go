@@ -10,7 +10,7 @@ import (
 
 	workspaceModel "mize.app/app/workspace/models"
 	workspaceRepo "mize.app/app/workspace/repository"
-	workspace_invite "mize.app/app/workspace/usecases/workspace_invite"
+	workspaceInvite "mize.app/app/workspace/usecases/workspace_invite"
 	"mize.app/app_errors"
 	"mize.app/emails"
 )
@@ -43,20 +43,31 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string, workspace_id str
 		app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
 		return err
 	}
+	failed := 0
 	for _, email := range user_emails {
 		wg.Add(1)
 		go func(e string) {
 			defer func() {
 				wg.Done()
 			}()
-			result := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
-				"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": "should be a url here"})
-			workspace_invite.CreateWorkspaceInviteUseCase(ctx, workspaceModel.WorkspaceInvite{Email: e, Success: result})
-			if !result {
-				err = errors.New("an error occured while sending invites")
-				app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
+			exists := workspaceRepo.WorkspaceInviteRepository.FindOneByFilter(ctx, map[string]interface{}{
+				"email":     e,
+				"workspace": workspace.Id,
+			})
+			if exists == nil {
+				result := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
+					"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": "should be a url here"})
+				workspaceInvite.CreateWorkspaceInviteUseCase(ctx, workspaceModel.WorkspaceInvite{Email: e, Success: result, Workspace: workspace.Id})
+				if !result {
+					failed++
+				}
 			}
 		}(email)
+	}
+	if failed != 0 {
+		err = fmt.Errorf("%d invites failed to send", failed)
+		app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
+		return err
 	}
 	wg.Wait()
 	return err
