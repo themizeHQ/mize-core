@@ -19,12 +19,28 @@ var wg sync.WaitGroup
 
 func SendInvitesUseCase(ctx *gin.Context, user_emails []string, workspace_id string) error {
 	workspace := workspaceRepo.WorkspaceRepository.FindOneByFilter(ctx, map[string]interface{}{
-		"id": workspace_id,
+		"_id": workspace_id,
 	})
 	var err error
 	if workspace == nil {
 		err = errors.New("workspace does not exist")
-		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
+		app_errors.ErrorHandler(ctx, err, http.StatusNotFound)
+		return err
+	}
+	has_access := false
+	if workspace.CreatedBy.Hex() == ctx.GetString("UserId") {
+		has_access = true
+	} else {
+		for _, admin := range workspace.Admins {
+			if admin.Hex() == ctx.GetString("UserId") {
+				has_access = true
+				break
+			}
+		}
+	}
+	if !has_access {
+		err = errors.New("only admins can send invites for workspaces")
+		app_errors.ErrorHandler(ctx, err, http.StatusUnauthorized)
 		return err
 	}
 	for _, email := range user_emails {
