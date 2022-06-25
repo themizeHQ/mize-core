@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	user "mize.app/app/user/models"
 	userRepo "mize.app/app/user/repository"
 	"mize.app/app_errors"
@@ -16,8 +15,6 @@ import (
 
 func CacheUserUseCase(ctx *gin.Context, payload *user.User) (bool, error) {
 	payload.Verified = false
-	payload.AppsCreated = []primitive.ObjectID{}
-	payload.WorkspaceCreated = []primitive.ObjectID{}
 	emailExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"email": payload.Email})
 	usernameExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"userName": payload.UserName})
 	var unexprectedError app_errors.RequestError

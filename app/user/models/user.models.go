@@ -19,8 +19,6 @@ type User struct {
 	Region           string               `bson:"region"`
 	Password         string               `bson:"password"`
 	Verified         bool                 `bson:"verified"`
-	AppsCreated      []primitive.ObjectID `bson:"appsCreated"`
-	WorkspaceCreated []primitive.ObjectID `bson:"workspaceCreated"`
 	CreatedAt        primitive.Timestamp  `bson:"createdAt"`
 	UpdatedAt        primitive.Timestamp  `bson:"updatedAt"`
 }
