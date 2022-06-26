@@ -16,6 +16,7 @@ var (
 	WorkspaceModel  mongo.Collection
 	AppModel        mongo.Collection
 	WorkspaceInvite mongo.Collection
+	Channel         mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -58,4 +59,6 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	WorkspaceModel = *db.Collection("Workspaces")
 
 	WorkspaceInvite = *db.Collection("WorkspaceInvites")
+
+	Channel = *db.Collection("Channel")
 }

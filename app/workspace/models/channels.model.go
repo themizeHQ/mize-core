@@ -8,6 +8,7 @@ import (
 
 type Channel struct {
 	Id          primitive.ObjectID   `bson:"_id"`
+	WorkspaceId primitive.ObjectID   `bson:"workspaceId"`
 	Name        string               `bson:"name"`
 	Description string               `bson:"description"`
 	Private     bool                 `bson:"private"`

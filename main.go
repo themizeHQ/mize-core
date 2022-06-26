@@ -56,6 +56,8 @@ func main() {
 			workspaceV1.POST("/create", workspaceControllers.CreateWorkspace)
 
 			workspaceV1.POST("/invite", workspaceControllers.InviteToWorkspace)
+
+			workspaceV1.POST("/channel/create", workspaceControllers.CreateChannel)
 		}
 
 		authV1 := v1.Group("/auth")
