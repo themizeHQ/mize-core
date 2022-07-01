@@ -60,6 +60,11 @@ func main() {
 			workspaceV1.POST("/channel/create", workspaceControllers.CreateChannel)
 		}
 
+		channelV1 := v1.Group("/channel", middlewares.AuthenticationMiddleware)
+		{
+			channelV1.POST("/create", workspaceControllers.CreateChannel)
+		}
+
 		authV1 := v1.Group("/auth")
 		{
 			authV1.GET("/generate-access-token", auth.GenerateAccessTokenFromRefresh)

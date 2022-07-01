@@ -18,9 +18,9 @@ func CreateChannel(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json value"), StatusCode: http.StatusBadGateway})
 		return
 	}
-	err := channelUseCases.CreateChannelUseCase(ctx, payload)
+	id, err := channelUseCases.CreateChannelUseCase(ctx, payload)
 	if err != nil {
 		return
 	}
-	server_response.Response(ctx, http.StatusCreated, "channel successfully created.", true, nil)
+	server_response.Response(ctx, http.StatusCreated, "channel successfully created.", true, id)
 }

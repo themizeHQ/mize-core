@@ -11,13 +11,13 @@ import (
 	"mize.app/app_errors"
 )
 
-func CreateChannelUseCase(ctx *gin.Context, payload workspaceModel.Channel) error {
+func CreateChannelUseCase(ctx *gin.Context, payload workspaceModel.Channel) (*string, error) {
 	var channelRepoInstance = workspaceRepo.GetChannelRepo()
 	var workspaceRepoInstance = workspaceRepo.GetWorkspaceRepo()
 	workspace, err := workspaceRepoInstance.FindById(payload.WorkspaceId)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
-		return err
+		return nil, err
 	}
 	has_access := false
 	if workspace.CreatedBy == ctx.GetString("UserId") {
@@ -32,13 +32,13 @@ func CreateChannelUseCase(ctx *gin.Context, payload workspaceModel.Channel) erro
 	}
 	if !has_access {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("only admins can create channels"), StatusCode: http.StatusUnauthorized})
-		return err
+		return nil, err
 	}
 	payload.CreatedBy = ctx.GetString("UserId")
-	_, err = channelRepoInstance.CreateOne(payload)
+	id, err := channelRepoInstance.CreateOne(payload)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("channel creation failed"), StatusCode: http.StatusInternalServerError})
-		return err
+		return nil, err
 	}
-	return nil
+	return id, nil
 }
