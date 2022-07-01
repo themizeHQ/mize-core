@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,12 +15,12 @@ import (
 func CreateChannel(ctx *gin.Context) {
 	var payload workspaceModel.Channel
 	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json value"), StatusCode: http.StatusBadGateway})
 		return
 	}
-	result, err := channelUseCases.CreateChannelUseCase(ctx, payload)
+	err := channelUseCases.CreateChannelUseCase(ctx, payload)
 	if err != nil {
 		return
 	}
-	server_response.Response(ctx, http.StatusCreated, "Channel successfully created.", true, result)
+	server_response.Response(ctx, http.StatusCreated, "channel successfully created.", true, nil)
 }

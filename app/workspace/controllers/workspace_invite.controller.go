@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -17,7 +18,7 @@ func InviteToWorkspace(ctx *gin.Context) {
 		WorkspaceId string
 	}
 	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json value"), StatusCode: http.StatusBadRequest})
 		return
 	}
 	if len(payload.Emails) == 0 {
@@ -33,5 +34,5 @@ func InviteToWorkspace(ctx *gin.Context) {
 		return
 	}
 
-	server_response.Response(ctx, http.StatusOK, fmt.Sprintf("Invites sent successfully to %d emails", len(payload.Emails)), true, err)
+	server_response.Response(ctx, http.StatusOK, fmt.Sprintf("invites sent successfully to %d emails", len(payload.Emails)), true, nil)
 }

@@ -2,13 +2,10 @@ package repository
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"mize.app/app_errors"
 	redisDb "mize.app/db/redis"
 )
 
@@ -33,12 +30,7 @@ func (redisRepo *RedisRepository) CreateEntry(ctx *gin.Context, key string, payl
 
 	_, err := redisRepo.Clinet.Set(c, key, payload, ttl).Result()
 
-	if err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 func (redisRepo *RedisRepository) FindOne(ctx *gin.Context, key string) *string {
@@ -54,7 +46,6 @@ func (redisRepo *RedisRepository) FindOne(ctx *gin.Context, key string) *string 
 		if err.Error() == "redis: nil" {
 			return nil
 		}
-		app_errors.ErrorHandler(ctx, err, http.StatusNotFound)
 		return nil
 	}
 	return &result
@@ -70,7 +61,6 @@ func (redisRepo *RedisRepository) DeleteOne(ctx *gin.Context, key string) bool {
 	result, err := redisRepo.Clinet.Del(c, key).Result()
 
 	if err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return false
 	}
 	if int(result) != 1 {
@@ -90,12 +80,7 @@ func (redisRepo *RedisRepository) CreateInSet(ctx *gin.Context, key string, scor
 		Score: score, Member: member,
 	})
 
-	if added == nil {
-		err := errors.New("redis : could not save data in set")
-		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
-		return false
-	}
-	return true
+	return added != nil
 }
 
 func (redisRepo *RedisRepository) FindSet(ctx *gin.Context, key string) *[]string {
@@ -107,8 +92,6 @@ func (redisRepo *RedisRepository) FindSet(ctx *gin.Context, key string) *[]strin
 
 	result := redisRepo.Clinet.ZRange(c, key, 0, -1)
 	if result == nil {
-		err := errors.New("redis : could find set")
-		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
 		return nil
 	}
 	val := result.Val()

@@ -12,11 +12,11 @@ import (
 )
 
 var (
-	UserModel       mongo.Collection
-	WorkspaceModel  mongo.Collection
-	AppModel        mongo.Collection
-	WorkspaceInvite mongo.Collection
-	Channel         mongo.Collection
+	UserModel       *mongo.Collection
+	WorkspaceModel  *mongo.Collection
+	AppModel        *mongo.Collection
+	WorkspaceInvite *mongo.Collection
+	Channel         *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -41,7 +41,7 @@ func ConnectMongo() context.CancelFunc {
 }
 
 func setUpIndexes(ctx context.Context, db *mongo.Database) {
-	UserModel = *db.Collection("Users")
+	UserModel = db.Collection("Users")
 	UserModel.Indexes().CreateMany(ctx, []mongo.IndexModel{{
 		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: options.Index().SetUnique(true),
@@ -50,15 +50,15 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		Options: options.Index().SetUnique(true),
 	}})
 
-	AppModel = *db.Collection("Apps")
+	AppModel = db.Collection("Apps")
 	AppModel.Indexes().CreateMany(ctx, []mongo.IndexModel{{
 		Keys:    bson.D{{Key: "name", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}})
 
-	WorkspaceModel = *db.Collection("Workspaces")
+	WorkspaceModel = db.Collection("Workspaces")
 
-	WorkspaceInvite = *db.Collection("WorkspaceInvites")
+	WorkspaceInvite = db.Collection("WorkspaceInvites")
 
-	Channel = *db.Collection("Channel")
+	Channel = db.Collection("Channels")
 }

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,7 +15,6 @@ import (
 	appModel "mize.app/app/application/models"
 	user "mize.app/app/user/models"
 	workspace "mize.app/app/workspace/models"
-	"mize.app/app_errors"
 )
 
 type MongoModels interface {
@@ -27,72 +26,164 @@ type MongoRepository[T MongoModels] struct {
 	Payload interface{}
 }
 
-func (repo *MongoRepository[T]) CreateOne(ctx *gin.Context, payload *T, opts ...*options.InsertOneOptions) *string {
+func (repo *MongoRepository[T]) CreateOne(payload T, opts ...*options.InsertOneOptions) (*string, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	parsed_payload := parsePayload(*payload)
-	result, err := repo.Model.InsertOne(c, parsed_payload, opts...)
-
-	if err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
-	}
 
 	defer func() {
 		cancel()
 	}()
-	result_val := *result
-	result_string, _ := result_val.InsertedID.(primitive.ObjectID)
-	to_string := result_string.Hex()
-	return &to_string
+
+	response, err := repo.Model.InsertOne(c, parsePayload(payload), opts...)
+	if err != nil {
+		return nil, err
+	}
+	id := response.InsertedID.(primitive.ObjectID).Hex()
+	return &id, err
 }
 
-func (repo *MongoRepository[T]) FindOneByFilter(ctx *gin.Context, filter map[string]interface{}, opts ...*options.FindOneOptions) *T {
-	filter = parseFilter(ctx, filter)
+func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertManyOptions) (bool, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
 	defer func() {
 		cancel()
 	}()
 
-	var resultDecoded T
-	cursor := repo.Model.FindOne(c, filter, opts...)
-	err := cursor.Decode(&resultDecoded)
+	_, err := repo.Model.InsertMany(c, parseMultiple(payload), opts...)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, opts ...*options.FindOneOptions) (*T, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+	var result T
+	f := parseFilter(filter)
+	doc := repo.Model.FindOne(c, f, opts...)
+	err := doc.Decode(&result)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
-			return nil
+			return nil, nil
 		}
-
-		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
-		return nil
+		return nil, err
 	}
-
-	return &resultDecoded
+	return &result, nil
 }
 
-func (repo *MongoRepository[T]) CountDocs(ctx *gin.Context, filter map[string]interface{}, opts ...*options.CountOptions) int64 {
-	filter = parseFilter(ctx, filter)
+func (repo *MongoRepository[T]) FindById(id string, opts ...*options.FindOneOptions) (*T, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+	var result T
+	err := repo.Model.FindOne(c, bson.M{"_id": parseStringToMongo(&id)}).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (repo *MongoRepository[T]) CountDocs(filter map[string]interface{}, opts ...*options.CountOptions) (int64, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+	count, err := repo.Model.CountDocuments(c, parseFilter(filter), opts...)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (repo *MongoRepository[T]) FindLast(opts ...*options.FindOptions) (*T, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
 	defer func() {
 		cancel()
 	}()
 
-	count, err := repo.Model.CountDocuments(c, filter, opts...)
+	var lastRecord T
+	err := repo.Model.FindOne(c, bson.M{}, options.FindOne().SetSort(bson.M{"$natural": -1})).Decode(&lastRecord)
 	if err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
-		return 0
+		return nil, err
 	}
-	return count
+	return &lastRecord, nil
 }
 
-func parseFilter(ctx *gin.Context, filter map[string]interface{}) map[string]interface{} {
+func (repo *MongoRepository[T]) DeleteOne(filter map[string]interface{}) (bool, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.DeleteOne(c, parseFilter(filter))
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (repo *MongoRepository[T]) DeleteById(id string) (bool, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.DeleteOne(c, bson.M{"_id": parseStringToMongo(&id)})
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (repo *MongoRepository[T]) DeleteMany(ctx *gin.Context, filter map[string]interface{}) (bool, error) {
+	_, err := repo.Model.DeleteMany(ctx, parseFilter(filter))
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, payload T) (bool, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.UpdateOne(c, parseFilter(filter), payload)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload map[string]interface{}) (bool, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.UpdateByID(c, parseStringToMongo(&id), payload)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func parseFilter(filter map[string]interface{}) map[string]interface{} {
 	if filter["_id"] != nil {
 		id := fmt.Sprintf("%v", filter["_id"])
-		objId, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			app_errors.ErrorHandler(ctx, err, http.StatusInternalServerError)
-			return filter
-		}
-		filter["_id"] = objId
+		filter["_id"] = parseStringToMongo(&id)
 	}
 	return filter
 }
@@ -104,6 +195,14 @@ func parsePayload[T MongoModels](payload T) *T {
 	return byteAToData[T](dataToByteA(payload_map))
 }
 
+func parseMultiple[T MongoModels](payload []T) []interface{} {
+	var result []interface{}
+	for _, data := range payload {
+		result = append(result, *parsePayload(data))
+	}
+	return result
+}
+
 func byteAToData[T interface{}](payload []byte) *T {
 	var data T
 	json.Unmarshal(payload, &data)
@@ -113,4 +212,9 @@ func byteAToData[T interface{}](payload []byte) *T {
 func dataToByteA(payload interface{}) []byte {
 	data, _ := json.Marshal(payload)
 	return data
+}
+
+func parseStringToMongo(id *string) primitive.ObjectID {
+	objId, _ := primitive.ObjectIDFromHex(*id)
+	return objId
 }

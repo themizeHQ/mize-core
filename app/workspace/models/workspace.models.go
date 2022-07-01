@@ -9,13 +9,13 @@ import (
 )
 
 type Workspace struct {
-	Id        primitive.ObjectID   `bson:"_id"`
-	Name      string               `bson:"name"`
-	Email     string               `bson:"email"`
-	Censor    bool                 `bson:"censor"`
-	CreatedBy primitive.ObjectID   `bson:"createdBy"`
-	Admins    []primitive.ObjectID `bson:"admins"`
-	Banned    []string             `bson:"banned"`
+	Id        primitive.ObjectID `bson:"_id"`
+	Name      string             `bson:"name"`
+	Email     string             `bson:"email"`
+	Censor    bool               `bson:"censor"`
+	CreatedBy string             `bson:"createdBy"`
+	Admins    []string           `bson:"admins"`
+	Banned    []string           `bson:"banned"`
 
 	CreatedAt primitive.Timestamp `bson:"createdAt"`
 	UpdatedAt primitive.Timestamp `bson:"updatedAt"`

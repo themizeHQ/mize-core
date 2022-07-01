@@ -13,26 +13,33 @@ import (
 	redis "mize.app/repository/database/redis"
 )
 
-func CacheUserUseCase(ctx *gin.Context, payload *user.User) (bool, error) {
-	payload.Verified = false
-	emailExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"email": payload.Email})
-	usernameExists := userRepo.UserRepository.FindOneByFilter(ctx, map[string]interface{}{"userName": payload.UserName})
-	var unexprectedError app_errors.RequestError
-	if emailExists != nil {
-		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("user with email already exists")}
-		app_errors.ErrorHandler(ctx, unexprectedError, http.StatusInternalServerError)
-		return false, unexprectedError
+func CacheUserUseCase(ctx *gin.Context, payload *user.User) error {
+	var userRepoInstance = userRepo.GetUserRepo()
+	emailExists, err := userRepoInstance.CountDocs(map[string]interface{}{"email": payload.Email})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return err
 	}
-	if usernameExists != nil {
-		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("user with username already exists")}
-		app_errors.ErrorHandler(ctx, unexprectedError, http.StatusInternalServerError)
-		return false, unexprectedError
+	if emailExists != 0 {
+		err := errors.New("user with email already exists")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusConflict})
+		return err
+	}
+	usernameExists, err := userRepoInstance.CountDocs(map[string]interface{}{"userName": payload.UserName})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return err
+	}
+	if usernameExists != 0 {
+		err := errors.New("user with username already exists")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusConflict})
+		return err
 	}
 	result := redis.RedisRepo.CreateEntry(ctx, fmt.Sprintf("%s-user", payload.Email), payload, 20*time.Minute)
 	if !result {
-		unexprectedError = app_errors.RequestError{StatusCode: http.StatusConflict, Err: errors.New("something went wrong while creating user")}
-		app_errors.ErrorHandler(ctx, unexprectedError, http.StatusInternalServerError)
-		return false, unexprectedError
+		err := errors.New("something went wrong while creating user")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return err
 	}
-	return result, nil
+	return nil
 }

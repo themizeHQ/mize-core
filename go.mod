@@ -7,6 +7,7 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
 	github.com/matthewhartstonge/argon2 v0.2.1
 	go.mongodb.org/mongo-driver v1.9.0
@@ -14,7 +15,6 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0 // indirect
 )
 

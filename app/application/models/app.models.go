@@ -9,18 +9,19 @@ import (
 )
 
 type Application struct {
-	Email             string   `bson:"email"`
-	CreatedBy         string   `bson:"createdBy"`
-	Name              string   `bson:"name"`
-	Description       string   `bson:"description"`
-	LanguageAvailable []string `bson:"languageAvailable"`
-	Region            string   `bson:"region"`
-	Version           string   `bson:"version"`
-	WorkSpaceOnly     *string  `bson:"workspaceOnly"`
-	RegionAvailable   []string `bson:"regionAvailable"`
-	RequiredData      []string `bson:"requiredData"`
-	Approved          bool     `bson:"approved"`
-	Active            bool     `bson:"active"`
+	Id                primitive.ObjectID `bson:"_id"`
+	Email             string             `bson:"email"`
+	CreatedBy         string             `bson:"createdBy"`
+	Name              string             `bson:"name"`
+	Description       string             `bson:"description"`
+	LanguageAvailable []string           `bson:"languageAvailable"`
+	Region            string             `bson:"region"`
+	Version           string             `bson:"version"`
+	WorkSpaceOnly     *string            `bson:"workspaceOnly"`
+	RegionAvailable   []string           `bson:"regionAvailable"`
+	RequiredData      []string           `bson:"requiredData"`
+	Approved          bool               `bson:"approved"`
+	Active            bool               `bson:"active"`
 	// ---  not provided by user ---
 	Rating    int
 	UserCount int

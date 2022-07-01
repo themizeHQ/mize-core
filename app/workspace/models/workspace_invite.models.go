@@ -13,8 +13,11 @@ type WorkspaceInvite struct {
 	Email     string
 	Accepted  *bool
 	Success   bool
-	Workspace primitive.ObjectID
+	Workspace string
 	Expired   bool
+
+	CreatedAt primitive.Timestamp `bson:"createdAt"`
+	UpdatedAt primitive.Timestamp `bson:"updatedAt"`
 }
 
 func (invite *WorkspaceInvite) MarshalBinary() ([]byte, error) {

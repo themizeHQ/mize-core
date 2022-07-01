@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,12 +15,12 @@ import (
 func CreateWorkspace(ctx *gin.Context) {
 	var payload workspaceModel.Workspace
 	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json value"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	result, err := workspaceUseCases.CreateWorkspaceUseCase(ctx, payload)
+	id, err := workspaceUseCases.CreateWorkspaceUseCase(ctx, payload)
 	if err != nil {
 		return
 	}
-	server_response.Response(ctx, http.StatusCreated, "Workspace successfully created.", true, result)
+	server_response.Response(ctx, http.StatusCreated, "workspace successfully created.", true, id)
 }

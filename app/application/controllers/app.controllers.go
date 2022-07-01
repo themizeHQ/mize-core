@@ -14,13 +14,13 @@ import (
 func CreateApplication(ctx *gin.Context) {
 	var payload application.Application
 	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, err, http.StatusBadRequest)
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return
 	}
-	result, err := useCases.CreateAppUseCase(ctx, payload)
+	err := useCases.CreateAppUseCase(ctx, payload)
 	if err != nil {
 		return
 	}
 	emails.SendEmail(payload.Email, "Your application has been created!", "app_created", map[string]string{"APP_NAME": payload.Name})
-	server_response.Response(ctx, http.StatusCreated, "Application successfully created.", true, result)
+	server_response.Response(ctx, http.StatusCreated, "Application successfully created.", true, nil)
 }

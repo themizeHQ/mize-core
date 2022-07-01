@@ -11,8 +11,8 @@ type MizeErrors interface {
 	RequestError
 }
 
-func ErrorHandler(ctx *gin.Context, err error, code int) {
+func ErrorHandler(ctx *gin.Context, err RequestError) {
 	ctx.Abort()
 	fmt.Println(err)
-	server_response.Response(ctx, code, err.Error(), false, nil)
+	server_response.Response(ctx, err.StatusCode, err.Error(), false, nil)
 }
