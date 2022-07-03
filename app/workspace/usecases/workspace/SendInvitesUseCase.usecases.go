@@ -40,31 +40,24 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string, workspace_id str
 	failed := 0
 	var wg sync.WaitGroup
 	for _, email := range user_emails {
-		ch_mail_sent := make(chan bool, 1)
 		wg.Add(1)
 		go func(e string) {
 			defer func() {
 				wg.Done()
 			}()
-			ch_mail_sent <- emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
+			success := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
 				"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": "should be a url here"})
-			if !<-ch_mail_sent {
+			if !success {
 				failed++
 			}
-			close(ch_mail_sent)
-		}(email)
-
-		wg.Add(1)
-		go func(e string) {
-			defer func() {
-				wg.Done()
-			}()
-			workspaceInvite.CreateWorkspaceInviteUseCase(ctx, workspaceModel.WorkspaceInvite{Email: e, Success: <-ch_mail_sent, Workspace: workspace_id})
+			workspaceInvite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{"email": e, "workspace": workspace_id},
+				map[string]interface{}{"$set": &workspaceModel.WorkspaceInvite{Email: e, Success: success, Workspace: workspace_id}})
 		}(email)
 	}
 	wg.Wait()
 	if failed != 0 {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: fmt.Errorf("%d invites failed to send", failed), StatusCode: http.StatusBadRequest})
+		err = fmt.Errorf("%d invites failed to send", failed)
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return err
 	}
 	return err

@@ -152,28 +152,28 @@ func (repo *MongoRepository[T]) DeleteMany(ctx *gin.Context, filter map[string]i
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, payload T) (bool, error) {
+func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
 	defer func() {
 		cancel()
 	}()
 
-	_, err := repo.Model.UpdateOne(c, parseFilter(filter), payload)
+	_, err := repo.Model.UpdateOne(c, parseFilter(filter), payload, opts...)
 	if err != nil {
 		return false, err
 	}
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload map[string]interface{}) (bool, error) {
+func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
 	defer func() {
 		cancel()
 	}()
 
-	_, err := repo.Model.UpdateByID(c, parseStringToMongo(&id), payload)
+	_, err := repo.Model.UpdateByID(c, parseStringToMongo(&id), payload, opts...)
 	if err != nil {
 		return false, err
 	}
