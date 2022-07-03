@@ -11,10 +11,10 @@ import (
 	"mize.app/app_errors"
 )
 
-func CreateChannelUseCase(ctx *gin.Context, payload workspaceModel.Channel) (*string, error) {
+func CreateChannelUseCase(ctx *gin.Context, workspace_id string, payload []workspaceModel.Channel) (*[]string, error) {
 	var channelRepoInstance = workspaceRepo.GetChannelRepo()
 	var workspaceRepoInstance = workspaceRepo.GetWorkspaceRepo()
-	workspace, err := workspaceRepoInstance.FindById(payload.WorkspaceId)
+	workspace, err := workspaceRepoInstance.FindById(workspace_id)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return nil, err
@@ -34,11 +34,13 @@ func CreateChannelUseCase(ctx *gin.Context, payload workspaceModel.Channel) (*st
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("only admins can create channels"), StatusCode: http.StatusUnauthorized})
 		return nil, err
 	}
-	payload.CreatedBy = ctx.GetString("UserId")
-	id, err := channelRepoInstance.CreateOne(payload)
+	for _, ch_name := range payload {
+	ch_name.CreatedBy = ctx.GetString("UserId")
+	}
+	ids, err := channelRepoInstance.CreateBulk(payload)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("channel creation failed"), StatusCode: http.StatusInternalServerError})
 		return nil, err
 	}
-	return id, nil
+	return ids, nil
 }

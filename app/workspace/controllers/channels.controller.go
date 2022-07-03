@@ -13,12 +13,17 @@ import (
 )
 
 func CreateChannel(ctx *gin.Context) {
-	var payload workspaceModel.Channel
-	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json value"), StatusCode: http.StatusBadGateway})
+	var payload []workspaceModel.Channel
+	workspace_id := ctx.Query("workspace_id")
+	if workspace_id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a valid workspace id"), StatusCode: http.StatusBadGateway})
 		return
 	}
-	id, err := channelUseCases.CreateChannelUseCase(ctx, payload)
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json array value"), StatusCode: http.StatusBadGateway})
+		return
+	}
+	id, err := channelUseCases.CreateChannelUseCase(ctx, workspace_id, payload)
 	if err != nil {
 		return
 	}

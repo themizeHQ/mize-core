@@ -46,17 +46,17 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string, workspace_id str
 				wg.Done()
 			}()
 			success := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
-				"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": "should be a url here"})
-			if !success {
+				"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": fmt.Sprintf("https://mize.app?%s&?%s", workspace_id, e)})
+			er := workspaceInvite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{"email": e, "workspace": workspace_id},
+				&workspaceModel.WorkspaceInvite{Email: e, Success: success, Workspace: workspace_id})
+			if !success || er != nil {
 				failed++
 			}
-			workspaceInvite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{"email": e, "workspace": workspace_id},
-				map[string]interface{}{"$set": &workspaceModel.WorkspaceInvite{Email: e, Success: success, Workspace: workspace_id}})
 		}(email)
 	}
 	wg.Wait()
 	if failed != 0 {
-		err = fmt.Errorf("%d invites failed to send", failed)
+		err = fmt.Errorf("%d invites had problems. examine the info provided on the admin dashboard", failed)
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return err
 	}

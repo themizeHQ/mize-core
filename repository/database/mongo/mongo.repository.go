@@ -41,18 +41,22 @@ func (repo *MongoRepository[T]) CreateOne(payload T, opts ...*options.InsertOneO
 	return &id, err
 }
 
-func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertManyOptions) (bool, error) {
+func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertManyOptions) (*[]string, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
 	defer func() {
 		cancel()
 	}()
 
-	_, err := repo.Model.InsertMany(c, parseMultiple(payload), opts...)
+	response, err := repo.Model.InsertMany(c, parseMultiple(payload), opts...)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return true, err
+	var ids []string
+	for _, id := range response.InsertedIDs {
+		ids = append(ids, id.(primitive.ObjectID).Hex())
+	}
+	return &ids, err
 }
 
 func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, opts ...*options.FindOneOptions) (*T, error) {
@@ -160,6 +164,20 @@ func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, pay
 	}()
 
 	_, err := repo.Model.UpdateOne(c, parseFilter(filter), payload, opts...)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interface{}, payload *T, opts ...*options.UpdateOptions) (bool, error) {
+	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.UpdateOne(c, parseFilter(filter), bson.D{primitive.E{Key: "$set", Value: parsePayload(*payload)}}, opts...)
 	if err != nil {
 		return false, err
 	}
