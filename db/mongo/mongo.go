@@ -12,11 +12,17 @@ import (
 )
 
 var (
-	UserModel       *mongo.Collection
+	// app
+	AppModel *mongo.Collection
+
+	// user
+	UserModel *mongo.Collection
+
+	// workspace
 	WorkspaceModel  *mongo.Collection
-	AppModel        *mongo.Collection
 	WorkspaceInvite *mongo.Collection
 	Channel         *mongo.Collection
+	WorkspaceMember *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -61,4 +67,23 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	WorkspaceInvite = db.Collection("WorkspaceInvites")
 
 	Channel = db.Collection("Channels")
+
+	WorkspaceMember = db.Collection("WorkspaceMember")
+	WorkspaceMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "username", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "userId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "admin", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "banned", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+	})
 }

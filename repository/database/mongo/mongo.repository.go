@@ -18,7 +18,8 @@ import (
 )
 
 type MongoModels interface {
-	user.User | appModel.Application | workspace.Workspace | workspace.WorkspaceInvite | workspace.Channel
+	user.User | appModel.Application | workspace.Workspace | workspace.WorkspaceInvite |
+		workspace.Channel | workspace.WorkspaceMember
 }
 
 type MongoRepository[T MongoModels] struct {

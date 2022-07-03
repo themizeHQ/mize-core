@@ -9,6 +9,7 @@ import (
 var WorkspaceRepository repository.MongoRepository[workspace.Workspace]
 var WorkspaceInviteRepository repository.MongoRepository[workspace.WorkspaceInvite]
 var ChannelRepository repository.MongoRepository[workspace.Channel]
+var WorkspaceMember repository.MongoRepository[workspace.WorkspaceMember]
 
 func GetWorkspaceRepo() repository.MongoRepository[workspace.Workspace] {
 	WorkspaceRepository = repository.MongoRepository[workspace.Workspace]{Model: db.WorkspaceModel}
@@ -23,4 +24,9 @@ func GetWorkspaceInviteRepo() repository.MongoRepository[workspace.WorkspaceInvi
 func GetChannelRepo() repository.MongoRepository[workspace.Channel] {
 	ChannelRepository = repository.MongoRepository[workspace.Channel]{Model: db.Channel}
 	return ChannelRepository
+}
+
+func GetWorkspaceMember() repository.MongoRepository[workspace.WorkspaceMember] {
+	WorkspaceMember = repository.MongoRepository[workspace.WorkspaceMember]{Model: db.WorkspaceMember}
+	return WorkspaceMember
 }
