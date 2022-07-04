@@ -51,3 +51,17 @@ func RejectWorkspaceInvite(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "invite rejected", true, success)
 }
+
+func AcceptWorkspaceInvite(ctx *gin.Context) {
+	inviteId := ctx.Params.ByName("inviteId")
+	if inviteId == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace invite id was not provided"),
+			StatusCode: http.StatusBadRequest})
+		return
+	}
+	success, err := workspaceInviteUseCases.AcceptWorkspaceInviteUseCase(ctx, inviteId)
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "invite accepted", true, success)
+}
