@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	workspaceUseCases "mize.app/app/workspace/usecases/workspace"
+	workspaceInviteUseCases "mize.app/app/workspace/usecases/workspace_invite"
 	"mize.app/app_errors"
 	"mize.app/server_response"
 )
@@ -35,4 +36,18 @@ func InviteToWorkspace(ctx *gin.Context) {
 	}
 
 	server_response.Response(ctx, http.StatusOK, fmt.Sprintf("invites sent successfully to %d emails", len(payload.Emails)), true, nil)
+}
+
+func RejectWorkspaceInvite(ctx *gin.Context) {
+	inviteId := ctx.Params.ByName("inviteId")
+	if inviteId == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace invite id was not provided"),
+			StatusCode: http.StatusBadRequest})
+		return
+	}
+	success, err := workspaceInviteUseCases.RejectWorkspaceInviteUseCase(ctx, inviteId)
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "invite rejected", true, success)
 }

@@ -157,7 +157,7 @@ func (repo *MongoRepository[T]) DeleteMany(ctx *gin.Context, filter map[string]i
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
+func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, payload *T, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
 	defer func() {
@@ -185,14 +185,14 @@ func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interfac
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
+func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload *T, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
 	defer func() {
 		cancel()
 	}()
 
-	_, err := repo.Model.UpdateByID(c, parseStringToMongo(&id), payload, opts...)
+	_, err := repo.Model.UpdateByID(c, parseStringToMongo(&id), bson.D{primitive.E{Key: "$set", Value: *payload}}, opts...)
 	if err != nil {
 		return false, err
 	}
@@ -210,7 +210,11 @@ func parseFilter(filter map[string]interface{}) map[string]interface{} {
 func parsePayload[T MongoModels](payload T) *T {
 	byteA := dataToByteA(payload)
 	payload_map := *byteAToData[map[string]interface{}](byteA)
-	payload_map["Id"] = primitive.NewObjectID()
+	if payload_map["Id"] == "000000000000000000000000" {
+		payload_map["Id"] = primitive.NewObjectID()
+	} else {
+		payload_map["Id"] = parseStringToMongo(payload_map["Id"].(*string))
+	}
 	return byteAToData[T](dataToByteA(payload_map))
 }
 

@@ -56,6 +56,7 @@ func main() {
 			workspaceV1.POST("/create", workspaceControllers.CreateWorkspace)
 
 			workspaceV1.POST("/invite", workspaceControllers.InviteToWorkspace)
+			workspaceV1.PUT("/invite/:inviteId/reject", workspaceControllers.RejectWorkspaceInvite)
 
 			workspaceV1.POST("/channel/create", workspaceControllers.CreateChannel)
 		}
