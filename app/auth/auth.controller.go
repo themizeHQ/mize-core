@@ -32,7 +32,8 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid refresh token used"), StatusCode: http.StatusUnauthorized})
 		return
 	}
-	authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string), refresh_token_claims["Email"].(string))
+	authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
+		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string))
 	server_response.Response(ctx, http.StatusCreated, "token generated", true, nil)
 }
 

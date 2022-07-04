@@ -9,6 +9,7 @@ import (
 
 	workspaceUseCases "mize.app/app/workspace/usecases/workspace"
 	workspaceInviteUseCases "mize.app/app/workspace/usecases/workspace_invite"
+	workspaceMemberUseCases "mize.app/app/workspace/usecases/workspace_member"
 	"mize.app/app_errors"
 	"mize.app/server_response"
 )
@@ -59,9 +60,16 @@ func AcceptWorkspaceInvite(ctx *gin.Context) {
 			StatusCode: http.StatusBadRequest})
 		return
 	}
-	success, err := workspaceInviteUseCases.AcceptWorkspaceInviteUseCase(ctx, inviteId)
+	workspace_id, err := workspaceInviteUseCases.AcceptWorkspaceInviteUseCase(ctx, inviteId)
 	if err != nil {
 		return
 	}
-	server_response.Response(ctx, http.StatusOK, "invite accepted", true, success)
+	id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, *workspace_id)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("failed to join workspace"),
+			StatusCode: http.StatusInternalServerError})
+		fmt.Println(err)
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "invite accepted. you have been added to the workspace", true, id)
 }

@@ -29,5 +29,6 @@ func AuthenticationMiddleware(ctx *gin.Context) {
 	ctx.Set("UserId", access_token_claims["UserId"])
 	ctx.Set("Role", access_token_claims["Role"])
 	ctx.Set("Email", access_token_claims["Email"])
+	ctx.Set("Username", access_token_claims["Username"])
 	ctx.Next()
 }

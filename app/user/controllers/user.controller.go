@@ -58,12 +58,12 @@ func VerifyUser(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusUnauthorized, "Wrong otp provided", false, nil)
 		return
 	}
-	result, err := useCases.CreateUserUseCase(ctx, payload.Email)
+	result, username, err := useCases.CreateUserUseCase(ctx, payload.Email)
 	if err != nil {
 		return
 	}
-	authentication.GenerateAccessToken(ctx, *result, payload.Email)
-	authentication.GenerateRefreshToken(ctx, *result, payload.Email)
+	authentication.GenerateAccessToken(ctx, *result, payload.Email, *username)
+	authentication.GenerateRefreshToken(ctx, *result, payload.Email, *username)
 	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
 	server_response.Response(ctx, http.StatusCreated, "Account verified", true, result)
 }
@@ -82,7 +82,7 @@ func LoginUser(ctx *gin.Context) {
 	if profile == nil {
 		return
 	}
-	authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email)
-	authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email)
+	authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName)
+	authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName)
 	server_response.Response(ctx, http.StatusCreated, "Login Successful", true, profile)
 }

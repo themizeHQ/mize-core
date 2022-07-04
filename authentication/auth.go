@@ -71,6 +71,7 @@ type ClaimsData struct {
 	Issuer   string
 	UserId   string
 	Email    string
+	Username string
 	TokenId  string
 	Role     RoleType
 	ExpireAt time.Duration
@@ -83,6 +84,7 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"Issuer":   claimsData.Issuer,
 		"UserId":   claimsData.UserId,
+		"Username": claimsData.Username,
 		"TokenId":  claimsData.TokenId,
 		"Role":     claimsData.Role,
 		"ExpireAt": claimsData.ExpireAt,
@@ -118,11 +120,12 @@ func SaveAuthToken(ctx *gin.Context, key string, score float64, payload string) 
 	return redis.RedisRepo.CreateInSet(ctx, key, score, payload)
 }
 
-func GenerateRefreshToken(ctx *gin.Context, id string, email string) {
+func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string) {
 	refresh_token_id := uuid.GenerateUUID()
 	refreshToken, err := GenerateAuthToken(ctx, ClaimsData{
 		Issuer:   os.Getenv("JWT_ISSUER"),
 		Type:     REFRESH_TOKEN,
+		Username: username,
 		Role:     USER,
 		ExpireAt: 24 * 200 * time.Hour, // 200 days
 		UserId:   id,
@@ -141,11 +144,12 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string) {
 	ctx.SetCookie(string(REFRESH_TOKEN), *refreshToken, refresh_token_ttl, "/", os.Getenv("APP_DOMAIN"), false, false)
 }
 
-func GenerateAccessToken(ctx *gin.Context, id string, email string) {
+func GenerateAccessToken(ctx *gin.Context, id string, email string, username string) {
 	access_token_id := uuid.GenerateUUID()
 	accessToken, err := GenerateAuthToken(ctx, ClaimsData{
 		Issuer:   os.Getenv("JWT_ISSUER"),
 		Type:     ACCESS_TOKEN,
+		Username: username,
 		Role:     USER,
 		ExpireAt: 30 * time.Minute, // 30 mins
 		UserId:   id,
