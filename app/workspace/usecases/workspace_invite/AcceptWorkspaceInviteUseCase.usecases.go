@@ -47,7 +47,7 @@ func AcceptWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) 
 		return nil, err
 	}
 	if !success {
-		err = errors.New("something went wrong while rejecting your invite")
+		err = errors.New("something went wrong while accepting your invite")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, err
 	}
