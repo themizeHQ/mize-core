@@ -28,7 +28,7 @@ type MongoRepository[T MongoModels] struct {
 }
 
 func (repo *MongoRepository[T]) CreateOne(payload T, opts ...*options.InsertOneOptions) (*string, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -43,7 +43,7 @@ func (repo *MongoRepository[T]) CreateOne(payload T, opts ...*options.InsertOneO
 }
 
 func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertManyOptions) (*[]string, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -61,7 +61,7 @@ func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertM
 }
 
 func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, opts ...*options.FindOneOptions) (*T, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -80,7 +80,7 @@ func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, o
 }
 
 func (repo *MongoRepository[T]) FindById(id string, opts ...*options.FindOneOptions) (*T, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -94,7 +94,7 @@ func (repo *MongoRepository[T]) FindById(id string, opts ...*options.FindOneOpti
 }
 
 func (repo *MongoRepository[T]) CountDocs(filter map[string]interface{}, opts ...*options.CountOptions) (int64, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -107,7 +107,7 @@ func (repo *MongoRepository[T]) CountDocs(filter map[string]interface{}, opts ..
 }
 
 func (repo *MongoRepository[T]) FindLast(opts ...*options.FindOptions) (*T, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -122,7 +122,7 @@ func (repo *MongoRepository[T]) FindLast(opts ...*options.FindOptions) (*T, erro
 }
 
 func (repo *MongoRepository[T]) DeleteOne(filter map[string]interface{}) (bool, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -136,7 +136,7 @@ func (repo *MongoRepository[T]) DeleteOne(filter map[string]interface{}) (bool, 
 }
 
 func (repo *MongoRepository[T]) DeleteById(id string) (bool, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -158,7 +158,7 @@ func (repo *MongoRepository[T]) DeleteMany(ctx *gin.Context, filter map[string]i
 }
 
 func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, payload *T, opts ...*options.UpdateOptions) (bool, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -172,7 +172,7 @@ func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, pay
 }
 
 func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interface{}, payload *T, opts ...*options.UpdateOptions) (bool, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -186,7 +186,7 @@ func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interfac
 }
 
 func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload *T, opts ...*options.UpdateOptions) (bool, error) {
-	c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
@@ -199,12 +199,34 @@ func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload 
 	return true, err
 }
 
+func (repo *MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(mongo.SessionContext) error) error {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+
+	if err := repo.Model.Database().Client().UseSession(c, func(sc mongo.SessionContext) error {
+		if err := sc.StartTransaction(); err != nil {
+			return err
+		}
+		return payload(sc)
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func parseFilter(filter map[string]interface{}) map[string]interface{} {
 	if filter["_id"] != nil {
 		id := fmt.Sprintf("%v", filter["_id"])
 		filter["_id"] = parseStringToMongo(&id)
 	}
 	return filter
+}
+
+func createCtx() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 15*time.Second)
 }
 
 func parsePayload[T MongoModels](payload T) *T {
