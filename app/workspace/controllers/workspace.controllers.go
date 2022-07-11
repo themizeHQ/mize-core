@@ -23,7 +23,7 @@ func CreateWorkspace(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
-	member_id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, *id)
+	member_id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, *id, true)
 	if err != nil {
 		return
 	}

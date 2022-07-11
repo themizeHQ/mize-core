@@ -14,8 +14,6 @@ type Workspace struct {
 	Email     string             `bson:"email"`
 	Censor    bool               `bson:"censor"`
 	CreatedBy string             `bson:"createdBy"`
-	Admins    []string           `bson:"admins"`
-	Banned    []string           `bson:"banned"`
 
 	CreatedAt primitive.Timestamp `bson:"createdAt"`
 	UpdatedAt primitive.Timestamp `bson:"updatedAt"`

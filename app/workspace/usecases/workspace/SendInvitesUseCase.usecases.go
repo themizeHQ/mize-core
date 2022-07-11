@@ -17,23 +17,19 @@ import (
 
 func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 	var workspaceRepoInstance = workspaceRepo.GetWorkspaceRepo()
+	var workspaceMemberRepoInstance = workspaceRepo.GetWorkspaceMember()
 	workspace, err := workspaceRepoInstance.FindById(ctx.GetString("Workspace"))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return err
 	}
-	has_access := false
-	if workspace.CreatedBy == ctx.GetString("UserId") {
-		has_access = true
-	} else {
-		for _, admin := range workspace.Admins {
-			if admin == ctx.GetString("UserId") {
-				has_access = true
-				break
-			}
-		}
+	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{"workspaceId": ctx.GetString("Workspace"),
+		"userId": ctx.GetString("UserId")})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
+		return err
 	}
-	if !has_access {
+	if !workspace_member.Admin {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("only admins can send invites to workspaces"), StatusCode: http.StatusUnauthorized})
 		return err
 	}

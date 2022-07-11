@@ -13,24 +13,14 @@ import (
 
 func CreateChannelUseCase(ctx *gin.Context, payload []workspaceModel.Channel) (*[]string, error) {
 	var channelRepoInstance = workspaceRepo.GetChannelRepo()
-	var workspaceRepoInstance = workspaceRepo.GetWorkspaceRepo()
-	workspace, err := workspaceRepoInstance.FindById(ctx.GetString("Workspace"))
+	var workspaceMemberRepoInstance = workspaceRepo.GetWorkspaceMember()
+	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{"workspaceId": ctx.GetString("Workspace"),
+		"userId": ctx.GetString("UserId")})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return nil, err
 	}
-	has_access := false
-	if workspace.CreatedBy == ctx.GetString("UserId") {
-		has_access = true
-	} else {
-		for _, admin := range workspace.Admins {
-			if admin == ctx.GetString("UserId") {
-				has_access = true
-				break
-			}
-		}
-	}
-	if !has_access {
+	if !workspace_member.Admin {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("only admins can create channels"), StatusCode: http.StatusUnauthorized})
 		return nil, err
 	}
