@@ -62,8 +62,15 @@ func VerifyUser(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
-	authentication.GenerateAccessToken(ctx, *result, payload.Email, *username)
-	authentication.GenerateRefreshToken(ctx, *result, payload.Email, *username)
+	err = authentication.GenerateRefreshToken(ctx, *result, payload.Email, *username)
+	if err != nil {
+		return
+	}
+	err = authentication.GenerateAccessToken(ctx, *result, payload.Email, *username, nil)
+	if err != nil {
+		return
+	}
+
 	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
 	server_response.Response(ctx, http.StatusCreated, "Account verified", true, result)
 }
@@ -82,7 +89,13 @@ func LoginUser(ctx *gin.Context) {
 	if profile == nil {
 		return
 	}
-	authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName)
-	authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName)
+	err := authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName)
+	if err != nil {
+		return
+	}
+	err = authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, nil)
+	if err != nil {
+		return
+	}
 	server_response.Response(ctx, http.StatusCreated, "Login Successful", true, profile)
 }

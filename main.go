@@ -46,23 +46,23 @@ func main() {
 			userV1.POST("/login", userControllers.LoginUser)
 		}
 
-		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware)
+		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false))
 		{
 			appV1.POST("/create", appControllers.CreateApplication)
 		}
 
-		workspaceV1 := v1.Group("/workspace", middlewares.AuthenticationMiddleware)
+		workspaceV1 := v1.Group("/workspace")
 		{
-			workspaceV1.POST("/create", workspaceControllers.CreateWorkspace)
+			workspaceV1.POST("/create", middlewares.AuthenticationMiddleware(false), workspaceControllers.CreateWorkspace)
 
-			workspaceV1.POST("/invite", workspaceControllers.InviteToWorkspace)
+			workspaceV1.POST("/invite", middlewares.AuthenticationMiddleware(true), workspaceControllers.InviteToWorkspace)
 
-			workspaceV1.PUT("/invite/:inviteId/reject", workspaceControllers.RejectWorkspaceInvite)
+			workspaceV1.PUT("/invite/:inviteId/reject", middlewares.AuthenticationMiddleware(false), workspaceControllers.RejectWorkspaceInvite)
 
-			workspaceV1.PUT("/invite/:inviteId/accept", workspaceControllers.AcceptWorkspaceInvite)
+			workspaceV1.PUT("/invite/:inviteId/accept", middlewares.AuthenticationMiddleware(false), workspaceControllers.AcceptWorkspaceInvite)
 		}
 
-		channelV1 := v1.Group("/channel", middlewares.AuthenticationMiddleware)
+		channelV1 := v1.Group("/channel", middlewares.AuthenticationMiddleware(true))
 		{
 			channelV1.POST("/create", workspaceControllers.CreateChannel)
 		}

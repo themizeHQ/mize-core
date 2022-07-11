@@ -11,10 +11,10 @@ import (
 	"mize.app/app_errors"
 )
 
-func CreateChannelUseCase(ctx *gin.Context, workspace_id string, payload []workspaceModel.Channel) (*[]string, error) {
+func CreateChannelUseCase(ctx *gin.Context, payload []workspaceModel.Channel) (*[]string, error) {
 	var channelRepoInstance = workspaceRepo.GetChannelRepo()
 	var workspaceRepoInstance = workspaceRepo.GetWorkspaceRepo()
-	workspace, err := workspaceRepoInstance.FindById(workspace_id)
+	workspace, err := workspaceRepoInstance.FindById(ctx.GetString("Workspace"))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return nil, err
@@ -35,7 +35,8 @@ func CreateChannelUseCase(ctx *gin.Context, workspace_id string, payload []works
 		return nil, err
 	}
 	for _, ch_name := range payload {
-	ch_name.CreatedBy = ctx.GetString("UserId")
+		ch_name.CreatedBy = ctx.GetString("UserId")
+		ch_name.WorkspaceId = ctx.GetString("Workspace")
 	}
 	ids, err := channelRepoInstance.CreateBulk(payload)
 	if err != nil {

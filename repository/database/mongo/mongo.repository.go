@@ -79,6 +79,28 @@ func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, o
 	return &result, nil
 }
 
+func (repo *MongoRepository[T]) FindMany(filter map[string]interface{}, opts ...*options.FindOptions) (*[]T, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+	var result []T
+	f := parseFilter(filter)
+	cursor, err := repo.Model.Find(c, f, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cursor.All(c, &result)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &result, nil
+}
+
 func (repo *MongoRepository[T]) FindById(id string, opts ...*options.FindOneOptions) (*T, error) {
 	c, cancel := createCtx()
 
@@ -171,14 +193,14 @@ func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, pay
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interface{}, payload *T, opts ...*options.UpdateOptions) (bool, error) {
+func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
 	}()
 
-	_, err := repo.Model.UpdateOne(c, parseFilter(filter), bson.D{primitive.E{Key: "$set", Value: parsePayload(*payload)}}, opts...)
+	_, err := repo.Model.UpdateOne(c, parseFilter(filter), bson.D{primitive.E{Key: "$set", Value: payload}}, opts...)
 	if err != nil {
 		return false, err
 	}

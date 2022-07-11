@@ -8,6 +8,7 @@ import (
 
 	workspaceModel "mize.app/app/workspace/models"
 	workspaceUseCases "mize.app/app/workspace/usecases/workspace"
+	workspaceMemberUseCases "mize.app/app/workspace/usecases/workspace_member"
 	"mize.app/app_errors"
 	"mize.app/server_response"
 )
@@ -22,5 +23,12 @@ func CreateWorkspace(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
-	server_response.Response(ctx, http.StatusCreated, "workspace successfully created.", true, id)
+	member_id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, *id)
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusCreated, "workspace successfully created.", true, map[string]interface{}{
+		"workspace_id": id,
+		"workspace_member_id": member_id,
+	})
 }

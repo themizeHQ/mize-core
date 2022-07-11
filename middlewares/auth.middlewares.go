@@ -2,7 +2,9 @@ package middlewares
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,23 +14,37 @@ import (
 	"mize.app/authentication"
 )
 
-func AuthenticationMiddleware(ctx *gin.Context) {
-	access_token, err := ctx.Request.Cookie(string(authentication.ACCESS_TOKEN))
-	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("no auth tokens provided"), StatusCode: http.StatusUnauthorized})
-		return
+func AuthenticationMiddleware(has_workspace bool) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		access_token, err := ctx.Request.Cookie(string(authentication.ACCESS_TOKEN))
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("no auth tokens provided"), StatusCode: http.StatusUnauthorized})
+			return
+		}
+
+		valid_access_token := authentication.DecodeAuthToken(ctx, access_token.Value)
+		if !valid_access_token.Valid {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid access token used"), StatusCode: http.StatusUnauthorized})
+			return
+		}
+		access_token_claims := valid_access_token.Claims.(jwt.MapClaims)
+		if has_workspace {
+			if access_token_claims["Workspace"] == nil {
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this route is for tokens given workspace access"), StatusCode: http.StatusUnauthorized})
+				return
+			}
+		}
+		if access_token_claims["Type"] != "access_token" || access_token_claims["Issuer"] != os.Getenv("JWT_ISSUER") {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this is not an authorized access token"), StatusCode: http.StatusUnauthorized})
+			return
+		}
+		fmt.Println(access_token_claims["Workspace"])
+		ctx.Set("UserId", access_token_claims["UserId"])
+		ctx.Set("Role", access_token_claims["Role"])
+		ctx.Set("Email", access_token_claims["Email"])
+		ctx.Set("Username", access_token_claims["Username"])
+		ctx.Set("Workspace", access_token_claims["Workspace"])
+		ctx.Next()
 	}
 
-	valid_access_token := authentication.DecodeAuthToken(ctx, access_token.Value)
-	if !valid_access_token.Valid {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid access token used"), StatusCode: http.StatusUnauthorized})
-		return
-	}
-
-	access_token_claims := valid_access_token.Claims.(jwt.MapClaims)
-	ctx.Set("UserId", access_token_claims["UserId"])
-	ctx.Set("Role", access_token_claims["Role"])
-	ctx.Set("Email", access_token_claims["Email"])
-	ctx.Set("Username", access_token_claims["Username"])
-	ctx.Next()
 }

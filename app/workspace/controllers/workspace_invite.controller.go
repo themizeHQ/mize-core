@@ -16,8 +16,7 @@ import (
 
 func InviteToWorkspace(ctx *gin.Context) {
 	var payload struct {
-		Emails      []string
-		WorkspaceId string
+		Emails []string
 	}
 	if err := ctx.ShouldBind(&payload); err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json value"), StatusCode: http.StatusBadRequest})
@@ -27,11 +26,7 @@ func InviteToWorkspace(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusBadRequest, "Pass in an array of emails to get invites", false, nil)
 		return
 	}
-	if payload.WorkspaceId == "" {
-		server_response.Response(ctx, http.StatusBadRequest, "Pass in the workspace name", false, nil)
-		return
-	}
-	err := workspaceUseCases.SendInvitesUseCase(ctx, payload.Emails, payload.WorkspaceId)
+	err := workspaceUseCases.SendInvitesUseCase(ctx, payload.Emails)
 	if err != nil {
 		return
 	}
