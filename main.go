@@ -55,6 +55,8 @@ func main() {
 		{
 			workspaceV1.POST("/create", middlewares.AuthenticationMiddleware(false), workspaceControllers.CreateWorkspace)
 
+			workspaceV1.GET("/fetch", middlewares.AuthenticationMiddleware(false), workspaceControllers.FetchUserWorkspaces)
+
 			workspaceV1.POST("/invite", middlewares.AuthenticationMiddleware(true), workspaceControllers.InviteToWorkspace)
 
 			workspaceV1.PUT("/invite/:inviteId/reject", middlewares.AuthenticationMiddleware(false), workspaceControllers.RejectWorkspaceInvite)

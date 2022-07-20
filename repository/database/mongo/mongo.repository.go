@@ -244,7 +244,6 @@ func parseFilter(filter map[string]interface{}) map[string]interface{} {
 		id := fmt.Sprintf("%v", filter["_id"])
 		filter["_id"] = parseStringToMongo(&id)
 	}
-	fmt.Println(filter)
 	return filter
 }
 

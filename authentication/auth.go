@@ -14,6 +14,7 @@ import (
 	"mize.app/app_errors"
 	"mize.app/cryptography"
 	redis "mize.app/repository/database/redis"
+	"mize.app/utils"
 )
 
 const otpChars = "1234567890"
@@ -141,7 +142,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 	var role RoleType = USER
 	if workspace_id != nil {
 		workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
-		workspaceMember, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{"userId": id, "workspaceId": *workspace_id})
+		workspaceMember, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{"userId": utils.HexToMongoId(ctx, id), "workspaceId": utils.HexToMongoId(ctx, *workspace_id)})
 		if workspaceMember == nil || err != nil {
 			err := app_errors.RequestError{StatusCode: http.StatusUnauthorized, Err: errors.New("you do not belong to this workspace")}
 			app_errors.ErrorHandler(ctx, err)
