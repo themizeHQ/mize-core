@@ -9,6 +9,7 @@ import (
 	workspaceModel "mize.app/app/workspace/models"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	"mize.app/utils"
 )
 
 func CreateChannelUseCase(ctx *gin.Context, payload []workspaceModel.Channel) (*[]string, error) {
@@ -25,8 +26,8 @@ func CreateChannelUseCase(ctx *gin.Context, payload []workspaceModel.Channel) (*
 		return nil, err
 	}
 	for _, ch_name := range payload {
-		ch_name.CreatedBy = ctx.GetString("UserId")
-		ch_name.WorkspaceId = ctx.GetString("Workspace")
+		ch_name.CreatedBy = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
+		ch_name.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 	}
 	ids, err := channelRepoInstance.CreateBulk(payload)
 	if err != nil {

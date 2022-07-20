@@ -51,5 +51,6 @@ func AcceptWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) 
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, err
 	}
-	return &invite.Workspace, nil
+	workspaceId := invite.WorkspaceId.Hex()
+	return &workspaceId, nil
 }

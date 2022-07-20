@@ -2,16 +2,19 @@ package application
 
 import (
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Application struct {
 	Id                primitive.ObjectID `bson:"_id"`
 	Email             string             `bson:"email"`
-	CreatedBy         string             `bson:"createdBy"`
+	CreatedBy         primitive.ObjectID `bson:"createdBy"`
 	Name              string             `bson:"name"`
 	Description       string             `bson:"description"`
 	LanguageAvailable []string           `bson:"languageAvailable"`
@@ -25,22 +28,34 @@ type Application struct {
 	// ---  not provided by user ---
 	Rating    int
 	UserCount int
-	CreatedAt primitive.Timestamp `bson:"createdAt"`
-	UpdatedAt primitive.Timestamp `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt"`
 }
 
 func (app *Application) MarshalBinary() ([]byte, error) {
+	if app.CreatedAt.Time().IsZero() {
+		app.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
+	}
+	app.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	return json.Marshal(app)
+}
+
+
+func (app *Application) MarshalBSON() ([]byte, error) {
+	fmt.Println(app.CreatedAt.Time().Unix())
+	if app.CreatedAt.Time().Unix() == 0 {
+		app.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
+	}
+	app.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+	return bson.Marshal(*app)
 }
 
 func (app *Application) Validate() error {
 	return validation.ValidateStruct(app,
 		validation.Field(&app.Email, validation.Required.Error("Please provide a valid email for your app"), is.Email.Error("Pass in a valid email")),
-		validation.Field(&app.CreatedBy, validation.Required, is.MongoID.Error("Pass in a valid mongodb id")),
 		validation.Field(&app.Name, validation.Required.Error("Please provide a name for your app"), is.Alphanumeric.Error("Your app name can contain only numbers and letters")),
 		validation.Field(&app.LanguageAvailable, validation.Each(validation.Required.Error("Provide at lease one langauge"))),
 		validation.Field(&app.Region, is.CountryCode2.Error("Pass in a valid country code")),
-		validation.Field(&app.WorkSpaceOnly, is.MongoID.Error("Pass in a WorkSpace ID")),
 		validation.Field(&app.RegionAvailable, is.CountryCode2.Error("Pass in a valid country code")),
 		validation.Field(&app.RequiredData, validation.Required.Error("Pass in the user information you need")),
 	)

@@ -2,9 +2,12 @@ package workspace
 
 import (
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -13,14 +16,23 @@ type Workspace struct {
 	Name      string             `bson:"name"`
 	Email     string             `bson:"email"`
 	Censor    bool               `bson:"censor"`
-	CreatedBy string             `bson:"createdBy"`
+	CreatedBy primitive.ObjectID `bson:"createdBy"`
 
-	CreatedAt primitive.Timestamp `bson:"createdAt"`
-	UpdatedAt primitive.Timestamp `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt"`
 }
 
 func (workspace *Workspace) MarshalBinary() ([]byte, error) {
 	return json.Marshal(workspace)
+}
+
+func (workspace *Workspace) MarshalBSON() ([]byte, error) {
+	fmt.Println(workspace.CreatedAt.Time().Unix())
+	if workspace.CreatedAt.Time().Unix() == 0 {
+		workspace.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
+	}
+	workspace.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
+	return bson.Marshal(*workspace)
 }
 
 func (workspace *Workspace) Validate() error {

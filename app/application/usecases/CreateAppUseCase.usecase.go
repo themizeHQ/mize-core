@@ -9,6 +9,7 @@ import (
 	application "mize.app/app/application/models"
 	appRepo "mize.app/app/application/repository"
 	"mize.app/app_errors"
+	"mize.app/utils"
 )
 
 var accessibleUserData = []string{"firstName", "lastName", "userName", "email", "region"}
@@ -24,7 +25,7 @@ func CreateAppUseCase(ctx *gin.Context, payload application.Application) error {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusConflict})
 		return err
 	}
-	payload.CreatedBy = ctx.GetString("UserId")
+	payload.CreatedBy = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
 	payload.Email = ctx.GetString("Email")
 	payload.Approved = false
 	payload.Active = false

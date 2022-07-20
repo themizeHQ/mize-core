@@ -43,7 +43,7 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 			}()
 			success := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
 				"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": fmt.Sprintf("https://mize.app?%s&?%s", ctx.GetString("Workspace"), e)})
-			er := workspaceInvite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{"email": e, "workspace": ctx.GetString("Workspace")}, map[string]interface{}{"email": e, "success": success, "workspace": ctx.GetString("Workspace")})
+			er := workspaceInvite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{"email": e, "workspaceId": workspace}, map[string]interface{}{"email": e, "success": success, "workspaceId": ctx.GetString("Workspace")})
 			if !success || er != nil {
 				failed++
 			}
