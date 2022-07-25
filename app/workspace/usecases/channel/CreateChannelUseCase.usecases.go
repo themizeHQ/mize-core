@@ -15,8 +15,10 @@ import (
 func CreateChannelUseCase(ctx *gin.Context, payload []workspaceModel.Channel) (*[]string, error) {
 	var channelRepoInstance = workspaceRepo.GetChannelRepo()
 	var workspaceMemberRepoInstance = workspaceRepo.GetWorkspaceMember()
-	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{"workspaceId": ctx.GetString("Workspace"),
-		"userId": ctx.GetString("UserId")})
+	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{
+		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return nil, err

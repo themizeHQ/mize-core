@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -38,7 +37,6 @@ func AuthenticationMiddleware(has_workspace bool) gin.HandlerFunc {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this is not an authorized access token"), StatusCode: http.StatusUnauthorized})
 			return
 		}
-		fmt.Println(access_token_claims["Workspace"])
 		ctx.Set("UserId", access_token_claims["UserId"])
 		ctx.Set("Role", access_token_claims["Role"])
 		ctx.Set("Email", access_token_claims["Email"])

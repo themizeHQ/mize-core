@@ -67,7 +67,13 @@ func main() {
 		channelV1 := v1.Group("/channel", middlewares.AuthenticationMiddleware(true))
 		{
 			channelV1.POST("/create", workspaceControllers.CreateChannel)
+
+			channelV1.POST("/join/:id", workspaceControllers.CreateChannelMember)
 		}
+
+		// channelMemV1 := v1.GET("/channel-member", middlewares.AuthenticationMiddleware(true))
+		// {
+		// }
 
 		authV1 := v1.Group("/auth")
 		{

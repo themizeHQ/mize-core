@@ -23,6 +23,7 @@ var (
 	WorkspaceInvite *mongo.Collection
 	Channel         *mongo.Collection
 	WorkspaceMember *mongo.Collection
+	ChannelMember   *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -40,7 +41,7 @@ func ConnectMongo() context.CancelFunc {
 		panic(err)
 	}
 
-	db := client.Database("mize-core-prod")
+	db := client.Database(os.Getenv("DB_NAME"))
 	setUpIndexes(ctx, db)
 
 	return cancel
@@ -68,8 +69,27 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 
 	Channel = db.Collection("Channels")
 
-	WorkspaceMember = db.Collection("WorkspaceMember")
+	WorkspaceMember = db.Collection("WorkspaceMembers")
 	WorkspaceMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "username", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "userId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "admin", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "banned", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+	})
+
+	ChannelMember = db.Collection("ChannelMembers")
+	ChannelMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "username", Value: 1}},
 		},

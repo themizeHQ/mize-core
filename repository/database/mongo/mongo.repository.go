@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 
 type MongoModels interface {
 	user.User | appModel.Application | workspace.Workspace | workspace.WorkspaceInvite |
-		workspace.Channel | workspace.WorkspaceMember
+		workspace.Channel | workspace.WorkspaceMember | workspace.ChannelMember
 }
 
 type MongoRepository[T MongoModels] struct {
@@ -72,7 +73,7 @@ func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, o
 	err := doc.Decode(&result)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
-			return nil, nil
+			return nil, errors.New("no documents found")
 		}
 		return nil, err
 	}
@@ -94,7 +95,7 @@ func (repo *MongoRepository[T]) FindMany(filter map[string]interface{}, opts ...
 	err = cursor.All(c, &result)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
-			return nil, nil
+			return nil, errors.New("no documents found")
 		}
 		return nil, err
 	}
