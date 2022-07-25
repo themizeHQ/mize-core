@@ -110,3 +110,18 @@ func FetchProfile(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "profile fetched", true, profile)
 }
+
+func FetchUsersProfile(ctx *gin.Context) {
+	userRepo := userRepo.GetUserRepo()
+	id := ctx.Params.ByName("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the user id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	profile, err := userRepo.FindById(id)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "profile fetched", true, profile)
+}

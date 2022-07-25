@@ -46,6 +46,8 @@ func main() {
 			userV1.POST("/login", userControllers.LoginUser)
 
 			userV1.GET("/profile", middlewares.AuthenticationMiddleware(false), userControllers.FetchProfile)
+
+			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false), userControllers.FetchProfile)
 		}
 
 		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false))
