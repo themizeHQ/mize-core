@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	userModel "mize.app/app/user/models"
+	userRepo "mize.app/app/user/repository"
 	useCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
 	"mize.app/authentication"
@@ -32,12 +33,12 @@ func CacheUser(ctx *gin.Context) {
 	}
 	otp, err := authentication.GenerateOTP(6)
 	if err != nil {
-		server_response.Response(ctx, http.StatusInternalServerError, "Something went wrong while creating user", false, nil)
+		server_response.Response(ctx, http.StatusInternalServerError, "something went wrong while creating user", false, nil)
 		return
 	}
 	authentication.SaveOTP(ctx, payload.Email, otp, 5*time.Minute)
 	emails.SendEmail(payload.Email, "Activate your Mize account", "otp", map[string]string{"OTP": string(otp)})
-	server_response.Response(ctx, http.StatusCreated, "User created successfuly", true, nil)
+	server_response.Response(ctx, http.StatusCreated, "user created successfuly", true, nil)
 }
 
 func VerifyUser(ctx *gin.Context) {
@@ -55,7 +56,7 @@ func VerifyUser(ctx *gin.Context) {
 		return
 	}
 	if !valid {
-		server_response.Response(ctx, http.StatusUnauthorized, "Wrong otp provided", false, nil)
+		server_response.Response(ctx, http.StatusUnauthorized, "wrong otp provided", false, nil)
 		return
 	}
 	result, username, err := useCases.CreateUserUseCase(ctx, payload.Email)
@@ -72,7 +73,7 @@ func VerifyUser(ctx *gin.Context) {
 	}
 
 	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
-	server_response.Response(ctx, http.StatusCreated, "Account verified", true, result)
+	server_response.Response(ctx, http.StatusCreated, "account verified", true, result)
 }
 
 func LoginUser(ctx *gin.Context) {
@@ -97,5 +98,15 @@ func LoginUser(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
-	server_response.Response(ctx, http.StatusCreated, "Login Successful", true, profile)
+	server_response.Response(ctx, http.StatusCreated, "login successful", true, profile)
+}
+
+func FetchProfile(ctx *gin.Context) {
+	userRepo := userRepo.GetUserRepo()
+	profile, err := userRepo.FindById(ctx.GetString("UserId"))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "profile fetched", true, profile)
 }
