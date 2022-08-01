@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -15,13 +16,13 @@ import (
 
 func AuthenticationMiddleware(has_workspace bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		access_token, err := ctx.Request.Cookie(string(authentication.ACCESS_TOKEN))
-		if err != nil {
+		access_token := ctx.GetHeader("Authorization")
+		if access_token == "" {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("no auth tokens provided"), StatusCode: http.StatusUnauthorized})
 			return
 		}
-
-		valid_access_token := authentication.DecodeAuthToken(ctx, access_token.Value)
+		access_token = strings.Split(access_token, " ")[1]
+		valid_access_token := authentication.DecodeAuthToken(ctx, access_token)
 		if !valid_access_token.Valid {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid access token used"), StatusCode: http.StatusUnauthorized})
 			return

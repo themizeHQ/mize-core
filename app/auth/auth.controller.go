@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,13 +16,15 @@ import (
 )
 
 func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
-	refresh_token, err := ctx.Request.Cookie(string(authentication.REFRESH_TOKEN))
-	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
+	refresh_token := ctx.GetHeader("Authorization")
+	if refresh_token == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("no auth tokens provided"), StatusCode: http.StatusUnauthorized})
 		return
 	}
 
-	valid_refresh_token := authentication.DecodeAuthToken(ctx, refresh_token.Value)
+	refresh_token = strings.Split(refresh_token, " ")[1]
+
+	valid_refresh_token := authentication.DecodeAuthToken(ctx, refresh_token)
 	if !valid_refresh_token.Valid {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid refresh token used"), StatusCode: http.StatusUnauthorized})
 		return
@@ -39,7 +42,7 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusCreated, "token generated", true, nil)
 		return
 	}
-	err = authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
+	err := authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
 		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), &workspace)
 	if err != nil {
 		return
