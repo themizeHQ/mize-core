@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/go-ozzo/ozzo-validation"
@@ -30,7 +29,6 @@ func (user *User) MarshalBinary() ([]byte, error) {
 }
 
 func (user *User) MarshalBSON() ([]byte, error) {
-	fmt.Println(user.CreatedAt.Time().Unix())
 	if user.CreatedAt.Time().Unix() == 0 {
 		user.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	}
@@ -54,4 +52,8 @@ func (user *User) RunHooks() {
 func (user *User) beforeInsertHook() {
 	password := cryptography.HashString(user.Password, nil)
 	user.Password = string(password)
+}
+
+func (channel User) MongoDBName() string {
+	return "Users"
 }

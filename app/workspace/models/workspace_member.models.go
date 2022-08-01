@@ -2,7 +2,6 @@ package workspace
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -38,12 +37,15 @@ func (member *WorkspaceMember) MarshalBinary() ([]byte, error) {
 }
 
 func (member *WorkspaceMember) MarshalBSON() ([]byte, error) {
-	fmt.Println(member.CreatedAt.Time().Unix())
 	if member.CreatedAt.Time().Unix() == 0 {
 		member.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	}
 	member.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	return bson.Marshal(*member)
+}
+
+func (channel WorkspaceMember) MongoDBName() string {
+	return "WorkspaceMembers"
 }
 
 func (member *WorkspaceMember) Validate() error {

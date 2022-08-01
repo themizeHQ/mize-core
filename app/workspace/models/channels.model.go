@@ -28,10 +28,14 @@ func (channel *Channel) MarshalBinary() ([]byte, error) {
 }
 
 func (channel *Channel) MarshalBSON() ([]byte, error) {
-	fmt.Println(channel.CreatedAt.Time().Unix())
+	fmt.Println("channel marshal ran")
 	if channel.CreatedAt.Time().Unix() == 0 {
 		channel.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	}
 	channel.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	return bson.Marshal(*channel)
+}
+
+func (channel Channel) MongoDBName() string {
+	return "Channels"
 }

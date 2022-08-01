@@ -12,15 +12,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	appModel "mize.app/app/application/models"
-	user "mize.app/app/user/models"
-	workspace "mize.app/app/workspace/models"
 )
 
 type MongoModels interface {
-	user.User | appModel.Application | workspace.Workspace | workspace.WorkspaceInvite |
-		workspace.Channel | workspace.WorkspaceMember | workspace.ChannelMember
+	MongoDBName() string
+}
+
+type ModelMethods interface {
+	MarshalBSON() ([]byte, error)
+	MarshalBinary() ([]byte, error)
 }
 
 type MongoRepository[T MongoModels] struct {
@@ -49,8 +49,14 @@ func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertM
 	defer func() {
 		cancel()
 	}()
-
-	response, err := repo.Model.InsertMany(c, parseMultiple(payload), opts...)
+	parsed_payload := parseMultiple(payload)
+	marshaled := []interface{}{}
+	for _, i := range parsed_payload {
+		interface{}(i).(ModelMethods).MarshalBSON()
+		interface{}(i).(ModelMethods).MarshalBinary()
+		marshaled = append(marshaled, i)
+	}
+	response, err := repo.Model.InsertMany(c, marshaled, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,10 +269,10 @@ func parsePayload[T MongoModels](payload T) *T {
 	return byteAToData[T](dataToByteA(payload_map))
 }
 
-func parseMultiple[T MongoModels](payload []T) []interface{} {
-	var result []interface{}
+func parseMultiple[T MongoModels](payload []T) []*T {
+	var result []*T
 	for _, data := range payload {
-		result = append(result, *parsePayload(data))
+		result = append(result, parsePayload(data))
 	}
 	return result
 }

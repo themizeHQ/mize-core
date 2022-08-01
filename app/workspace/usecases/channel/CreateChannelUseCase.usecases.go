@@ -27,11 +27,13 @@ func CreateChannelUseCase(ctx *gin.Context, payload []workspaceModel.Channel) (*
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("only admins can create channels"), StatusCode: http.StatusUnauthorized})
 		return nil, err
 	}
+	populated_payload := []workspaceModel.Channel{}
 	for _, ch_name := range payload {
 		ch_name.CreatedBy = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
 		ch_name.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
+		populated_payload = append(populated_payload, ch_name)
 	}
-	ids, err := channelRepoInstance.CreateBulk(payload)
+	ids, err := channelRepoInstance.CreateBulk(populated_payload)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("channel creation failed"), StatusCode: http.StatusInternalServerError})
 		return nil, err

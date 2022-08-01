@@ -2,7 +2,6 @@ package application
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/go-ozzo/ozzo-validation"
@@ -40,14 +39,16 @@ func (app *Application) MarshalBinary() ([]byte, error) {
 	return json.Marshal(app)
 }
 
-
 func (app *Application) MarshalBSON() ([]byte, error) {
-	fmt.Println(app.CreatedAt.Time().Unix())
 	if app.CreatedAt.Time().Unix() == 0 {
 		app.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	}
 	app.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	return bson.Marshal(*app)
+}
+
+func (channel Application) MongoDBName() string {
+	return "Apps"
 }
 
 func (app *Application) Validate() error {
