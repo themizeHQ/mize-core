@@ -72,6 +72,8 @@ func main() {
 		{
 			channelV1.POST("/create", workspaceControllers.CreateChannel)
 
+			channelV1.GET("/fetch", workspaceControllers.FetchChannels)
+
 			channelV1.POST("/join/:id", workspaceControllers.CreateChannelMember)
 		}
 
