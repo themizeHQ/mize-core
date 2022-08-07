@@ -2,7 +2,6 @@ package workspace
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -28,7 +27,6 @@ func (channel *Channel) MarshalBinary() ([]byte, error) {
 }
 
 func (channel *Channel) MarshalBSON() ([]byte, error) {
-	fmt.Println("channel marshal ran")
 	if channel.CreatedAt.Time().Unix() == 0 {
 		channel.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	}

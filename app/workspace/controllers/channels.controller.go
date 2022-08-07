@@ -24,3 +24,12 @@ func CreateChannel(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusCreated, "channel successfully created.", true, id)
 }
+
+func DeleteChannel(ctx *gin.Context) {
+	channel_id := ctx.Params.ByName("id")
+	success, err := channelUseCases.DeleteChannelUseCase(ctx, channel_id)
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "channel deleted successfully", success, nil)
+}

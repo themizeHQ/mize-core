@@ -2,35 +2,30 @@ package workspace
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-)
 
-type ChannelAdminAccess string
-
-const (
-	CHANNEL_FULL_ACCESS ChannelAdminAccess = "full_access"
+	"mize.app/constants"
 )
 
 type ChannelMemberActions string
 
 type ChannelMember struct {
-	Id          primitive.ObjectID     `bson:"_id"`
-	ChannelId   primitive.ObjectID     `bson:"channelId"`
-	WorkspaceId primitive.ObjectID     `bson:"workspaceId"`
-	Username    string                 `bson:"userName"`
-	UserId      primitive.ObjectID     `bson:"userId"`
-	Admin       bool                   `bson:"admin"`
-	AdminAccess []ChannelAdminAccess   `bson:"adminAccess"`
-	JoinDate    primitive.DateTime     `bson:"joinDate"`
-	Banned      bool                   `bson:"banned"`
-	Restricted  []ChannelMemberActions `bson:"restricted"`
-	CreatedAt   primitive.DateTime     `bson:"createdAt"`
-	UpdatedAt   primitive.DateTime     `bson:"updatedAt"`
+	Id          primitive.ObjectID             `bson:"_id"`
+	ChannelId   primitive.ObjectID             `bson:"channelId"`
+	WorkspaceId primitive.ObjectID             `bson:"workspaceId"`
+	Username    string                         `bson:"userName"`
+	UserId      primitive.ObjectID             `bson:"userId"`
+	Admin       bool                           `bson:"admin"`
+	AdminAccess []constants.ChannelAdminAccess `bson:"adminAccess"`
+	JoinDate    primitive.DateTime             `bson:"joinDate"`
+	Banned      bool                           `bson:"banned"`
+	Restricted  []ChannelMemberActions         `bson:"restricted"`
+	CreatedAt   primitive.DateTime             `bson:"createdAt"`
+	UpdatedAt   primitive.DateTime             `bson:"updatedAt"`
 }
 
 func (member *ChannelMember) MarshalBinary() ([]byte, error) {
@@ -38,7 +33,6 @@ func (member *ChannelMember) MarshalBinary() ([]byte, error) {
 }
 
 func (member *ChannelMember) MarshalBSON() ([]byte, error) {
-	fmt.Println("channelmember marshal ran")
 	if member.CreatedAt.Time().Unix() == 0 {
 		member.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 	}
@@ -57,4 +51,17 @@ func (member *ChannelMember) Validate() error {
 		validation.Field(&member.UserId, validation.Required.Error("prodvide a userid")),
 		validation.Field(&member.JoinDate, validation.Required.Error("join date is required")),
 	)
+}
+
+func HasAccess(access_given []constants.ChannelAdminAccess, access_to_check []constants.ChannelAdminAccess) bool {
+	has_access := false
+	for _, user_access := range access_given {
+		for _, access := range access_to_check {
+			if access == user_access {
+				has_access = true
+				break
+			}
+		}
+	}
+	return has_access
 }

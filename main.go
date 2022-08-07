@@ -75,11 +75,9 @@ func main() {
 			channelV1.GET("/fetch", workspaceControllers.FetchChannels)
 
 			channelV1.POST("/join/:id", workspaceControllers.CreateChannelMember)
-		}
 
-		// channelMemV1 := v1.GET("/channel-member", middlewares.AuthenticationMiddleware(true))
-		// {
-		// }
+			channelV1.DELETE("/delete/:id", workspaceControllers.DeleteChannel)
+		}
 
 		authV1 := v1.Group("/auth")
 		{
