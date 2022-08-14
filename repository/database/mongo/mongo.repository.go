@@ -214,6 +214,24 @@ func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interfac
 	return true, err
 }
 
+func (repo *MongoRepository[T]) UpdateOrCreateByFieldAndReturn(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (*string, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+
+	result, err := repo.Model.UpdateOne(c, parseFilter(filter), bson.D{primitive.E{Key: "$set", Value: payload}}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if result.UpsertedID == nil {
+		return nil, nil
+	}
+	id := result.UpsertedID.(primitive.ObjectID).Hex()
+	return &id, err
+}
+
 func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload *T, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := createCtx()
 

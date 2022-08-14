@@ -13,6 +13,7 @@ import (
 	workspaceInvite "mize.app/app/workspace/usecases/workspace_invite"
 	"mize.app/app_errors"
 	"mize.app/emails"
+	"mize.app/utils"
 )
 
 func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
@@ -23,8 +24,9 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return err
 	}
-	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{"workspaceId": ctx.GetString("Workspace"),
-		"userId": ctx.GetString("UserId")})
+	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{
+		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId"))})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return err
@@ -43,7 +45,7 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 			}()
 			success := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
 				"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": fmt.Sprintf("https://mize.app?%s&?%s", ctx.GetString("Workspace"), e)})
-			er := workspaceInvite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{"email": e, "workspaceId": workspace}, map[string]interface{}{"email": e, "success": success, "workspaceId": ctx.GetString("Workspace")})
+			er := workspaceInvite.CreateWorkspaceInviteUseCase(ctx, workspace.Name, map[string]interface{}{"email": e, "workspaceId": workspace.Id}, map[string]interface{}{"email": e, "success": success, "workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace"))})
 			if !success || er != nil {
 				failed++
 			}

@@ -18,7 +18,7 @@ type User struct {
 	UserName  string             `bson:"userName"`
 	Email     string             `bson:"email"`
 	Region    string             `bson:"region"`
-	Password  string             `json:"-" bson:"password"`
+	Password  string             `bson:"password"`
 	Verified  bool               `bson:"verified"`
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

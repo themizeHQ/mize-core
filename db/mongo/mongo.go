@@ -24,6 +24,8 @@ var (
 	Channel         *mongo.Collection
 	WorkspaceMember *mongo.Collection
 	ChannelMember   *mongo.Collection
+
+	Notification *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -106,4 +108,14 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 			Keys: bson.D{{Key: "workspaceId", Value: 1}},
 		},
 	})
+
+	
+	Notification = db.Collection("Notifications")
+	Notification.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "username", Value: 1}},
+		},
+	})
+
+	
 }
