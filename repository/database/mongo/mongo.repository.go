@@ -179,7 +179,7 @@ func (repo *MongoRepository[T]) DeleteById(id string) (bool, error) {
 }
 
 func (repo *MongoRepository[T]) DeleteMany(ctx *gin.Context, filter map[string]interface{}) (bool, error) {
-	_, err := repo.Model.DeleteMany(ctx, parseFilter(filter))
+	_, err := repo.Model.DeleteMany(ctx, filter)
 	if err != nil {
 		return false, err
 	}

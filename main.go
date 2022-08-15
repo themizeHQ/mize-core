@@ -54,6 +54,8 @@ func main() {
 		notificationV1 := v1.Group("/notification", middlewares.AuthenticationMiddleware(false))
 		{
 			notificationV1.GET("/fetch", notificationControllers.FetchUserNotifications)
+
+			notificationV1.DELETE("/delete", notificationControllers.DeleteNotifications)
 		}
 
 		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false))
