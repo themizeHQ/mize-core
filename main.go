@@ -12,6 +12,7 @@ import (
 	"mize.app/server_response"
 
 	appControllers "mize.app/app/application/controllers"
+	notificationControllers "mize.app/app/notification/controllers"
 	userControllers "mize.app/app/user/controllers"
 	workspaceControllers "mize.app/app/workspace/controllers"
 )
@@ -48,6 +49,11 @@ func main() {
 			userV1.GET("/profile", middlewares.AuthenticationMiddleware(false), userControllers.FetchProfile)
 
 			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false), userControllers.FetchUsersProfile)
+		}
+
+		notificationV1 := v1.Group("/notification", middlewares.AuthenticationMiddleware(false))
+		{
+			notificationV1.GET("/fetch", notificationControllers.FetchUserNotifications)
 		}
 
 		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false))

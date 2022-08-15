@@ -11,7 +11,8 @@ import (
 
 type Notification struct {
 	Id          primitive.ObjectID                     `bson:"_id"`
-	WorkspaceId primitive.ObjectID                     `bson:"workspaceId"`
+	WorkspaceId *primitive.ObjectID                     `bson:"workspaceId"`
+	UserId      *primitive.ObjectID                     `bson:"userId"`
 	ResourceId  primitive.ObjectID                     `bson:"resourceId"`
 	Scope       constnotif.NotificationScope           `bson:"scope"`
 	Importance  constnotif.NotificationImportanceLevel `bson:"importance"`

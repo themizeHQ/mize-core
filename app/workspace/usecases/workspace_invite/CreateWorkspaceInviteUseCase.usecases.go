@@ -9,6 +9,7 @@ import (
 
 	notificationModels "mize.app/app/notification/models"
 	notificationUseCases "mize.app/app/notification/usecases"
+	userRepo "mize.app/app/user/repository"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	constnotif "mize.app/constants/notification"
@@ -25,13 +26,26 @@ func CreateWorkspaceInviteUseCase(ctx *gin.Context, workspace_name string, filte
 	if inviteId == nil {
 		return nil
 	}
+	userRepo := userRepo.GetUserRepo()
+	user, err := userRepo.FindOneByFilter(map[string]interface{}{"email": filter["email"]},
+		options.FindOne().SetProjection(map[string]int{
+			"_id": 1,
+		}))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return err
+	}
+	if user == nil {
+		return nil
+	}
 	notificationUseCases.CreateNotificationUseCase(ctx, notificationModels.Notification{
-		WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-		ResourceId:  *utils.HexToMongoId(ctx, *inviteId),
-		Importance:  constnotif.NOTIFICATION_NORMAL,
-		Type:        constnotif.WORKSPACE_INVITE,
-		Scope:       constnotif.USER_NOTIFICATION,
-		Message:     fmt.Sprintf("You have been invited to join the %s workspace", workspace_name),
+		WorkspaceId: nil,
+		UserId:     utils.HexToMongoId(ctx, user.Id.Hex()),
+		ResourceId: *utils.HexToMongoId(ctx, *inviteId),
+		Importance: constnotif.NOTIFICATION_NORMAL,
+		Type:       constnotif.WORKSPACE_INVITE,
+		Scope:      constnotif.USER_NOTIFICATION,
+		Message:    fmt.Sprintf("You have been invited to join the %s workspace", workspace_name),
 	})
 	return nil
 }
