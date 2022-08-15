@@ -66,10 +66,22 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	}})
 
 	WorkspaceModel = db.Collection("Workspaces")
+	WorkspaceModel.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "createdBy", Value: 1}},
+		Options: options.Index(),
+	})
 
 	WorkspaceInvite = db.Collection("WorkspaceInvites")
+	WorkspaceInvite.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "workspaceId", Value: 1}},
+		Options: options.Index(),
+	})
 
 	Channel = db.Collection("Channels")
+	Channel.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "workspaceId", Value: 1}},
+		Options: options.Index(),
+	})
 
 	WorkspaceMember = db.Collection("WorkspaceMembers")
 	WorkspaceMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
@@ -81,9 +93,6 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "admin", Value: 1}},
-		},
-		{
-			Keys: bson.D{{Key: "banned", Value: 1}},
 		},
 		{
 			Keys: bson.D{{Key: "workspaceId", Value: 1}},
@@ -102,20 +111,15 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 			Keys: bson.D{{Key: "admin", Value: 1}},
 		},
 		{
-			Keys: bson.D{{Key: "banned", Value: 1}},
-		},
-		{
 			Keys: bson.D{{Key: "workspaceId", Value: 1}},
 		},
 	})
 
-	
 	Notification = db.Collection("Notifications")
 	Notification.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.D{{Key: "username", Value: 1}},
+			Keys: bson.D{{Key: "userId", Value: 1}},
 		},
 	})
 
-	
 }

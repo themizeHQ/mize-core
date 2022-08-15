@@ -11,11 +11,12 @@ import (
 )
 
 type Workspace struct {
-	Id        primitive.ObjectID `bson:"_id"`
-	Name      string             `bson:"name"`
-	Email     string             `bson:"email"`
-	Censor    bool               `bson:"censor"`
-	CreatedBy primitive.ObjectID `bson:"createdBy"`
+	Id          primitive.ObjectID `bson:"_id"`
+	Name        string             `bson:"name"`
+	Email       string             `bson:"email"`
+	Description string             `bson:"description"`
+	Censor      bool               `bson:"censor"`
+	CreatedBy   primitive.ObjectID `bson:"createdBy"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`
