@@ -1,4 +1,4 @@
-package db
+package redis
 
 import (
 	"os"
@@ -11,7 +11,7 @@ var (
 )
 
 func ConnectRedis() {
-	opt, err := redis.ParseURL(os.Getenv("REDIS_URI"))
+	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
 	if err != nil {
 		panic(err)
 	}

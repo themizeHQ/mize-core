@@ -1,38 +1,38 @@
-package user
+package repository
 
 import (
-	workspace "mize.app/app/workspace/models"
+	"mize.app/app/workspace/models"
 	db "mize.app/db/mongo"
 	repository "mize.app/repository/database/mongo"
 )
 
-var WorkspaceRepository repository.MongoRepository[workspace.Workspace]
-var WorkspaceInviteRepository repository.MongoRepository[workspace.WorkspaceInvite]
-var ChannelRepository repository.MongoRepository[workspace.Channel]
-var ChannelMemberRepository repository.MongoRepository[workspace.ChannelMember]
-var WorkspaceMember repository.MongoRepository[workspace.WorkspaceMember]
+var WorkspaceRepository repository.MongoRepository[models.Workspace]
+var WorkspaceInviteRepository repository.MongoRepository[models.WorkspaceInvite]
+var ChannelRepository repository.MongoRepository[models.Channel]
+var ChannelMemberRepository repository.MongoRepository[models.ChannelMember]
+var WorkspaceMember repository.MongoRepository[models.WorkspaceMember]
 
-func GetWorkspaceRepo() repository.MongoRepository[workspace.Workspace] {
-	WorkspaceRepository = repository.MongoRepository[workspace.Workspace]{Model: db.WorkspaceModel}
+func GetWorkspaceRepo() repository.MongoRepository[models.Workspace] {
+	WorkspaceRepository = repository.MongoRepository[models.Workspace]{Model: db.WorkspaceModel}
 	return WorkspaceRepository
 }
 
-func GetWorkspaceInviteRepo() repository.MongoRepository[workspace.WorkspaceInvite] {
-	WorkspaceInviteRepository = repository.MongoRepository[workspace.WorkspaceInvite]{Model: db.WorkspaceInvite}
+func GetWorkspaceInviteRepo() repository.MongoRepository[models.WorkspaceInvite] {
+	WorkspaceInviteRepository = repository.MongoRepository[models.WorkspaceInvite]{Model: db.WorkspaceInvite}
 	return WorkspaceInviteRepository
 }
 
-func GetChannelRepo() repository.MongoRepository[workspace.Channel] {
-	ChannelRepository = repository.MongoRepository[workspace.Channel]{Model: db.Channel}
+func GetChannelRepo() repository.MongoRepository[models.Channel] {
+	ChannelRepository = repository.MongoRepository[models.Channel]{Model: db.Channel}
 	return ChannelRepository
 }
 
-func GetWorkspaceMember() repository.MongoRepository[workspace.WorkspaceMember] {
-	WorkspaceMember = repository.MongoRepository[workspace.WorkspaceMember]{Model: db.WorkspaceMember}
+func GetWorkspaceMember() repository.MongoRepository[models.WorkspaceMember] {
+	WorkspaceMember = repository.MongoRepository[models.WorkspaceMember]{Model: db.WorkspaceMember}
 	return WorkspaceMember
 }
 
-func GetChannelMemberRepo() repository.MongoRepository[workspace.ChannelMember] {
-	ChannelMemberRepository = repository.MongoRepository[workspace.ChannelMember]{Model: db.ChannelMember}
+func GetChannelMemberRepo() repository.MongoRepository[models.ChannelMember] {
+	ChannelMemberRepository = repository.MongoRepository[models.ChannelMember]{Model: db.ChannelMember}
 	return ChannelMemberRepository
 }

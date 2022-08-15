@@ -13,7 +13,7 @@ import (
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/cryptography"
-	redis "mize.app/repository/database/redis"
+	"mize.app/repository/database/redis"
 	"mize.app/utils"
 )
 

@@ -3,17 +3,17 @@ package db
 import (
 	"context"
 
-	mongoDb "mize.app/db/mongo"
-	redisDb "mize.app/db/redis"
+	"mize.app/db/mongo"
+	"mize.app/db/redis"
 )
 
 var mongoContextCancel context.CancelFunc
 
 func ConnectToDb() {
 	// connect to mongodb
-	mongoContextCancel = mongoDb.ConnectMongo()
+	mongoContextCancel = mongo.ConnectMongo()
 	// connect to redis
-	redisDb.ConnectRedis()
+	redis.ConnectRedis()
 }
 
 func CleanUp() {

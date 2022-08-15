@@ -1,14 +1,14 @@
-package notification
+package repository
 
 import (
-	notification "mize.app/app/notification/models"
-	db "mize.app/db/mongo"
-	repository "mize.app/repository/database/mongo"
+	"mize.app/app/notification/models"
+	dbMongo "mize.app/db/mongo"
+	mongoRepo "mize.app/repository/database/mongo"
 )
 
-var NotificationRepository repository.MongoRepository[notification.Notification]
+var NotificationRepository mongoRepo.MongoRepository[models.Notification]
 
-func GetNotificationRepo() repository.MongoRepository[notification.Notification] {
-	NotificationRepository = repository.MongoRepository[notification.Notification]{Model: db.Notification}
+func GetNotificationRepo() mongoRepo.MongoRepository[models.Notification] {
+	NotificationRepository = mongoRepo.MongoRepository[models.Notification]{Model: dbMongo.Notification}
 	return NotificationRepository
 }

@@ -1,20 +1,20 @@
-package user
+package repository
 
 import (
 	"sync"
 
-	appModel "mize.app/app/application/models"
-	"mize.app/db/mongo"
-	"mize.app/repository/database/mongo"
+	"mize.app/app/application/models"
+	dbMongo "mize.app/db/mongo"
+	mongoRepo "mize.app/repository/database/mongo"
 )
 
 var once = sync.Once{}
 
-var AppRepository repository.MongoRepository[appModel.Application]
+var AppRepository mongoRepo.MongoRepository[models.Application]
 
-func GetAppRepo() repository.MongoRepository[appModel.Application] {
+func GetAppRepo() mongoRepo.MongoRepository[models.Application] {
 	once.Do(func() {
-		AppRepository = repository.MongoRepository[appModel.Application]{Model: db.AppModel}
+		AppRepository = mongoRepo.MongoRepository[models.Application]{Model: dbMongo.AppModel}
 	})
 	return AppRepository
 }
