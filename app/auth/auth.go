@@ -17,6 +17,7 @@ import (
 	"mize.app/app/user/repository"
 	"mize.app/app_errors"
 	"mize.app/authentication"
+	user_constants "mize.app/constants/user"
 	"mize.app/cryptography"
 	"mize.app/emails"
 	"mize.app/repository/database/redis"
@@ -35,6 +36,7 @@ func CacheUserUseCase(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return
 	}
+	payload.Status = user_constants.AVAILABLE
 	payload.RunHooks()
 	emailExists, err := userRepoInstance.CountDocs(map[string]interface{}{"email": payload.Email})
 	if err != nil {
