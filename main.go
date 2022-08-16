@@ -40,12 +40,6 @@ func main() {
 	{
 		userV1 := v1.Group("/user")
 		{
-			userV1.POST("/create", userControllers.CacheUser)
-
-			userV1.POST("/verify", userControllers.VerifyUser)
-
-			userV1.POST("/login", userControllers.LoginUser)
-
 			userV1.GET("/profile", middlewares.AuthenticationMiddleware(false), userControllers.FetchProfile)
 
 			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false), userControllers.FetchUsersProfile)
@@ -91,6 +85,12 @@ func main() {
 
 		authV1 := v1.Group("/auth")
 		{
+			authV1.POST("/create", auth.CacheUserUseCase)
+
+			authV1.POST("/verify", auth.VerifyAccountUseCase)
+
+			authV1.POST("/login", auth.LoginUser)
+
 			authV1.GET("/generate-access-token", auth.GenerateAccessTokenFromRefresh)
 
 			authV1.GET("/resend-otp", auth.ResendOtp)

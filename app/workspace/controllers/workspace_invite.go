@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/repository"
 	workspaceUseCases "mize.app/app/workspace/usecases/workspace"
 	workspaceInviteUseCases "mize.app/app/workspace/usecases/workspace_invite"

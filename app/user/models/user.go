@@ -24,7 +24,12 @@ type User struct {
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`
 }
 
-func (user *User) MarshalBinary() ([]byte, error) {
+// func (user *User) MarshalBinary() ([]byte, error) {
+// 	return json.Marshal(user)
+// }
+
+
+func (user User) MarshalBinary() ([]byte, error) {
 	return json.Marshal(user)
 }
 
