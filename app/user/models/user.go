@@ -28,7 +28,6 @@ type User struct {
 // 	return json.Marshal(user)
 // }
 
-
 func (user User) MarshalBinary() ([]byte, error) {
 	return json.Marshal(user)
 }
@@ -57,6 +56,12 @@ func (user *User) RunHooks() {
 func (user *User) beforeInsertHook() {
 	password := cryptography.HashString(user.Password, nil)
 	user.Password = string(password)
+}
+
+func (user *User) ValidatePassword() error {
+	return validation.ValidateStruct(user,
+		validation.Field(&user.Password, validation.Length(6, 100).Error("Password cannot be less than 6 digits"), validation.Required.Error("Password is a required field")),
+	)
 }
 
 func (channel User) MongoDBName() string {

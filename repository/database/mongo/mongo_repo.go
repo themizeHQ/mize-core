@@ -246,6 +246,20 @@ func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload 
 	return true, err
 }
 
+func (repo *MongoRepository[T]) UpdatePartialById(ctx *gin.Context, id string, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.UpdateByID(c, parseStringToMongo(&id), bson.D{primitive.E{Key: "$set", Value: payload}}, opts...)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
 func (repo *MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(mongo.SessionContext) error) error {
 	c, cancel := createCtx()
 

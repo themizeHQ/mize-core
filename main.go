@@ -91,6 +91,8 @@ func main() {
 
 			authV1.POST("/login", auth.LoginUser)
 
+			authV1.PUT("/update-password", middlewares.AuthenticationMiddleware(false), auth.UpdateLoggedInUsersPassword)
+
 			authV1.GET("/generate-access-token", auth.GenerateAccessTokenFromRefresh)
 
 			authV1.GET("/resend-otp", auth.ResendOtp)

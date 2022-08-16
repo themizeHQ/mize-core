@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/user/models"
 	"mize.app/app/user/repository"
@@ -165,6 +166,43 @@ func LoginUser(ctx *gin.Context) {
 	}
 	profile.Password = ""
 	server_response.Response(ctx, http.StatusCreated, "login successful", true, profile)
+}
+
+func UpdateLoggedInUsersPassword(ctx *gin.Context) {
+	var payload struct {
+		CurrentPassword string
+		NewPassword     string
+	}
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in both your current password and new password"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	userRepoInstance := repository.GetUserRepo()
+	user, err := userRepoInstance.FindById(ctx.GetString("UserId"), options.FindOne().SetProjection(map[string]int{
+		"password": 1,
+	}))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("user does not exist"), StatusCode: http.StatusNotFound})
+		return
+	}
+	success := cryptography.VerifyData(user.Password, payload.CurrentPassword)
+	if !success {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("incorrect password"), StatusCode: http.StatusUnauthorized})
+		return
+	}
+	user.Password = payload.NewPassword
+	err = user.ValidatePassword()
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return
+	}
+	success, err = userRepoInstance.UpdatePartialById(ctx, ctx.GetString("UserId"), map[string]interface{}{
+		"password": string(cryptography.HashString(user.Password, nil)),
+	})
+	if !success || err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("something went wrong while updating password"), StatusCode: http.StatusInternalServerError})
+	}
+	server_response.Response(ctx, http.StatusOK, "password change successful", true, nil)
 }
 
 func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
