@@ -3,8 +3,10 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	notificationModel "mize.app/app/notification/models"
 	notification "mize.app/app/notification/repository"
 	notificationUseCases "mize.app/app/notification/usecases"
@@ -18,6 +20,15 @@ func FetchUserNotifications(ctx *gin.Context) {
 	notificationRepo := notification.GetNotificationRepo()
 	var notifications *[]notificationModel.Notification
 	var err error
+	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	if err != nil || page == 0 {
+		page = 1
+	}
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
+	skip := (page * limit) - limit
 	if ctx.GetString("Workspace") != "" {
 		notifications, err = notificationRepo.FindMany(map[string]interface{}{
 			"userId": map[string]interface{}{
@@ -29,6 +40,9 @@ func FetchUserNotifications(ctx *gin.Context) {
 					constnotif.USER_NOTIFICATION,
 				},
 			},
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
 		})
 		if err != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
@@ -47,6 +61,9 @@ func FetchUserNotifications(ctx *gin.Context) {
 					constnotif.WORKSPACE_NOTIFICATION,
 				},
 			},
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
 		})
 		if err != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
@@ -57,7 +74,7 @@ func FetchUserNotifications(ctx *gin.Context) {
 }
 
 func DeleteNotifications(ctx *gin.Context) {
-	var payload struct{
+	var payload struct {
 		Ids []string
 	}
 	if err := ctx.ShouldBind(&payload); err != nil {
@@ -67,7 +84,7 @@ func DeleteNotifications(ctx *gin.Context) {
 		return
 	}
 	success := notificationUseCases.DeleteNotificationsUseCase(ctx, payload.Ids)
-	if !success{
+	if !success {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "deleted successfully", success, nil)
