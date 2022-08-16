@@ -28,7 +28,7 @@ func FetchUserNotifications(ctx *gin.Context) {
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page * limit) - limit
+	skip := (page - 1) * limit
 	if ctx.GetString("Workspace") != "" {
 		notifications, err = notificationRepo.FindMany(map[string]interface{}{
 			"userId": map[string]interface{}{
