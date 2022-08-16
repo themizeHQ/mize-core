@@ -96,11 +96,11 @@ func main() {
 	}
 
 	server.GET("/who-is-the-goat", func(ctx *gin.Context) {
-		server_response.Response(ctx, http.StatusOK, "Lionel Messi is the GOAT!", true, nil)
+		server_response.Response(ctx, http.StatusOK, "lionel Messi is the GOAT!", true, nil)
 	})
 
 	server.NoRoute(func(ctx *gin.Context) {
-		server_response.Response(ctx, http.StatusNotFound, "This route does not exist", false, nil)
+		server_response.Response(ctx, http.StatusNotFound, "this route does not exist", false, nil)
 	})
 
 	server.Run(":" + os.Getenv("PORT"))
