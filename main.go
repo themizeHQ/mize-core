@@ -74,6 +74,8 @@ func main() {
 			workspaceV1.PUT("/invite/:inviteId/reject", middlewares.AuthenticationMiddleware(false), workspaceControllers.RejectWorkspaceInvite)
 
 			workspaceV1.PUT("/invite/:inviteId/accept", middlewares.AuthenticationMiddleware(false), workspaceControllers.AcceptWorkspaceInvite)
+
+			workspaceV1.GET("/invite/fetch", middlewares.AuthenticationMiddleware(true), workspaceControllers.FetchWorkspaceInvites)
 		}
 
 		channelV1 := v1.Group("/channel", middlewares.AuthenticationMiddleware(true))
