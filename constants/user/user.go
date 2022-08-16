@@ -8,3 +8,9 @@ var (
 	BUSY      UserStatusType = "busy"
 	MEETING   UserStatusType = "meeting"
 )
+
+type UserLanguageType string
+
+var (
+	ENGLISH UserLanguageType = "english"
+)
