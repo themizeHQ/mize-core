@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"time"
@@ -40,7 +41,11 @@ func ConnectMongo() context.CancelFunc {
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 
 	if err != nil {
-		panic(err)
+		if os.Getenv("GIN_MODE") == "debug" {
+			panic(err)
+		} else {
+			panic(errors.New("something went wrong"))
+		}
 	}
 
 	db := client.Database(os.Getenv("DB_NAME"))
