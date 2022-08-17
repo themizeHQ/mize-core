@@ -26,6 +26,8 @@ var (
 	WorkspaceMember *mongo.Collection
 	ChannelMember   *mongo.Collection
 
+	// notifications
+	Alert        *mongo.Collection
 	Notification *mongo.Collection
 )
 
@@ -124,6 +126,13 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	Notification.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "userId", Value: 1}},
+		},
+	})
+
+	Alert = db.Collection("Alerts")
+	Alert.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
 		},
 	})
 

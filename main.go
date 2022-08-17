@@ -47,11 +47,14 @@ func main() {
 			userV1.PUT("/update", middlewares.AuthenticationMiddleware(false), userControllers.UpdateUserData)
 		}
 
-		notificationV1 := v1.Group("/notification", middlewares.AuthenticationMiddleware(false))
+		notificationV1 := v1.Group("/notification")
 		{
-			notificationV1.GET("/fetch", notificationControllers.FetchUserNotifications)
+			notificationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false), notificationControllers.FetchUserNotifications)
 
-			notificationV1.DELETE("/delete", notificationControllers.DeleteNotifications)
+			notificationV1.DELETE("/delete", middlewares.AuthenticationMiddleware(false), notificationControllers.DeleteNotifications)
+
+			// alert routes
+			notificationV1.POST("/alert/send", middlewares.AuthenticationMiddleware(true), notificationControllers.SendAlert)
 		}
 
 		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false))
