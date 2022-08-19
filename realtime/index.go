@@ -11,3 +11,7 @@ var CentrifugoController centrifugo.CentrifugoController
 func InitialiseCentrifugoController() {
 	CentrifugoController = centrifugo.CentrifugoController{BaseUrl: os.Getenv("CENTRIFUGO_SOCKET_URL")}
 }
+
+func FetchDefaultChannels() []string {
+	return DefaultChannels
+}
