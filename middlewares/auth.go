@@ -39,7 +39,7 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 			return
 		}
 		if admin_route {
-			if access_token_claims["Role"] != authentication.ADMIN {
+			if access_token_claims["Role"] != string(authentication.ADMIN) {
 				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you shall not pass"), StatusCode: http.StatusUnauthorized})
 				return
 			}

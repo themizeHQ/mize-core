@@ -21,7 +21,7 @@ func CreateChannelMember(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the valid json"), StatusCode: http.StatusBadGateway})
 		return
 	}
-	id, err := channelMemberUseCases.CreateChannelMemberUseCase(ctx, channel_id)
+	id, err := channelMemberUseCases.CreateChannelMemberUseCase(ctx, channel_id, false)
 	if err != nil {
 		return
 	}

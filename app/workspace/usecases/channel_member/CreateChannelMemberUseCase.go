@@ -7,17 +7,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	channel_constants "mize.app/constants/channel"
 	"mize.app/utils"
 )
 
-func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string) (*string, error) {
+func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, admin bool) (*string, error) {
 	channelMemberRepo := repository.GetChannelMemberRepo()
 	channelRepo := repository.GetChannelRepo()
-	channel, err := channelRepo.FindById(channel_id)
+	channel, err := channelRepo.FindById(channel_id, options.FindOne().SetProjection(map[string]int{
+		"workspaceId": 1,
+	}))
 	if channel == nil {
 		err = errors.New("channel does not exist")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
@@ -48,7 +52,14 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string) (*string, e
 	member := models.ChannelMember{
 		ChannelId:   *utils.HexToMongoId(ctx, channel_id),
 		WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace")), Username: ctx.GetString("Username"),
-		UserId:   *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		UserId: *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		Admin:  admin,
+		AdminAccess: func() []channel_constants.ChannelAdminAccess {
+			if admin {
+				return []channel_constants.ChannelAdminAccess{channel_constants.CHANNEL_FULL_ACCESS}
+			}
+			return []channel_constants.ChannelAdminAccess{}
+		}(),
 		JoinDate: primitive.NewDateTimeFromTime(time.Now()),
 	}
 	if err := member.Validate(); err != nil {
