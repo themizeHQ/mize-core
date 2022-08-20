@@ -20,6 +20,7 @@ import (
 	user_constants "mize.app/constants/user"
 	"mize.app/cryptography"
 	"mize.app/emails"
+	"mize.app/realtime"
 	"mize.app/repository/database/redis"
 	"mize.app/server_response"
 )
@@ -257,8 +258,10 @@ func GenerateCentrifugoToken(ctx *gin.Context) {
 	}
 	if ctx.Query("channels") == "true" {
 		server_response.Response(ctx, http.StatusCreated, "token generated", true, map[string]interface{}{
-			"token":    token,
-			"channels": []string{},
+			"token": token,
+			"channels": map[string]interface{}{
+				"default_channels": realtime.DefaultChannels,
+			},
 		})
 	} else {
 		server_response.Response(ctx, http.StatusCreated, "token generated", true, token)
