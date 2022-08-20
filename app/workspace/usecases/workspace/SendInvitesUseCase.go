@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/workspace/repository"
 	"mize.app/app/workspace/usecases/workspace_invite"
@@ -17,21 +18,15 @@ import (
 
 func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 	var workspaceRepoInstance = repository.GetWorkspaceRepo()
-	var workspaceMemberRepoInstance = repository.GetWorkspaceMember()
-	workspace, err := workspaceRepoInstance.FindById(ctx.GetString("Workspace"))
+	workspace, err := workspaceRepoInstance.FindById(ctx.GetString("Workspace"), options.FindOne().SetProjection(map[string]int{
+		"name": 1,
+	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
 		return err
 	}
-	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{
-		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId"))})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace does not exist"), StatusCode: http.StatusNotFound})
-		return err
-	}
-	if !workspace_member.Admin {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("only admins can send invites to workspaces"), StatusCode: http.StatusUnauthorized})
 		return err
 	}
 	failed := 0
@@ -44,7 +39,9 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 			}()
 			success := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", workspace.Name),
 				"workspace_invite", map[string]string{"WORKSPACE_NAME": workspace.Name, "LINK": fmt.Sprintf("https://mize.app?%s&?%s", ctx.GetString("Workspace"), e)})
-			er := workspace_invite.CreateWorkspaceInviteUseCase(ctx, workspace.Name, map[string]interface{}{"email": e, "workspaceId": workspace.Id}, map[string]interface{}{"email": e, "success": success, "workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace"))})
+			er := workspace_invite.CreateWorkspaceInviteUseCase(ctx, workspace.Name, map[string]interface{}{
+				"email": e, "workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			}, map[string]interface{}{"email": e, "success": success, "workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace"))})
 			if !success || er != nil {
 				failed++
 			}

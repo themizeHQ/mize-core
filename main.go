@@ -40,52 +40,52 @@ func main() {
 	{
 		userV1 := v1.Group("/user")
 		{
-			userV1.GET("/profile", middlewares.AuthenticationMiddleware(false), userControllers.FetchProfile)
+			userV1.GET("/profile", middlewares.AuthenticationMiddleware(false, false), userControllers.FetchProfile)
 
-			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false), userControllers.FetchUsersProfile)
+			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false, false), userControllers.FetchUsersProfile)
 
-			userV1.PUT("/update", middlewares.AuthenticationMiddleware(false), userControllers.UpdateUserData)
+			userV1.PUT("/update", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateUserData)
 		}
 
 		notificationV1 := v1.Group("/notification")
 		{
-			notificationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false), notificationControllers.FetchUserNotifications)
+			notificationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), notificationControllers.FetchUserNotifications)
 
-			notificationV1.DELETE("/delete", middlewares.AuthenticationMiddleware(false), notificationControllers.DeleteNotifications)
+			notificationV1.DELETE("/delete", middlewares.AuthenticationMiddleware(false, false), notificationControllers.DeleteNotifications)
 
 			// alert routes
-			notificationV1.POST("/alert/send", middlewares.AuthenticationMiddleware(true), notificationControllers.SendAlert)
+			notificationV1.POST("/alert/send", middlewares.AuthenticationMiddleware(true, true), notificationControllers.SendAlert)
 		}
 
-		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false))
+		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false, false))
 		{
 			appV1.POST("/create", appControllers.CreateApplication)
 		}
 
 		workspaceV1 := v1.Group("/workspace")
 		{
-			workspaceV1.POST("/create", middlewares.AuthenticationMiddleware(false), workspaceControllers.CreateWorkspace)
+			workspaceV1.POST("/create", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.CreateWorkspace)
 
-			workspaceV1.GET("/fetch", middlewares.AuthenticationMiddleware(false), workspaceControllers.FetchUserWorkspaces)
+			workspaceV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.FetchUserWorkspaces)
 
-			workspaceV1.POST("/invite", middlewares.AuthenticationMiddleware(true), workspaceControllers.InviteToWorkspace)
+			workspaceV1.POST("/invite", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.InviteToWorkspace)
 
-			workspaceV1.PUT("/invite/:inviteId/reject", middlewares.AuthenticationMiddleware(false), workspaceControllers.RejectWorkspaceInvite)
+			workspaceV1.PUT("/invite/:inviteId/reject", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.RejectWorkspaceInvite)
 
-			workspaceV1.PUT("/invite/:inviteId/accept", middlewares.AuthenticationMiddleware(false), workspaceControllers.AcceptWorkspaceInvite)
+			workspaceV1.PUT("/invite/:inviteId/accept", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.AcceptWorkspaceInvite)
 
-			workspaceV1.GET("/invite/fetch", middlewares.AuthenticationMiddleware(true), workspaceControllers.FetchWorkspaceInvites)
+			workspaceV1.GET("/invite/fetch", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.FetchWorkspaceInvites)
 		}
 
-		channelV1 := v1.Group("/channel", middlewares.AuthenticationMiddleware(true))
+		channelV1 := v1.Group("/channel")
 		{
-			channelV1.POST("/create", workspaceControllers.CreateChannel)
+			channelV1.POST("/create", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.CreateChannel)
 
-			channelV1.GET("/fetch", workspaceControllers.FetchChannels)
+			channelV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannels)
 
-			channelV1.POST("/join/:id", workspaceControllers.CreateChannelMember)
+			channelV1.POST("/join/:id", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.CreateChannelMember)
 
-			channelV1.DELETE("/delete/:id", workspaceControllers.DeleteChannel)
+			channelV1.DELETE("/delete/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.DeleteChannel)
 		}
 
 		authV1 := v1.Group("/auth")
@@ -96,14 +96,14 @@ func main() {
 
 			authV1.POST("/login", auth.LoginUser)
 
-			authV1.PUT("/update-password", middlewares.AuthenticationMiddleware(false), auth.UpdateLoggedInUsersPassword)
+			authV1.PUT("/update-password", middlewares.AuthenticationMiddleware(false, false), auth.UpdateLoggedInUsersPassword)
 
 			authV1.GET("/generate-access-token", auth.GenerateAccessTokenFromRefresh)
 
 			authV1.GET("/resend-otp", auth.ResendOtp)
 
 			// centrifugo
-			authV1.GET("/realtime/authenticate", middlewares.AuthenticationMiddleware(false), auth.GenerateCentrifugoToken)
+			authV1.GET("/realtime/authenticate", middlewares.AuthenticationMiddleware(false, false), auth.GenerateCentrifugoToken)
 		}
 	}
 

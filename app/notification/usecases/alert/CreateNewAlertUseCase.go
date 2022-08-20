@@ -6,11 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/notification/models"
 	"mize.app/app/notification/repository"
+	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	notification_constants "mize.app/constants/notification"
+	workspace_constants "mize.app/constants/workspace"
 	"mize.app/utils"
 )
 
@@ -22,8 +25,28 @@ type UserPayload struct {
 }
 
 func CreateNewAlertUseCase(ctx *gin.Context, payload UserPayload) bool {
+	workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
+	admin, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{
+		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	}, options.FindOne().SetProjection(
+		map[string]int{
+			"adminAccess": 1,
+		},
+	))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("unable to send alert"), StatusCode: http.StatusInternalServerError})
+		return false
+	}
+	has_access := admin.HasAccess([]workspace_constants.AdminAccessType{
+		workspace_constants.AdminAccess.FULL_ACCESS,
+	})
+	if !has_access {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you do not have this permission"), StatusCode: http.StatusUnauthorized})
+		return false
+	}
 	alertRepo := repository.GetAlertRepo()
-	_, err := alertRepo.CreateOne(models.Alert{
+	_, err = alertRepo.CreateOne(models.Alert{
 		Message:     payload.Message,
 		Importance:  notification_constants.NotificationImportanceLevel(payload.Importance),
 		ResourceId:  parseResourceId(ctx, payload.ResourceId),

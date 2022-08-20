@@ -14,7 +14,7 @@ import (
 	"mize.app/authentication"
 )
 
-func AuthenticationMiddleware(has_workspace bool) gin.HandlerFunc {
+func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		access_token := ctx.GetHeader("Authorization")
 		if access_token == "" {
@@ -37,6 +37,12 @@ func AuthenticationMiddleware(has_workspace bool) gin.HandlerFunc {
 		if access_token_claims["Type"] != "access_token" || access_token_claims["Issuer"] != os.Getenv("JWT_ISSUER") {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this is not an authorized access token"), StatusCode: http.StatusUnauthorized})
 			return
+		}
+		if admin_route {
+			if access_token_claims["Role"] != authentication.ADMIN {
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you shall not pass"), StatusCode: http.StatusUnauthorized})
+				return
+			}
 		}
 		ctx.Set("UserId", access_token_claims["UserId"])
 		ctx.Set("Role", access_token_claims["Role"])

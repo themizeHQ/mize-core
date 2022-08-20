@@ -163,6 +163,8 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		}
 		if workspaceMember.Admin {
 			role = ADMIN
+		} else {
+			role = USER
 		}
 	}
 	accessToken, err := GenerateAuthToken(ctx, ClaimsData{
@@ -170,7 +172,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		Type:      ACCESS_TOKEN,
 		Username:  username,
 		Role:      role,
-		ExpireAt:  30 * time.Minute, // 30 mins
+		ExpireAt:  7 * time.Minute, // 30 mins
 		UserId:    id,
 		Email:     email,
 		Workspace: workspace_id,
