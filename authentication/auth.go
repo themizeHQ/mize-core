@@ -97,6 +97,19 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 	return &tokenString, nil
 }
 
+// tokens
+func GenerateCentrifugoAuthToken(ctx *gin.Context, claimsData jwt.StandardClaims) (*string, error) {
+	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": claimsData.Subject,
+		"exp": claimsData.ExpiresAt,
+		"iat": claimsData.IssuedAt,
+	}).SignedString([]byte(os.Getenv("CENTRIFUGO_JWT_SECRET")))
+	if err != nil {
+		return nil, err
+	}
+	return &tokenString, nil
+}
+
 func DecodeAuthToken(ctx *gin.Context, tokenString string) *jwt.Token {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SIGNING_KEY")), nil

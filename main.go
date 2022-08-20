@@ -101,6 +101,9 @@ func main() {
 			authV1.GET("/generate-access-token", auth.GenerateAccessTokenFromRefresh)
 
 			authV1.GET("/resend-otp", auth.ResendOtp)
+
+			// centrifugo
+			authV1.GET("/realtime/auth", middlewares.AuthenticationMiddleware(false), auth.GenerateCentrifugoToken)
 		}
 	}
 

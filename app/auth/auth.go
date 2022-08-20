@@ -245,6 +245,26 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	server_response.Response(ctx, http.StatusCreated, "token generated", true, nil)
 }
 
+func GenerateCentrifugoToken(ctx *gin.Context) {
+	token, err := authentication.GenerateCentrifugoAuthToken(ctx, jwt.StandardClaims{
+		Subject:   ctx.GetString("UserId"),
+		IssuedAt:  time.Now().Unix(),
+		ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(1)).Unix(),
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	if ctx.Query("channels") == "true" {
+		server_response.Response(ctx, http.StatusCreated, "token generated", true, map[string]interface{}{
+			"token":    token,
+			"channels": []string{},
+		})
+	} else {
+		server_response.Response(ctx, http.StatusCreated, "token generated", true, token)
+	}
+}
+
 func ResendOtp(ctx *gin.Context) {
 	email := ctx.Query("email")
 	if email == "" {
