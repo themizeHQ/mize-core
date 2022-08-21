@@ -29,6 +29,9 @@ var (
 	// notifications
 	Alert        *mongo.Collection
 	Notification *mongo.Collection
+
+	// messages
+	Message *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -136,4 +139,13 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 	})
 
+	Message = db.Collection("Messages")
+	Message.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "to", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "from", Value: 1}},
+		},
+	})
 }
