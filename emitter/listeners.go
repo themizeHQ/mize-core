@@ -1,21 +1,32 @@
 package emitter
 
-import "fmt"
+import (
+	"fmt"
+
+	"mize.app/emails"
+)
 
 func EmitterListener() {
-	// users
-	Emitter.Listen(Events.USER.USER_CREATED, HandleUserCreated)
-	Emitter.Listen(Events.USER.USER_VERIFIED, HandleUserVerified)
+	// auth
+	Emitter.Listen(Events.AUTH_EVENTS.USER_CREATED, HandleUserCreated)
+	Emitter.Listen(Events.AUTH_EVENTS.USER_VERIFIED, HandleUserVerified)
+	Emitter.Listen(Events.AUTH_EVENTS.RESEND_OTP, HandleResendOtp)
 
 	// messages
-
 	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_SENT, HandleMessageSent)
 	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_DELETED, HandleMessageDeleted)
 }
 
 // users
-func HandleUserCreated()  {}
-func HandleUserVerified() {}
+func HandleUserCreated(data map[string]string) {
+	emails.SendEmail(data["email"], "Activate your Mize account", "otp", map[string]string{"OTP": data["otp"]})
+}
+func HandleUserVerified(data map[string]string) {
+	emails.SendEmail(data["email"], "Welcome to Mize", "welcome", map[string]string{})
+}
+func HandleResendOtp(data map[string]string) {
+	emails.SendEmail(data["email"], "Activate your Mize account", "otp", map[string]string{"OTP": data["otp"]})
+}
 
 // messages
 func HandleMessageSent(data interface{}) {

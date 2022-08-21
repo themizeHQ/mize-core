@@ -19,7 +19,8 @@ import (
 	"mize.app/authentication"
 	user_constants "mize.app/constants/user"
 	"mize.app/cryptography"
-	"mize.app/emails"
+	// "mize.app/emails"
+	"mize.app/emitter"
 	"mize.app/realtime"
 	"mize.app/repository/database/redis"
 	"mize.app/server_response"
@@ -74,7 +75,7 @@ func CacheUserUseCase(ctx *gin.Context) {
 		return
 	}
 	authentication.SaveOTP(ctx, payload.Email, otp, 5*time.Minute)
-	emails.SendEmail(payload.Email, "Activate your Mize account", "otp", map[string]string{"OTP": string(otp)})
+	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_CREATED, map[string]string{"email": payload.Email, "otp": otp})
 	server_response.Response(ctx, http.StatusCreated, "user created successfuly", true, nil)
 }
 
@@ -120,8 +121,7 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	if err != nil {
 		return
 	}
-
-	emails.SendEmail(payload.Email, "Welcome to Mize", "welcome", map[string]string{})
+	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_VERIFIED, map[string]string{"email": payload.Email})
 	server_response.Response(ctx, http.StatusCreated, "account verified", true, response)
 }
 
@@ -280,6 +280,9 @@ func ResendOtp(ctx *gin.Context) {
 		return
 	}
 	authentication.SaveOTP(ctx, email, otp, 5*time.Minute)
-	emails.SendEmail(email, "Activate your Mize account", "otp", map[string]string{"OTP": string(otp)})
+	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.RESEND_OTP, map[string]string{
+		"email": email,
+		"otp":   otp,
+	})
 	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
 }
