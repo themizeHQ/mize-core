@@ -2,6 +2,7 @@ package main
 
 import (
 	"mize.app/db"
+	"mize.app/emitter"
 	"mize.app/realtime"
 	redis "mize.app/repository/database/redis"
 )
@@ -13,6 +14,8 @@ func StartServices() {
 	redis.SetUpRedisRepo()
 	// initialise centrifugo
 	realtime.InitialiseCentrifugoController()
+	// initialiae emitter listener
+	emitter.EmitterListener()
 }
 
 func CleanUp() {

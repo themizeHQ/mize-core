@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/CHH/eventemitter v0.0.0-20120807115904-3e42a20a6810 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
