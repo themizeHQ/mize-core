@@ -18,7 +18,7 @@ func FetchProfile(ctx *gin.Context) {
 		"password": 0,
 	}))
 	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("profile not found. please contact support"), StatusCode: http.StatusInternalServerError})
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "profile fetched", true, profile)
@@ -35,7 +35,7 @@ func FetchUsersProfile(ctx *gin.Context) {
 		"password": 0,
 	}))
 	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not find user"), StatusCode: http.StatusInternalServerError})
 		return
 	}
 	profile.Password = ""
