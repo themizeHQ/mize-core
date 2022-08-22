@@ -246,7 +246,7 @@ func (repo *MongoRepository[T]) UpdateById(ctx *gin.Context, id string, payload 
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdatePartialById(ctx *gin.Context, id string, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
+func (repo *MongoRepository[T]) UpdatePartialById(ctx *gin.Context, id string, payload interface{}, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := createCtx()
 
 	defer func() {

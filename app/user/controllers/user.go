@@ -2,10 +2,13 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"mize.app/app/user/models"
 	userRepo "mize.app/app/user/repository"
 	userUseCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
@@ -43,9 +46,19 @@ func FetchUsersProfile(ctx *gin.Context) {
 }
 
 func UpdateUserData(ctx *gin.Context) {
-	var payload map[string]interface{}
+	var payload models.UpdateUser
 	if err := ctx.ShouldBind(&payload); err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json with valid fields"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	fmt.Println(payload.FirstName)
+	// if payload.LastName != nil {
+	// 	payload.LastName = strings.TrimSpace(payload.LastName)
+	// }
+	payload.FirstName = strings.TrimSpace(payload.FirstName)
+	err := payload.ValidateUpdate()
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return
 	}
 	success := userUseCases.UpdateUserUseCase(ctx, payload)

@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/go-ozzo/ozzo-validation"
@@ -13,19 +14,27 @@ import (
 )
 
 type User struct {
-	Id        primitive.ObjectID              `bson:"_id"`
-	FirstName string                          `bson:"firstName"`
-	LastName  string                          `bson:"lastName"`
-	UserName  string                          `bson:"userName"`
-	Email     string                          `bson:"email"`
-	Region    string                          `bson:"region"`
-	Password  string                          `bson:"password"`
-	Verified  bool                            `bson:"verified"`
-	Language  user_constants.UserLanguageType `bson:"language"`
-	Status    user_constants.UserStatusType   `bson:"status"`
+	Id        primitive.ObjectID            `bson:"_id"`
+	FirstName string                        `bson:"firstName"`
+	LastName  string                        `bson:"lastName"`
+	UserName  string                        `bson:"userName"`
+	Email     string                        `bson:"email"`
+	Region    string                        `bson:"region"`
+	Password  string                        `bson:"password"`
+	Verified  bool                          `bson:"verified"`
+	Language  string                        `bson:"language"`
+	Status    user_constants.UserStatusType `bson:"status"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+}
+
+type UpdateUser struct {
+	FirstName string                        `json:"firstName" bson:"firstName,omitempty"`
+	LastName  string                        `json:"lastName" bson:"lastName,omitempty"`
+	Region    string                        `json:"region" bson:"region,omitempty"`
+	Language  string                        `json:"language" bson:"language,omitempty"`
+	Status    user_constants.UserStatusType `json:"status" bson:"status,omitempty"`
 }
 
 // func (user *User) MarshalBinary() ([]byte, error) {
@@ -45,11 +54,24 @@ func (user *User) MarshalBSON() ([]byte, error) {
 }
 
 func (user *User) Validate() error {
+	fmt.Println(user.Language)
 	return validation.ValidateStruct(user,
-		validation.Field(&user.UserName, validation.Required.Error("UserName is a required field")),
-		validation.Field(&user.Email, validation.Required.Error("Email is a required field"), is.Email.Error("Field must be a valid email")),
-		validation.Field(&user.Region, is.CountryCode2.Error("Please pass in a valid country code")),
-		validation.Field(&user.Password, validation.Length(6, 100).Error("Password cannot be less than 6 digits"), validation.Required.Error("Password is a required field")),
+		validation.Field(&user.UserName, validation.Required.Error("username is a required field")),
+		validation.Field(&user.LastName, validation.Required.Error("lastname is a required field")),
+		validation.Field(&user.FirstName, validation.Required.Error("firstname is a required field")),
+		validation.Field(&user.Email, validation.Required.Error("email is a required field"), is.Email.Error("proide a valid email")),
+		validation.Field(&user.Region, is.CountryCode2.Error("provide a valid ISO3166 country code")),
+		validation.Field(&user.Password, validation.Length(6, 100).Error("password cannot be less than 6 digits or more than 100"), validation.Required.Error("password is a required field")),
+		validation.Field(&user.Language, validation.In(user_constants.AvailableUserLanguage...).Error("language selected is not available on mize")),
+		validation.Field(&user.Status, validation.In(user_constants.AVAILABLE, user_constants.AWAY, user_constants.BUSY, user_constants.MEETING).Error("invalid status selected")),
+	)
+}
+
+func (user *UpdateUser) ValidateUpdate() error {
+	return validation.ValidateStruct(user,
+		validation.Field(&user.Region, is.CountryCode2.Error("provide a valid ISO3166 country code")),
+		validation.Field(&user.Language, validation.In(user_constants.AvailableUserLanguage...).Error("language selected is not available on mize")),
+		validation.Field(&user.Status, validation.In(user_constants.AVAILABLE, user_constants.AWAY, user_constants.BUSY, user_constants.MEETING).Error("invalid status selected")),
 	)
 }
 

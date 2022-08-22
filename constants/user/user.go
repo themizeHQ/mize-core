@@ -9,8 +9,4 @@ var (
 	MEETING   UserStatusType = "meeting"
 )
 
-type UserLanguageType string
-
-var (
-	ENGLISH UserLanguageType = "english"
-)
+var AvailableUserLanguage = []interface{}{"english"}

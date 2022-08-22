@@ -40,7 +40,7 @@ func CacheUserUseCase(ctx *gin.Context) {
 	}
 	payload.Status = user_constants.AVAILABLE
 	if payload.Language == "" {
-		payload.Language = user_constants.ENGLISH
+		payload.Language = "english"
 	}
 	payload.RunHooks()
 	emailExists, err := userRepoInstance.CountDocs(map[string]interface{}{"email": payload.Email})
