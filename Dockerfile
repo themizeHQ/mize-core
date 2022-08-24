@@ -7,4 +7,5 @@ RUN go build -o server .
 FROM alpine
 WORKDIR /build
 COPY --from=builder /build/server /build/server
+ADD /templates /build/templates
 CMD ["./server"]
