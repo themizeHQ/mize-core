@@ -2,8 +2,7 @@ package mongo
 
 import (
 	"context"
-	"errors"
-	"log"
+	"fmt"
 	"os"
 	"time"
 
@@ -38,8 +37,9 @@ func ConnectMongo() context.CancelFunc {
 	uri := os.Getenv("DB_URL")
 
 	if uri == "" {
-		log.Fatalln("Please set a valid MongoDB URL")
-	}
+		fmt.Println("set mongo url")	
+		return nil
+}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
@@ -47,10 +47,11 @@ func ConnectMongo() context.CancelFunc {
 
 	if err != nil {
 		if os.Getenv("GIN_MODE") == "debug" {
-			panic(err)
+			fmt.Println(err)
 		} else {
-			panic(errors.New("something went wrong"))
+			fmt.Println("something went wrong")
 		}
+		return cancel
 	}
 
 	db := client.Database(os.Getenv("DB_NAME"))
