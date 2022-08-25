@@ -24,6 +24,7 @@ type ChannelMember struct {
 	JoinDate    primitive.DateTime           `bson:"joinDate"`
 	Banned      bool                         `bson:"banned"`
 	Restricted  []ChannelMemberActions       `bson:"restricted"`
+	Pinned      bool                         `bson:"pinned"`
 	CreatedAt   primitive.DateTime           `bson:"createdAt"`
 	UpdatedAt   primitive.DateTime           `bson:"updatedAt"`
 }

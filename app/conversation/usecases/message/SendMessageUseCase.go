@@ -7,14 +7,32 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"mize.app/app/conversation/models"
-	"mize.app/app/conversation/repository"
+	conversationRepository "mize.app/app/conversation/repository"
+	channelRepository "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/emitter"
 	"mize.app/utils"
 )
 
-func SendMessageUseCase(ctx *gin.Context, payload models.Message) error {
-	messageRepository := repository.GetMessageRepo()
+func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string) error {
+	messageRepository := conversationRepository.GetMessageRepo()
+	channelRepository := channelRepository.GetChannelMemberRepo()
+	if channel == "true" {
+		exist, err := channelRepository.CountDocs(map[string]interface{}{
+			"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
+			"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		})
+		if err != nil {
+			err = errors.New("an error occured")
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+			return err
+		}
+		if exist != 1 {
+			err = errors.New("you are not a member of this channel")
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusNotFound})
+			return err
+		}
+	}
 	var replyTo string
 	if payload.ReplyTo != nil {
 		exist, err := messageRepository.CountDocs(map[string]interface{}{

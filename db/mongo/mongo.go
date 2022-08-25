@@ -124,6 +124,9 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		{
 			Keys: bson.D{{Key: "workspaceId", Value: 1}},
 		},
+		{
+			Keys: bson.D{{Key: "pinned", Value: 1}},
+		},
 	})
 
 	Notification = db.Collection("Notifications")

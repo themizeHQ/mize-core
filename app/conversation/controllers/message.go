@@ -22,7 +22,7 @@ func SendMessage(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the required info"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	err := messages.SendMessageUseCase(ctx, payload)
+	err := messages.SendMessageUseCase(ctx, payload, ctx.Query("channel"))
 	if err != nil {
 		return
 	}
