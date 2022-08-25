@@ -14,20 +14,21 @@ import (
 type ChannelMemberActions string
 
 type ChannelMember struct {
-	Id          primitive.ObjectID           `bson:"_id"`
-	ChannelId   primitive.ObjectID           `bson:"channelId"`
-	WorkspaceId primitive.ObjectID           `bson:"workspaceId"`
-	Username    string                       `bson:"userName"`
-	UserId      primitive.ObjectID           `bson:"userId"`
-	Admin       bool                         `bson:"admin"`
-	AdminAccess []channel.ChannelAdminAccess `bson:"adminAccess"`
-	JoinDate    primitive.DateTime           `bson:"joinDate"`
-	Banned      bool                         `bson:"banned"`
-	Restricted  []ChannelMemberActions       `bson:"restricted"`
-	Pinned      bool                         `bson:"pinned"`
-	LastMessage string                       `bson:"lastMessage"`
-	CreatedAt   primitive.DateTime           `bson:"createdAt"`
-	UpdatedAt   primitive.DateTime           `bson:"updatedAt"`
+	Id             primitive.ObjectID           `bson:"_id"`
+	ChannelId      primitive.ObjectID           `bson:"channelId"`
+	WorkspaceId    primitive.ObjectID           `bson:"workspaceId"`
+	Username       string                       `bson:"userName"`
+	UserId         primitive.ObjectID           `bson:"userId"`
+	Admin          bool                         `bson:"admin"`
+	AdminAccess    []channel.ChannelAdminAccess `bson:"adminAccess"`
+	JoinDate       primitive.DateTime           `bson:"joinDate"`
+	Banned         bool                         `bson:"banned"`
+	Restricted     []ChannelMemberActions       `bson:"restricted"`
+	Pinned         bool                         `bson:"pinned"`
+	LastMessage    string                       `bson:"lastMessage"`
+	UnreadMessages int                          `bson:"unreadMessages"`
+	CreatedAt      primitive.DateTime           `bson:"createdAt"`
+	UpdatedAt      primitive.DateTime           `bson:"updatedAt"`
 }
 
 func (member *ChannelMember) MarshalBinary() ([]byte, error) {

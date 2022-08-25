@@ -202,6 +202,20 @@ func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, pay
 	return true, err
 }
 
+func (repo *MongoRepository[T]) UpdateWithOperator(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.UpdateOne(c, filter, payload, opts...)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
 func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := createCtx()
 
@@ -276,7 +290,7 @@ func (repo *MongoRepository[T]) UpdatePartialByFilter(ctx *gin.Context, filter m
 	return true, err
 }
 
-func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(mongo.SessionContext) error) error {
+func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(sc mongo.SessionContext, c context.Context) error) error {
 	c, cancel := createCtx()
 
 	defer func() {
@@ -287,7 +301,7 @@ func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(m
 		if err := sc.StartTransaction(); err != nil {
 			return err
 		}
-		return payload(sc)
+		return payload(sc, c)
 	}); err != nil {
 		return err
 	}

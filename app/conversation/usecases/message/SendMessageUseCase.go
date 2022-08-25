@@ -1,11 +1,14 @@
 package messages
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 	"mize.app/app/conversation/models"
 	conversationRepository "mize.app/app/conversation/repository"
 	channelRepository "mize.app/app/workspace/repository"
@@ -59,13 +62,58 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return err
 	}
+	var wg sync.WaitGroup
 	if channel == "true" {
-		channelRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
-			"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
-			"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		}, map[string]interface{}{
-			"lastMessage": payload.Text,
+		chan1 := make(chan error)
+		err := messageRepository.StartTransaction(ctx, func(sc mongo.SessionContext, c context.Context) error {
+			wg.Add(1)
+			go func(ch chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				success, err := channelRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
+					"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
+					"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+				}, map[string]interface{}{
+					"lastMessage": payload.Text,
+				})
+				if err != nil || !success {
+					ch <- err
+					sc.AbortTransaction(c)
+				}
+				ch <- nil
+			}(chan1)
+
+			chan2 := make(chan error)
+			wg.Add(1)
+			go func(ch chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				success, err := channelRepository.UpdateWithOperator(map[string]interface{}{
+					"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
+					"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+				}, map[string]interface{}{
+					"$inc": map[string]interface{}{
+						"unreadMessages": 1,
+					}},
+				)
+				if err != nil || !success {
+					ch <- err
+					sc.AbortTransaction(c)
+				}
+				ch <- nil
+			}(chan2)
+			if <-chan1 != nil || <-chan2 != nil {
+				return errors.New("could not send message")
+			}
+			wg.Wait()
+			return nil
 		})
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+			return err
+		}
 	}
 	emitter.Emitter.Emit(emitter.Events.MESSAGES_EVENTS.MESSAGE_SENT, map[string]interface{}{
 		"time":     time.Now(),
