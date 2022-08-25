@@ -17,6 +17,7 @@ type Message struct {
 	ReactionsCount int                 `bson:"reactionsCount"`
 	ReplyTo        *primitive.ObjectID `bson:"replyTo"`
 	ReplyCount     int                 `bson:"replyCount"`
+	Username       string              `bson:"userName"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

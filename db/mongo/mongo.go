@@ -37,9 +37,9 @@ func ConnectMongo() context.CancelFunc {
 	uri := os.Getenv("DB_URL")
 
 	if uri == "" {
-		fmt.Println("set mongo url")	
+		fmt.Println("set mongo url")
 		return nil
-}
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 
@@ -147,6 +147,9 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "from", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "userName", Value: 1}},
 		},
 	})
 }

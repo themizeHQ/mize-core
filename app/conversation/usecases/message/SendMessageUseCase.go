@@ -34,6 +34,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message) error {
 	}
 	payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 	payload.From = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
+	payload.Username = ctx.GetString("Username")
 	_, err := messageRepository.CreateOne(payload)
 	if err != nil {
 		err = errors.New("message could not be sent")
@@ -41,11 +42,12 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message) error {
 		return err
 	}
 	emitter.Emitter.Emit(emitter.Events.MESSAGES_EVENTS.MESSAGE_SENT, map[string]interface{}{
-		"time":    time.Now(),
-		"from":    payload.From.Hex(),
-		"to":      payload.To.Hex(),
-		"text":    payload.Text,
-		"replyTo": replyTo,
+		"time":     time.Now(),
+		"from":     payload.From.Hex(),
+		"to":       payload.To.Hex(),
+		"text":     payload.Text,
+		"replyTo":  replyTo,
+		"username": payload.Username,
 	})
 	return nil
 }
