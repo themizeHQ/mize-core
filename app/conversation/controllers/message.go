@@ -11,6 +11,7 @@ import (
 	"mize.app/app/conversation/models"
 	"mize.app/app/conversation/repository"
 	"mize.app/app/conversation/usecases/message"
+	channelsRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/server_response"
 	"mize.app/utils"
@@ -52,17 +53,32 @@ func FetchMessages(ctx *gin.Context) {
 		replyTo = utils.HexToMongoId(ctx, r)
 	}
 	messageRepository := repository.GetMessageRepo()
-	messages, err := messageRepository.FindMany(map[string]interface{}{
-		"to":          utils.HexToMongoId(ctx, to),
-		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-		"replyTo":     replyTo,
-	}, &options.FindOptions{
-		Limit: &limit,
-		Skip:  &skip,
-	})
-	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch messages"), StatusCode: http.StatusBadRequest})
-		return
+	msgChan := make(chan *[]models.Message)
+	go func(msg chan *[]models.Message) {
+		m, err := messageRepository.FindMany(map[string]interface{}{
+			"to":          utils.HexToMongoId(ctx, to),
+			"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			"replyTo":     replyTo,
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
+		})
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch messages"), StatusCode: http.StatusBadRequest})
+			return
+		}
+		msg <- m
+	}(msgChan)
+	if page == 1 {
+		go func() {
+			channelsRepo := channelsRepo.GetChannelMemberRepo()
+			channelsRepo.UpdatePartialByFilter(ctx, map[string]interface{}{
+				"channelId": utils.HexToMongoId(ctx, to),
+				"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+			}, map[string]interface{}{
+				"unreadMessages": 0,
+			})
+		}()
 	}
-	server_response.Response(ctx, http.StatusOK, "messages fetched", true, messages)
+	server_response.Response(ctx, http.StatusOK, "messages fetched", true, <-msgChan)
 }
