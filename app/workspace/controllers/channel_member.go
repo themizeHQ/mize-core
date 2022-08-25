@@ -39,14 +39,21 @@ func FetchChannels(ctx *gin.Context) {
 		limit = 15
 	}
 	skip := (page - 1) * limit
-	channels, err := channelsRepo.FindMany(map[string]interface{}{
+	channels, err := channelsRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 	}, &options.FindOptions{
 		Limit: &limit,
 		Skip:  &skip,
-	},
-	)
+	}, options.Find().SetProjection(
+		map[string]interface{}{
+			"lastMessage":     1,
+			"unreadMessages":  1,
+			"channelId":       1,
+			"channelName":     1,
+			"lastMessageSent": 1,
+		},
+	))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
 			Err: errors.New("could not retrieve your channels at this time")}, StatusCode: http.StatusBadRequest})

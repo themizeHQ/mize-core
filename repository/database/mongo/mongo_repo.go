@@ -108,6 +108,28 @@ func (repo *MongoRepository[T]) FindMany(filter map[string]interface{}, opts ...
 	return &result, nil
 }
 
+func (repo *MongoRepository[T]) FindManyStripped(filter map[string]interface{}, opts ...*options.FindOptions) (*[]map[string]interface{}, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+	var result []map[string]interface{}
+	f := parseFilter(filter)
+	cursor, err := repo.Model.Find(c, f, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cursor.All(c, &result)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return nil, errors.New("no documents found")
+		}
+		return nil, err
+	}
+	return &result, nil
+}
+
 func (repo *MongoRepository[T]) FindById(id string, opts ...*options.FindOneOptions) (*T, error) {
 	c, cancel := createCtx()
 

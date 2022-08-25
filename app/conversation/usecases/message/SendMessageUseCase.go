@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"mize.app/app/conversation/models"
 	conversationRepository "mize.app/app/conversation/repository"
@@ -96,6 +97,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				}, map[string]interface{}{
 					"$inc": map[string]interface{}{
 						"unreadMessages": 1,
+						"lastMessageSent":  primitive.NewDateTimeFromTime(time.Now()),
 					}},
 				)
 				if err != nil || !success {

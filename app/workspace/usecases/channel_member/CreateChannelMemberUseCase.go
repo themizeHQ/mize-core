@@ -52,8 +52,9 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, admin bool)
 	member := models.ChannelMember{
 		ChannelId:   *utils.HexToMongoId(ctx, channel_id),
 		WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace")), Username: ctx.GetString("Username"),
-		UserId: *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		Admin:  admin,
+		UserId:   *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		LastSent: primitive.NewDateTimeFromTime(time.Now()),
+		Admin:    admin,
 		AdminAccess: func() []channel_constants.ChannelAdminAccess {
 			if admin {
 				return []channel_constants.ChannelAdminAccess{channel_constants.CHANNEL_FULL_ACCESS}

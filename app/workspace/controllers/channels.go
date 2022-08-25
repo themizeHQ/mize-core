@@ -28,11 +28,14 @@ func CreateChannel(ctx *gin.Context) {
 	}
 	for _, id := range *ids {
 		waitGroup.Add(1)
-		go func(id string, w *sync.WaitGroup) {
-			w.Done()
+		go func(id string) {
+			defer func() {
+				waitGroup.Done()
+			}()
 			channelmembersUseCases.CreateChannelMemberUseCase(ctx, id, true)
-		}(id, &waitGroup)
+		}(id)
 	}
+	waitGroup.Wait()
 	server_response.Response(ctx, http.StatusCreated, "channel successfully created.", true, ids)
 }
 

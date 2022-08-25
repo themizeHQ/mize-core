@@ -16,6 +16,7 @@ type ChannelMemberActions string
 type ChannelMember struct {
 	Id             primitive.ObjectID           `bson:"_id"`
 	ChannelId      primitive.ObjectID           `bson:"channelId"`
+	ChannelName    string                       `bson:"channelName"`
 	WorkspaceId    primitive.ObjectID           `bson:"workspaceId"`
 	Username       string                       `bson:"userName"`
 	UserId         primitive.ObjectID           `bson:"userId"`
@@ -26,6 +27,7 @@ type ChannelMember struct {
 	Restricted     []ChannelMemberActions       `bson:"restricted"`
 	Pinned         bool                         `bson:"pinned"`
 	LastMessage    string                       `bson:"lastMessage"`
+	LastSent       primitive.DateTime           `bson:"lastMessageSent"`
 	UnreadMessages int                          `bson:"unreadMessages"`
 	CreatedAt      primitive.DateTime           `bson:"createdAt"`
 	UpdatedAt      primitive.DateTime           `bson:"updatedAt"`
