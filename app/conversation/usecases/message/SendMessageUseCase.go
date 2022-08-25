@@ -59,6 +59,14 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return err
 	}
+	if channel == "true" {
+		channelRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
+			"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
+			"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		}, map[string]interface{}{
+			"lastMessage": payload.Text,
+		})
+	}
 	emitter.Emitter.Emit(emitter.Events.MESSAGES_EVENTS.MESSAGE_SENT, map[string]interface{}{
 		"time":     time.Now(),
 		"from":     payload.From.Hex(),

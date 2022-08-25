@@ -128,7 +128,7 @@ func (repo *MongoRepository[T]) CountDocs(filter map[string]interface{}, opts ..
 	defer func() {
 		cancel()
 	}()
-	cc :=  parseFilter(filter)
+	cc := parseFilter(filter)
 	fmt.Println(cc)
 	count, err := repo.Model.CountDocuments(c, cc, opts...)
 	if err != nil {
@@ -262,7 +262,21 @@ func (repo *MongoRepository[T]) UpdatePartialById(ctx *gin.Context, id string, p
 	return true, err
 }
 
-func (repo *MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(mongo.SessionContext) error) error {
+func (repo *MongoRepository[T]) UpdatePartialByFilter(ctx *gin.Context, filter map[string]interface{}, payload interface{}, opts ...*options.UpdateOptions) (bool, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.UpdateOne(c, filter, bson.D{primitive.E{Key: "$set", Value: payload}}, opts...)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(mongo.SessionContext) error) error {
 	c, cancel := createCtx()
 
 	defer func() {
