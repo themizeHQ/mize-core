@@ -11,7 +11,7 @@ type CentrifugoController struct {
 	BaseUrl string
 }
 
-func (c *CentrifugoController) Publish(channel string, data map[string]string) error {
+func (c *CentrifugoController) Publish(channel string, data interface{}) error {
 	network := network.NetworkController{BaseUrl: c.BaseUrl}
 	response, err := network.Post("", map[string]string{
 		"Authorization": os.Getenv("CENTRIFUGO_API_KEY"),

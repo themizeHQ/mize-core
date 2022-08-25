@@ -128,7 +128,9 @@ func (repo *MongoRepository[T]) CountDocs(filter map[string]interface{}, opts ..
 	defer func() {
 		cancel()
 	}()
-	count, err := repo.Model.CountDocuments(c, parseFilter(filter), opts...)
+	cc :=  parseFilter(filter)
+	fmt.Println(cc)
+	count, err := repo.Model.CountDocuments(c, cc, opts...)
 	if err != nil {
 		return 0, err
 	}

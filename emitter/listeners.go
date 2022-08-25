@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"mize.app/emails"
+	"mize.app/realtime"
 )
 
 func EmitterListener() {
@@ -30,6 +31,6 @@ func HandleResendOtp(data map[string]string) {
 
 // messages
 func HandleMessageSent(data interface{}) {
-	fmt.Println(data)
+	realtime.CentrifugoController.Publish(fmt.Sprintf("%s-chat", data.(map[string]interface{})["to"]), data)
 }
 func HandleMessageDeleted() {}

@@ -12,6 +12,7 @@ import (
 	"mize.app/server_response"
 
 	appControllers "mize.app/app/application/controllers"
+	conversationControllers "mize.app/app/conversation/controllers"
 	notificationControllers "mize.app/app/notification/controllers"
 	userControllers "mize.app/app/user/controllers"
 	workspaceControllers "mize.app/app/workspace/controllers"
@@ -86,6 +87,11 @@ func main() {
 			channelV1.POST("/join/:id", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.CreateChannelMember)
 
 			channelV1.DELETE("/delete/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.DeleteChannel)
+		}
+
+		messageV1 := v1.Group("/message")
+		{
+			messageV1.POST("/send", middlewares.AuthenticationMiddleware(true, false), conversationControllers.SendMessage)
 		}
 
 		authV1 := v1.Group("/auth")
