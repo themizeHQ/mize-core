@@ -22,21 +22,21 @@ func CreateChannel(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json array value"), StatusCode: http.StatusBadGateway})
 		return
 	}
-	ids, err := channelUseCases.CreateChannelUseCase(ctx, payload)
+	channels, err := channelUseCases.CreateChannelUseCase(ctx, payload)
 	if err != nil {
 		return
 	}
-	for _, id := range *ids {
+	for _, channel := range channels {
 		waitGroup.Add(1)
-		go func(id string) {
+		go func(id string, name *string) {
 			defer func() {
 				waitGroup.Done()
 			}()
-			channelmembersUseCases.CreateChannelMemberUseCase(ctx, id, true)
-		}(id)
+			channelmembersUseCases.CreateChannelMemberUseCase(ctx, id, name, true)
+		}(channel.Id.Hex(), &channel.Name)
 	}
 	waitGroup.Wait()
-	server_response.Response(ctx, http.StatusCreated, "channel successfully created.", true, ids)
+	server_response.Response(ctx, http.StatusCreated, "channel successfully created.", true, nil)
 }
 
 func DeleteChannel(ctx *gin.Context) {

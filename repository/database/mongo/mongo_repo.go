@@ -34,8 +34,8 @@ func (repo *MongoRepository[T]) CreateOne(payload T, opts ...*options.InsertOneO
 	defer func() {
 		cancel()
 	}()
-
-	response, err := repo.Model.InsertOne(c, parsePayload(payload), opts...)
+	p := parsePayload(payload)
+	response, err := repo.Model.InsertOne(c, p, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +65,26 @@ func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertM
 		ids = append(ids, id.(primitive.ObjectID).Hex())
 	}
 	return &ids, err
+}
+
+func (repo *MongoRepository[T]) CreateBulkAndReturnPayload(payload []T, opts ...*options.InsertManyOptions) ([]*T, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+	parsed_payload := parseMultiple(payload)
+	marshaled := []interface{}{}
+	for _, i := range parsed_payload {
+		interface{}(i).(ModelMethods).MarshalBSON()
+		interface{}(i).(ModelMethods).MarshalBinary()
+		marshaled = append(marshaled, i)
+	}
+	_, err := repo.Model.InsertMany(c, marshaled, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return parsed_payload, err
 }
 
 func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, opts ...*options.FindOneOptions) (*T, error) {
@@ -151,7 +171,6 @@ func (repo *MongoRepository[T]) CountDocs(filter map[string]interface{}, opts ..
 		cancel()
 	}()
 	cc := parseFilter(filter)
-	fmt.Println(cc)
 	count, err := repo.Model.CountDocuments(c, cc, opts...)
 	if err != nil {
 		return 0, err

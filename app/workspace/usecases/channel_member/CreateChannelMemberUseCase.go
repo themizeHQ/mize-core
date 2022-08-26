@@ -16,7 +16,7 @@ import (
 	"mize.app/utils"
 )
 
-func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, admin bool) (*string, error) {
+func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *string, admin bool) (*string, error) {
 	channelMemberRepo := repository.GetChannelMemberRepo()
 	channelRepo := repository.GetChannelRepo()
 	channel, err := channelRepo.FindById(channel_id, options.FindOne().SetProjection(map[string]int{
@@ -49,12 +49,26 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, admin bool)
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, err
 	}
+	if name == nil {
+		channel, err := channelRepo.FindById(channel_id, options.FindOne().SetProjection(
+			map[string]interface{}{
+				"channelName": 1,
+			},
+		))
+		if err != nil {
+			err = errors.New("could not add you to the channel")
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+			return nil, err
+		}
+		name = &channel.Name
+	}
 	member := models.ChannelMember{
 		ChannelId:   *utils.HexToMongoId(ctx, channel_id),
 		WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace")), Username: ctx.GetString("Username"),
-		UserId:   *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		LastSent: primitive.NewDateTimeFromTime(time.Now()),
-		Admin:    admin,
+		UserId:      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		LastSent:    primitive.NewDateTimeFromTime(time.Now()),
+		Admin:       admin,
+		ChannelName: *name,
 		AdminAccess: func() []channel_constants.ChannelAdminAccess {
 			if admin {
 				return []channel_constants.ChannelAdminAccess{channel_constants.CHANNEL_FULL_ACCESS}

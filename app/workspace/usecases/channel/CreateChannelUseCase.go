@@ -12,7 +12,7 @@ import (
 	"mize.app/utils"
 )
 
-func CreateChannelUseCase(ctx *gin.Context, payload []models.Channel) (*[]string, error) {
+func CreateChannelUseCase(ctx *gin.Context, payload []models.Channel) ([]*models.Channel, error) {
 	var channelRepoInstance = repository.GetChannelRepo()
 	var workspaceMemberRepoInstance = repository.GetWorkspaceMember()
 	workspace_member, err := workspaceMemberRepoInstance.FindOneByFilter(map[string]interface{}{
@@ -33,7 +33,7 @@ func CreateChannelUseCase(ctx *gin.Context, payload []models.Channel) (*[]string
 		ch_name.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		populated_payload = append(populated_payload, ch_name)
 	}
-	ids, err := channelRepoInstance.CreateBulk(populated_payload)
+	ids, err := channelRepoInstance.CreateBulkAndReturnPayload(populated_payload)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("channel creation failed"), StatusCode: http.StatusInternalServerError})
 		return nil, err

@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"crypto"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -99,7 +100,10 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 
 // tokens
 func GenerateCentrifugoAuthToken(ctx *gin.Context, claimsData jwt.StandardClaims) (*string, error) {
-	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	tokenString, err := jwt.NewWithClaims(&jwt.SigningMethodHMAC{
+		Name: "HS256",
+		Hash: crypto.SHA256,
+	}, jwt.MapClaims{
 		"sub": claimsData.Subject,
 		"exp": claimsData.ExpiresAt,
 		"iat": claimsData.IssuedAt,

@@ -15,7 +15,6 @@ type Channel struct {
 	Description string             `bson:"description"`
 	Private     bool               `bson:"private"`
 	CreatedBy   primitive.ObjectID `bson:"createdBy"`
-	Admins      string             `bson:"admins"`
 	Compulsory  bool               `bson:"compulsory"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
