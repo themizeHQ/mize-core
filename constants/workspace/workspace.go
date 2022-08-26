@@ -1,5 +1,17 @@
 package workspace
 
+type WorkspaceType string
+
+type workspaceType struct {
+	PROFESSIONAL WorkspaceType
+	EDUCATIONAL  WorkspaceType
+}
+
+var WorkspaceTypes = workspaceType{
+	PROFESSIONAL: "professional",
+	EDUCATIONAL:  "educational",
+}
+
 type AdminAccessType string
 
 type adminAccess struct {

@@ -8,15 +8,17 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"mize.app/constants/workspace"
 )
 
 type Workspace struct {
-	Id          primitive.ObjectID `bson:"_id"`
-	Name        string             `bson:"name"`
-	Email       string             `bson:"email"`
-	Description string             `bson:"description"`
-	Censor      bool               `bson:"censor"`
-	CreatedBy   primitive.ObjectID `bson:"createdBy"`
+	Id          primitive.ObjectID      `bson:"_id"`
+	Name        string                  `bson:"name"`
+	Email       string                  `bson:"email"`
+	Description string                  `bson:"description"`
+	Censor      bool                    `bson:"censor"`
+	Type        workspace.WorkspaceType `bson:"type"`
+	CreatedBy   primitive.ObjectID      `bson:"createdBy"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`
