@@ -25,13 +25,14 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 		limit = 15
 	}
 	skip := (page - 1) * limit
-	payload, err := workspaceMemberRepo.FindMany(map[string]interface{}{
+	payload, err := workspaceMemberRepo.FindManyStripped(map[string]interface{}{
 		"userId": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 	}, &options.FindOptions{
 		Limit: &limit,
 		Skip:  &skip,
-	},
-	)
+	}, options.Find().SetProjection(map[string]int{
+		"workspaceName": 1,
+	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
 			Err: errors.New("could not retrieve your workspaces at this time")}, StatusCode: http.StatusBadRequest})
