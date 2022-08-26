@@ -19,16 +19,16 @@ func CreateWorkspace(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json value"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	id, err := workspaceUseCases.CreateWorkspaceUseCase(ctx, payload)
+	name, id, err := workspaceUseCases.CreateWorkspaceUseCase(ctx, payload)
 	if err != nil {
 		return
 	}
-	member_id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, *id, true)
+	member_id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, id, name, true)
 	if err != nil {
 		return
 	}
 	server_response.Response(ctx, http.StatusCreated, "workspace successfully created.", true, map[string]interface{}{
 		"workspace_id":        id,
-		"workspace_member_id": member_id,
+		"workspace_member_id": *member_id,
 	})
 }

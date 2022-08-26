@@ -11,15 +11,16 @@ import (
 )
 
 type WorkspaceMember struct {
-	Id          primitive.ObjectID                            `bson:"_id"`
-	WorkspaceId primitive.ObjectID                            `bson:"workspaceId"`
-	Username    string                                        `bson:"userName"`
-	UserId      primitive.ObjectID                            `bson:"userId"`
-	Admin       bool                                          `bson:"admin"`
-	AdminAccess []workspace_member_constants.AdminAccessType  `bson:"adminAccess"`
-	JoinDate    int64                                         `bson:"joinDate"`
-	Banned      bool                                          `bson:"banned"`
-	Restricted  []workspace_member_constants.MemberActionType `bson:"restricted"`
+	Id            primitive.ObjectID                            `bson:"_id"`
+	WorkspaceId   primitive.ObjectID                            `bson:"workspaceId"`
+	WorkspaceName string                                        `bson:"workspaceName"`
+	Username      string                                        `bson:"userName"`
+	UserId        primitive.ObjectID                            `bson:"userId"`
+	Admin         bool                                          `bson:"admin"`
+	AdminAccess   []workspace_member_constants.AdminAccessType  `bson:"adminAccess"`
+	JoinDate      int64                                         `bson:"joinDate"`
+	Banned        bool                                          `bson:"banned"`
+	Restricted    []workspace_member_constants.MemberActionType `bson:"restricted"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

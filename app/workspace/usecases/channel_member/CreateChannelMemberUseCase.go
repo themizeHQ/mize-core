@@ -81,10 +81,11 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, err
 	}
-	id, err := channelMemberRepo.CreateOne(member)
+	m, err := channelMemberRepo.CreateOne(member)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, err
 	}
-	return id, nil
+	id := m.Id.Hex()
+	return &id, nil
 }

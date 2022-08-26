@@ -28,19 +28,18 @@ type MongoRepository[T MongoModels] struct {
 	Payload interface{}
 }
 
-func (repo *MongoRepository[T]) CreateOne(payload T, opts ...*options.InsertOneOptions) (*string, error) {
+func (repo *MongoRepository[T]) CreateOne(payload T, opts ...*options.InsertOneOptions) (*T, error) {
 	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
 	}()
-	p := parsePayload(payload)
-	response, err := repo.Model.InsertOne(c, p, opts...)
+	parsed_payload := parsePayload(payload)
+	_, err := repo.Model.InsertOne(c, parsed_payload, opts...)
 	if err != nil {
 		return nil, err
 	}
-	id := response.InsertedID.(primitive.ObjectID).Hex()
-	return &id, err
+	return parsed_payload, err
 }
 
 func (repo *MongoRepository[T]) CreateBulk(payload []T, opts ...*options.InsertManyOptions) (*[]string, error) {

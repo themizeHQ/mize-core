@@ -113,11 +113,11 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	}
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-user", payload.Email))
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Email))
-	err = authentication.GenerateRefreshToken(ctx, *response, payload.Email, data.UserName)
+	err = authentication.GenerateRefreshToken(ctx, response.Id.Hex(), payload.Email, data.UserName)
 	if err != nil {
 		return
 	}
-	err = authentication.GenerateAccessToken(ctx, *response, payload.Email, data.UserName, nil)
+	err = authentication.GenerateAccessToken(ctx, response.Id.Hex(), payload.Email, data.UserName, nil)
 	if err != nil {
 		return
 	}

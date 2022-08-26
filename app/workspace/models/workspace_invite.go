@@ -11,12 +11,13 @@ import (
 )
 
 type WorkspaceInvite struct {
-	Id          primitive.ObjectID `bson:"_id"`
-	Email       string             `bson:"email"`
-	Accepted    *bool              `bson:"accepted"`
-	Success     bool               `bson:"success"`
-	WorkspaceId primitive.ObjectID `bson:"workspaceId"`
-	Expired     bool               `bson:"expired"`
+	Id            primitive.ObjectID `bson:"_id"`
+	Email         string             `bson:"email"`
+	WorkspaceName string             `bson:"workspaceName"`
+	Accepted      *bool              `bson:"accepted"`
+	Success       bool               `bson:"success"`
+	WorkspaceId   primitive.ObjectID `bson:"workspaceId"`
+	Expired       bool               `bson:"expired"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

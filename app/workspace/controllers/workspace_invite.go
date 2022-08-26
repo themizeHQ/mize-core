@@ -59,11 +59,11 @@ func AcceptWorkspaceInvite(ctx *gin.Context) {
 			StatusCode: http.StatusBadRequest})
 		return
 	}
-	workspace_id, err := workspaceInviteUseCases.AcceptWorkspaceInviteUseCase(ctx, inviteId)
+	workspace_id, workspace_name, err := workspaceInviteUseCases.AcceptWorkspaceInviteUseCase(ctx, inviteId)
 	if err != nil {
 		return
 	}
-	id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, *workspace_id, false)
+	id, err := workspaceMemberUseCases.CreateWorkspaceMemberUseCase(ctx, workspace_id, workspace_name, false)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("failed to join workspace"),
 			StatusCode: http.StatusInternalServerError})
