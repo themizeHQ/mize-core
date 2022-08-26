@@ -24,6 +24,7 @@ func FetchProfile(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("profile not found. please contact support"), StatusCode: http.StatusInternalServerError})
 		return
 	}
+	profile.Password = ""
 	server_response.Response(ctx, http.StatusOK, "profile fetched", true, profile)
 }
 

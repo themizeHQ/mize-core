@@ -122,6 +122,7 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 		return
 	}
 	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_VERIFIED, map[string]string{"email": payload.Email})
+	response.Password = ""
 	server_response.Response(ctx, http.StatusCreated, "account verified", true, response)
 }
 
