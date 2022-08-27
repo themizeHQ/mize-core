@@ -64,7 +64,8 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 	}
 	member := models.ChannelMember{
 		ChannelId:   *utils.HexToMongoId(ctx, channel_id),
-		WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace")), Username: ctx.GetString("Username"),
+		WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		Username:    ctx.GetString("Username"),
 		UserId:      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		LastSent:    primitive.NewDateTimeFromTime(time.Now()),
 		Admin:       admin,

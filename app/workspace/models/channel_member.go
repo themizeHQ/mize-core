@@ -58,7 +58,7 @@ func (member *ChannelMember) Validate() error {
 	)
 }
 
-func HasAccess(access_given []channel.ChannelAdminAccess, access_to_check []channel.ChannelAdminAccess) bool {
+func (member *ChannelMember) HasAccess(access_given []channel.ChannelAdminAccess, access_to_check []channel.ChannelAdminAccess) bool {
 	has_access := false
 	for _, user_access := range access_given {
 		for _, access := range access_to_check {
