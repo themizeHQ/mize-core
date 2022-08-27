@@ -94,6 +94,8 @@ func main() {
 
 			channelV1.PUT("/pin", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.PinChannel)
 
+			channelV1.PUT("/unpin", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.UnPinChannel)
+
 			channelV1.GET("/pinned/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchPinnedChannels)
 		}
 

@@ -136,7 +136,21 @@ func PinChannel(ctx *gin.Context) {
 		return
 	}
 
-	server_response.Response(ctx, http.StatusOK, "status pinned", true, nil)
+	server_response.Response(ctx, http.StatusOK, "channel pinned", true, nil)
+}
+
+func UnPinChannel(ctx *gin.Context) {
+	channel_id := ctx.Query("id")
+	if channel_id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in channel id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	pinned := channelMemberUseCases.UnPinChannelMember(ctx, &channel_id)
+	if !pinned {
+		return
+	}
+
+	server_response.Response(ctx, http.StatusOK, "channel unpinned", true, nil)
 }
 
 func FetchPinnedChannels(ctx *gin.Context) {
