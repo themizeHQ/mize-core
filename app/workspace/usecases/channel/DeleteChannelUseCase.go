@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/constants/channel"
@@ -29,7 +28,7 @@ func DeleteChannelUseCase(ctx *gin.Context, channel_id string) (bool, error) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
 		return false, err
 	}
-	has_access := models.HasAccess(channelMembership.AdminAccess,
+	has_access := channelMembership.HasAccess(channelMembership.AdminAccess,
 		[]channel.ChannelAdminAccess{channel.CHANNEL_FULL_ACCESS, channel.CHANNEL_DELETE_ACCESS})
 	if !has_access {
 		err = errors.New("you do not have delete access to this channel")

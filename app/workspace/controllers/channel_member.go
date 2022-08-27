@@ -28,6 +28,20 @@ func CreateChannelMember(ctx *gin.Context) {
 	server_response.Response(ctx, http.StatusCreated, "joined channel successfully", true, id)
 }
 
+func AdminAddUserByUsername(ctx *gin.Context) {
+	username := ctx.Query("username")
+	channel_id := ctx.Query("id")
+	if username == "" || channel_id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a username and channel id"), StatusCode: http.StatusBadGateway})
+		return
+	}
+	success := channelMemberUseCases.AddUserByUsernameUseCase(ctx, username, channel_id)
+	if !success {
+		return
+	}
+	server_response.Response(ctx, http.StatusCreated, "added to channel successfully", true, nil)
+}
+
 func FetchChannels(ctx *gin.Context) {
 	channelsRepo := repository.GetChannelMemberRepo()
 	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)

@@ -38,6 +38,7 @@ func main() {
 
 	// set up routing
 	v1 := server.Group("/api/v1")
+
 	{
 		userV1 := v1.Group("/user")
 		{
@@ -89,6 +90,8 @@ func main() {
 			channelV1.DELETE("/delete/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.DeleteChannel)
 
 			channelV1.GET("/members/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannelMembers)
+
+			channelV1.POST("/add/username", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.AdminAddUserByUsername)
 		}
 
 		messageV1 := v1.Group("/message")
@@ -125,6 +128,6 @@ func main() {
 		server_response.Response(ctx, http.StatusNotFound, "this route does not exist", false, nil)
 	})
 
-	server.Run(":" + os.Getenv("PORT"))
+	server.Run(os.Getenv("PORT"))
 
 }
