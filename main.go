@@ -91,6 +91,8 @@ func main() {
 			channelV1.GET("/members/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannelMembers)
 
 			channelV1.DELETE("/leave", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.LeaveChannel)
+
+			channelV1.PUT("/pin", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.PinChannel)
 		}
 
 		messageV1 := v1.Group("/message")

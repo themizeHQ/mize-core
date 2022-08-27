@@ -124,3 +124,17 @@ func LeaveChannel(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "channel exited", true, nil)
 }
+
+func PinChannel(ctx *gin.Context) {
+	channel_id := ctx.Query("id")
+	if channel_id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in channel id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	pinned := channelMemberUseCases.PinChannelMember(ctx, &channel_id)
+	if !pinned {
+		return
+	}
+
+	server_response.Response(ctx, http.StatusOK, "status pinned", true, nil)
+}
