@@ -15,7 +15,7 @@ import (
 func LeaveChannelUseCase(ctx *gin.Context, id *string) bool {
 	channelMemberRepo := repository.GetChannelMemberRepo()
 	exists, err := channelMemberRepo.FindOneByFilter(map[string]interface{}{
-		"channelId":   *utils.HexToMongoId(ctx, *id),
+		"_id":         *id,
 		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 	}, options.FindOne().SetProjection(map[string]int{
