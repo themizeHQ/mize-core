@@ -88,16 +88,6 @@ func main() {
 
 			channelV1.DELETE("/delete/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.DeleteChannel)
 
-			channelV1.GET("/members/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannelMembers)
-
-			channelV1.DELETE("/leave", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.LeaveChannel)
-
-			channelV1.PUT("/pin", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.PinChannel)
-
-			channelV1.PUT("/unpin", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.UnPinChannel)
-
-			channelV1.GET("/pinned/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchPinnedChannels)
-
 			channelV1.POST("/add/username", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.AdminAddUserByUsername)
 		}
 
