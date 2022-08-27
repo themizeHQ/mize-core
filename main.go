@@ -38,6 +38,7 @@ func main() {
 
 	// set up routing
 	v1 := server.Group("/api/v1")
+
 	{
 		userV1 := v1.Group("/user")
 		{
@@ -99,6 +100,8 @@ func main() {
 			channelV1.PUT("/unpin", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.UnPinChannel)
 
 			channelV1.GET("/pinned/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchPinnedChannels)
+
+			channelV1.POST("/add/username", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.AdminAddUserByUsername)
 		}
 
 		messageV1 := v1.Group("/message")
