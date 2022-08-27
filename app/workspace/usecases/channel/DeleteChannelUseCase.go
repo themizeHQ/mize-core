@@ -19,7 +19,7 @@ func DeleteChannelUseCase(ctx *gin.Context, channel_id string) (bool, error) {
 		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 	})
 	if err != nil {
-		err = errors.New("workspace does not exist")
+		err = errors.New("channel does not exist")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusNotFound})
 		return false, err
 	}
