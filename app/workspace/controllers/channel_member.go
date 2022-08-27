@@ -138,3 +138,29 @@ func PinChannel(ctx *gin.Context) {
 
 	server_response.Response(ctx, http.StatusOK, "status pinned", true, nil)
 }
+
+func FetchPinnedChannels(ctx *gin.Context) {
+	channelsRepo := repository.GetChannelMemberRepo()
+	var page int64 = 1
+	var limit int64 = 5
+	skip := (page - 1) * limit
+	channels, err := channelsRepo.FindManyStripped(map[string]interface{}{
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"pinned":      true,
+	}, &options.FindOptions{
+		Limit: &limit,
+		Skip:  &skip,
+	}, options.Find().SetProjection(
+		map[string]interface{}{
+			"channelId":   1,
+			"channelName": 1,
+		},
+	))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
+			Err: errors.New("could not retrieve your channels at this time")}, StatusCode: http.StatusBadRequest})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "channels retrieved", true, channels)
+}
