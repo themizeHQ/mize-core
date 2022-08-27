@@ -61,3 +61,53 @@ func FetchChannels(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "channels retrieved", true, channels)
 }
+
+func FetchChannelMembers(ctx *gin.Context) {
+	channel_id := ctx.Query("id")
+	if channel_id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in channel id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	channelMemberRepo := repository.GetChannelMemberRepo()
+	exists, err := channelMemberRepo.CountDocs(map[string]interface{}{
+		"channelId":   *utils.HexToMongoId(ctx, channel_id),
+		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("something went wrong"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	if exists == 0 {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you are not a member of this channel"), StatusCode: http.StatusUnauthorized})
+		return
+	}
+	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	if err != nil || page == 0 {
+		page = 1
+	}
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
+	skip := (page - 1) * limit
+
+	members, err := channelMemberRepo.FindManyStripped(map[string]interface{}{
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"channelId":   *utils.HexToMongoId(ctx, channel_id),
+	}, &options.FindOptions{
+		Limit: &limit,
+		Skip:  &skip,
+	}, options.Find().SetProjection(
+		map[string]interface{}{
+			"userName": 1,
+			"admin":    1,
+		},
+	))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch members"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+
+	server_response.Response(ctx, http.StatusOK, "members fetched", true, members)
+}
