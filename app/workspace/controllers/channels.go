@@ -3,15 +3,21 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"mize.app/app/auth"
+	"mize.app/app/media"
 	"mize.app/app/workspace/models"
 	channelUseCases "mize.app/app/workspace/usecases/channel"
 	channelmembersUseCases "mize.app/app/workspace/usecases/channel_member"
 	"mize.app/app_errors"
+	mediaConstants "mize.app/constants/media"
 	"mize.app/server_response"
+	"mize.app/utils"
 )
 
 var waitGroup sync.WaitGroup
@@ -46,4 +52,67 @@ func DeleteChannel(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "channel deleted successfully", success, nil)
+}
+
+func UpdateChannelProfileImage(ctx *gin.Context) {
+	channel_id := ctx.Query("id")
+
+	if channel_id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("set channel id to update"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	file, fileHeader, err := ctx.Request.FormFile("media")
+	defer func() {
+		file.Close()
+	}()
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return
+	}
+
+	success, err := auth.HasChannelAccess(ctx, channel_id)
+	if err != nil || !success {
+		return
+	}
+
+	uploadRepo := media.GetUploadRepo()
+	profileImageUpload, err := uploadRepo.FindOneByFilter(map[string]interface{}{
+		"uploadBy": *utils.HexToMongoId(ctx, channel_id),
+		"type":     mediaConstants.CHANNEL_IMAGE,
+	}, options.FindOne().SetProjection(map[string]interface{}{
+		"publicId": 1,
+	}))
+	if err != nil {
+		err := errors.New("could not update profile image")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return
+	}
+	var data *media.Upload
+	if profileImageUpload == nil {
+		data, err = media.UploadToCloudinary(ctx, file, "/core/channel-images", nil)
+		if err != nil {
+			return
+		}
+	} else {
+		data, err = media.UploadToCloudinary(ctx, file, "/core/channel-images", &profileImageUpload.PublicID)
+		if err != nil {
+			return
+		}
+	}
+	data.Type = mediaConstants.CHANNEL_IMAGE
+	data.Format = strings.Split(fileHeader.Filename, ".")[len(strings.Split(fileHeader.Filename, "."))-1]
+	data.UploadBy = *utils.HexToMongoId(ctx, channel_id)
+
+	if profileImageUpload == nil {
+		err = channelUseCases.UploadChannelImage(ctx, data, channel_id)
+		if err != nil {
+			return
+		}
+	} else {
+		err = channelUseCases.UpdateChannelImage(ctx, data.Bytes, channel_id)
+		if err != nil {
+			return
+		}
+	}
+	server_response.Response(ctx, http.StatusCreated, "upload success", true, nil)
 }

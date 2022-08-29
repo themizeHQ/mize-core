@@ -87,6 +87,8 @@ func main() {
 		{
 			channelV1.POST("/create", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.CreateChannel)
 
+			channelV1.PUT("/update/channel-image", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.UpdateChannelProfileImage)
+
 			channelV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannels)
 
 			channelV1.POST("/join/:id", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.CreateChannelMember)

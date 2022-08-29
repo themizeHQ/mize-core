@@ -15,10 +15,14 @@ import (
 
 	"mize.app/app/user/models"
 	"mize.app/app/user/repository"
+	workspaceRepository "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/authentication"
+	"mize.app/constants/channel"
 	user_constants "mize.app/constants/user"
 	"mize.app/cryptography"
+	"mize.app/utils"
+
 	// "mize.app/emails"
 	"mize.app/emitter"
 	"mize.app/realtime"
@@ -286,4 +290,30 @@ func ResendOtp(ctx *gin.Context) {
 		"otp":   otp,
 	})
 	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
+}
+
+func HasChannelAccess(ctx *gin.Context, channel_id string) (bool, error) {
+	channelMemberRepo := workspaceRepository.GetChannelMemberRepo()
+	channelMembership, err := channelMemberRepo.FindOneByFilter(map[string]interface{}{
+		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	})
+	if err != nil || channelMembership == nil {
+		err = errors.New("you are not a member of this channel")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusNotFound})
+		return false, err
+	}
+	if !channelMembership.Admin {
+		err = errors.New("only admins can delete channels")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
+		return false, err
+	}
+	has_access := channelMembership.HasAccess(channelMembership.AdminAccess,
+		[]channel.ChannelAdminAccess{channel.CHANNEL_FULL_ACCESS, channel.CHANNEL_DELETE_ACCESS})
+	if !has_access {
+		err = errors.New("you do not have delete access to this channel")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
+		return false, err
+	}
+	return true, nil
 }

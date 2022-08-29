@@ -66,6 +66,7 @@ func FetchChannels(ctx *gin.Context) {
 			"channelId":       1,
 			"channelName":     1,
 			"lastMessageSent": 1,
+			"profileImage":    1,
 		},
 	))
 	if err != nil {
