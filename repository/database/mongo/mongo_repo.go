@@ -330,7 +330,7 @@ func (repo *MongoRepository[T]) UpdatePartialByFilter(ctx *gin.Context, filter m
 	return true, err
 }
 
-func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(sc mongo.SessionContext, c context.Context) error) error {
+func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(sc *mongo.SessionContext, c *context.Context) error) error {
 	c, cancel := createCtx()
 
 	defer func() {
@@ -341,7 +341,7 @@ func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(s
 		if err := sc.StartTransaction(); err != nil {
 			return err
 		}
-		return payload(sc, c)
+		return payload(&sc, &c)
 	}); err != nil {
 		return err
 	}

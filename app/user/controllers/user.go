@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -85,7 +84,6 @@ func UpdateProfileImage(ctx *gin.Context) {
 		"publicId": 1,
 	}))
 	if err != nil {
-		fmt.Println(err)
 		err := errors.New("could not update profile image")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return

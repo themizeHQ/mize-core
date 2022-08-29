@@ -48,7 +48,7 @@ func main() {
 
 			userV1.PUT("/update", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateUserData)
 
-			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(true, false), userControllers.UpdateProfileImage)
+			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateProfileImage)
 		}
 
 		notificationV1 := v1.Group("/notification")

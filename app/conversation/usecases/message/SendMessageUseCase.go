@@ -66,7 +66,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 	var wg sync.WaitGroup
 	if channel == "true" {
 		chan1 := make(chan error)
-		err := messageRepository.StartTransaction(ctx, func(sc mongo.SessionContext, c context.Context) error {
+		err := messageRepository.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
 			wg.Add(1)
 			go func(ch chan error) {
 				defer func() {
@@ -80,7 +80,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				})
 				if err != nil || !success {
 					ch <- err
-					sc.AbortTransaction(c)
+					(*sc).AbortTransaction(*c)
 				}
 				ch <- nil
 			}(chan1)
@@ -96,13 +96,13 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 					"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 				}, map[string]interface{}{
 					"$inc": map[string]interface{}{
-						"unreadMessages": 1,
-						"lastMessageSent":  primitive.NewDateTimeFromTime(time.Now()),
+						"unreadMessages":  1,
+						"lastMessageSent": primitive.NewDateTimeFromTime(time.Now()),
 					}},
 				)
 				if err != nil || !success {
 					ch <- err
-					sc.AbortTransaction(c)
+					(*sc).AbortTransaction(*c)
 				}
 				ch <- nil
 			}(chan2)
