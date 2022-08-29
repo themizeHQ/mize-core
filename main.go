@@ -47,6 +47,8 @@ func main() {
 			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false, false), userControllers.FetchUsersProfile)
 
 			userV1.PUT("/update", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateUserData)
+
+			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(true, false), userControllers.UpdateProfileImage)
 		}
 
 		notificationV1 := v1.Group("/notification")
@@ -101,7 +103,6 @@ func main() {
 
 			channelV1.GET("/pinned/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchPinnedChannels)
 
-			channelV1.POST("/add/username", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.AdminAddUserByUsername)
 		}
 
 		messageV1 := v1.Group("/message")
@@ -110,6 +111,10 @@ func main() {
 
 			messageV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), conversationControllers.FetchMessages)
 		}
+
+		// mediaV1 := v1.Group("/media")
+		// {
+		// }
 
 		authV1 := v1.Group("/auth")
 		{

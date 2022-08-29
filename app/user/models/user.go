@@ -14,16 +14,17 @@ import (
 )
 
 type User struct {
-	Id        primitive.ObjectID            `bson:"_id"`
-	FirstName string                        `bson:"firstName"`
-	LastName  string                        `bson:"lastName"`
-	UserName  string                        `bson:"userName"`
-	Email     string                        `bson:"email"`
-	Region    string                        `bson:"region"`
-	Password  string                        `bson:"password"`
-	Verified  bool                          `bson:"verified"`
-	Language  string                        `bson:"language"`
-	Status    user_constants.UserStatusType `bson:"status"`
+	Id           primitive.ObjectID            `bson:"_id"`
+	FirstName    string                        `bson:"firstName"`
+	LastName     string                        `bson:"lastName"`
+	UserName     string                        `bson:"userName"`
+	Email        string                        `bson:"email"`
+	Region       string                        `bson:"region"`
+	Password     string                        `bson:"password"`
+	Verified     bool                          `bson:"verified"`
+	Language     string                        `bson:"language"`
+	Status       user_constants.UserStatusType `bson:"status"`
+	ProfileImage *string                       `bson:"profileImage"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

@@ -13,14 +13,14 @@ type CentrifugoController struct {
 
 func (c *CentrifugoController) Publish(channel string, data interface{}) error {
 	network := network.NetworkController{BaseUrl: c.BaseUrl}
-	response, err := network.Post("", map[string]string{
+	response, err := network.Post("", &map[string]string{
 		"Authorization": os.Getenv("CENTRIFUGO_API_KEY"),
-	}, map[string]interface{}{
+	}, &map[string]interface{}{
 		"params": map[string]interface{}{
 			"data":    data,
 			"channel": channel,
 		},
-	})
+	}, nil)
 	if err != nil {
 		return err
 	}

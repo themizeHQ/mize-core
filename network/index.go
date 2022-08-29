@@ -17,7 +17,7 @@ func (network *NetworkController) InitialiseNetworkClient() {
 	network.HttpClinet = &http.Client{}
 }
 
-func (network *NetworkController) Get(path string, headers map[string]string) (*string, error) {
+func (network *NetworkController) Get(path string, headers *map[string]string, params *map[string]string) (*string, error) {
 	if network.HttpClinet == nil {
 		network.InitialiseNetworkClient()
 	}
@@ -26,7 +26,8 @@ func (network *NetworkController) Get(path string, headers map[string]string) (*
 		fmt.Println(err)
 		return nil, err
 	}
-	setHeaders(&headers, req)
+	setHeaders(headers, req)
+	setParams(params, req)
 	res, err := network.HttpClinet.Do(req)
 	if err != nil {
 		fmt.Println(err)
@@ -43,7 +44,7 @@ func (network *NetworkController) Get(path string, headers map[string]string) (*
 	return &res_json, nil
 }
 
-func (network *NetworkController) Post(path string, headers map[string]string, body map[string]interface{}) (*string, error) {
+func (network *NetworkController) Post(path string, headers *map[string]string, body *map[string]interface{}, params *map[string]string) (*string, error) {
 	if network.HttpClinet == nil {
 		network.InitialiseNetworkClient()
 	}
@@ -57,7 +58,8 @@ func (network *NetworkController) Post(path string, headers map[string]string, b
 		fmt.Println(err)
 		return nil, err
 	}
-	setHeaders(&headers, req)
+	setHeaders(headers, req)
+	setParams(params, req)
 	defer req.Body.Close()
 	res, err := network.HttpClinet.Do(req)
 	if err != nil {
@@ -76,7 +78,18 @@ func (network *NetworkController) Post(path string, headers map[string]string, b
 }
 
 func setHeaders(headers *map[string]string, req *http.Request) {
+	if headers == nil {
+		return
+	}
 	for k := range *headers {
 		req.Header.Add(k, (*headers)[k])
 	}
+}
+
+func setParams(params *map[string]string, req *http.Request) {
+	q := req.URL.Query()
+	for k := range *params {
+		q.Add(k, (*params)[k])
+	}
+	req.URL.RawQuery = q.Encode()
 }

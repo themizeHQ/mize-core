@@ -31,6 +31,9 @@ var (
 
 	// messages
 	Message *mongo.Collection
+
+	// media
+	Upload *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -97,7 +100,7 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	WorkspaceMember = db.Collection("WorkspaceMembers")
 	WorkspaceMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.D{{Key: "username", Value: 1}},
+			Keys: bson.D{{Key: "userName", Value: 1}},
 		},
 		{
 			Keys: bson.D{{Key: "userId", Value: 1}},
@@ -153,6 +156,16 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "userName", Value: 1}},
+		},
+	})
+
+	Upload = db.Collection("Uploads")
+	Upload.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "uploadBy", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "format", Value: 1}},
 		},
 	})
 }

@@ -98,7 +98,7 @@ func (repo *MongoRepository[T]) FindOneByFilter(filter map[string]interface{}, o
 	err := doc.Decode(&result)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
-			return nil, errors.New("no documents found")
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interfac
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdateOrCreateByFieldAndReturn(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (*string, error) {
+func (repo *MongoRepository[T]) UpdateOrCreateByFieldAndReturn(filter map[string]interface{}, payload interface{}, opts ...*options.UpdateOptions) (*string, error) {
 	c, cancel := createCtx()
 
 	defer func() {
@@ -348,7 +348,8 @@ func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(s
 	return nil
 }
 
-func parseFilter(filter map[string]interface{}) map[string]interface{} {
+func parseFilter(f interface{}) interface{} {
+	filter := (f).(map[string]interface{})
 	if filter["_id"] != nil {
 		id := fmt.Sprintf("%v", filter["_id"])
 		filter["_id"] = parseStringToMongo(&id)
