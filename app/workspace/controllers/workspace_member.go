@@ -32,6 +32,7 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 		Skip:  &skip,
 	}, options.Find().SetProjection(map[string]int{
 		"workspaceName": 1,
+		"profileImage":  1,
 	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,

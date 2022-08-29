@@ -88,24 +88,29 @@ func UpdateProfileImage(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return
 	}
+	var data *media.Upload
 	if profileImageUpload == nil {
-		data, err := media.UploadToCloudinary(ctx, file, "/core/profile-images", nil)
+		data, err = media.UploadToCloudinary(ctx, file, "/core/profile-images", nil)
 		if err != nil {
 			return
 		}
-		data.Type = mediaConstants.PROFILE_IMAGE
-		data.Format = strings.Split(fileHeader.Filename, ".")[len(strings.Split(fileHeader.Filename, "."))-1]
+	} else {
+		data, err = media.UploadToCloudinary(ctx, file, "/core/profile-images", &profileImageUpload.PublicID)
+		if err != nil {
+			return
+		}
+	}
+
+	data.Type = mediaConstants.PROFILE_IMAGE
+	data.Format = strings.Split(fileHeader.Filename, ".")[len(strings.Split(fileHeader.Filename, "."))-1]
+	data.UploadBy = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
+
+	if profileImageUpload == nil {
 		err = userUseCases.UploadProfileImage(ctx, data)
 		if err != nil {
 			return
 		}
 	} else {
-		data, err := media.UploadToCloudinary(ctx, file, "/core/profile-images", &profileImageUpload.PublicID)
-		if err != nil {
-			return
-		}
-		data.Type = mediaConstants.PROFILE_IMAGE
-		data.Format = strings.Split(fileHeader.Filename, ".")[len(strings.Split(fileHeader.Filename, "."))-1]
 		err = userUseCases.UpdateProfileImage(ctx, data.Bytes)
 		if err != nil {
 			return

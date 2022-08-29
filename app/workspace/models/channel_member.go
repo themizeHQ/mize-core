@@ -29,6 +29,7 @@ type ChannelMember struct {
 	LastMessage    string                       `bson:"lastMessage"`
 	LastSent       primitive.DateTime           `bson:"lastMessageSent"`
 	UnreadMessages int                          `bson:"unreadMessages"`
+	ProfileImage   *string                      `bson:"profileImage"`
 	CreatedAt      primitive.DateTime           `bson:"createdAt"`
 	UpdatedAt      primitive.DateTime           `bson:"updatedAt"`
 }

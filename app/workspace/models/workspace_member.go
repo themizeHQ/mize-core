@@ -21,6 +21,7 @@ type WorkspaceMember struct {
 	JoinDate      int64                                         `bson:"joinDate"`
 	Banned        bool                                          `bson:"banned"`
 	Restricted    []workspace_member_constants.MemberActionType `bson:"restricted"`
+	ProfileImage  *string                                       `bson:"profileImage"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

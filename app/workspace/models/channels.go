@@ -9,13 +9,14 @@ import (
 )
 
 type Channel struct {
-	Id          primitive.ObjectID `bson:"_id"`
-	WorkspaceId primitive.ObjectID `bson:"workspaceId"`
-	Name        string             `bson:"name"`
-	Description string             `bson:"description"`
-	Private     bool               `bson:"private"`
-	CreatedBy   primitive.ObjectID `bson:"createdBy"`
-	Compulsory  bool               `bson:"compulsory"`
+	Id           primitive.ObjectID `bson:"_id"`
+	WorkspaceId  primitive.ObjectID `bson:"workspaceId"`
+	Name         string             `bson:"name"`
+	Description  string             `bson:"description"`
+	Private      bool               `bson:"private"`
+	CreatedBy    primitive.ObjectID `bson:"createdBy"`
+	Compulsory   bool               `bson:"compulsory"`
+	ProfileImage *string            `bson:"profileImage"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

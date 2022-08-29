@@ -12,13 +12,14 @@ import (
 )
 
 type Workspace struct {
-	Id          primitive.ObjectID      `bson:"_id"`
-	Name        string                  `bson:"name"`
-	Email       string                  `bson:"email"`
-	Description string                  `bson:"description"`
-	Censor      bool                    `bson:"censor"`
-	Type        workspace.WorkspaceType `bson:"type"`
-	CreatedBy   primitive.ObjectID      `bson:"createdBy"`
+	Id           primitive.ObjectID      `bson:"_id"`
+	Name         string                  `bson:"name"`
+	Email        string                  `bson:"email"`
+	Description  string                  `bson:"description"`
+	Censor       bool                    `bson:"censor"`
+	Type         workspace.WorkspaceType `bson:"type"`
+	CreatedBy    primitive.ObjectID      `bson:"createdBy"`
+	ProfileImage *string                 `bson:"profileImage"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

@@ -70,6 +70,8 @@ func main() {
 		{
 			workspaceV1.POST("/create", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.CreateWorkspace)
 
+			workspaceV1.PUT("/update/workspace-image", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.UpdatWorkspaceProfileImage)
+
 			workspaceV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.FetchUserWorkspaces)
 
 			workspaceV1.POST("/invite", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.InviteToWorkspace)

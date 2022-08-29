@@ -9,7 +9,6 @@ import (
 	"github.com/cloudinary/cloudinary-go"
 	"github.com/cloudinary/cloudinary-go/api/uploader"
 	"github.com/gin-gonic/gin"
-	"mize.app/utils"
 )
 
 func UploadToCloudinary(ctx *gin.Context, data multipart.File, folder string, public_id *string) (*Upload, error) {
@@ -44,6 +43,5 @@ func UploadToCloudinary(ctx *gin.Context, data multipart.File, folder string, pu
 		Bytes:    uploadParam.Bytes,
 		PublicID: uploadParam.PublicID,
 		Service:  "CLOUDINARY",
-		UploadBy: *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 	}, nil
 }
