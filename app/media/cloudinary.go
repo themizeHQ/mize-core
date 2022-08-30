@@ -2,6 +2,7 @@ package media
 
 import (
 	"context"
+	"errors"
 	"mime/multipart"
 	"os"
 	"time"
@@ -46,8 +47,8 @@ func UploadToCloudinary(ctx *gin.Context, data multipart.File, folder string, pu
 	}, nil
 }
 
-func UploadToCloudinaryRAW(ctx *gin.Context, data multipart.File, folder string, public_id *string) (*Upload, error) {
-	c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func UploadToCloudinaryRAW(ctx *gin.Context, data multipart.File, folder string, public_id *string, format string) (*Upload, error) {
+	c, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	cld, err := cloudinary.NewFromParams(os.Getenv("CLOUDINARY_CLOUD_NAME"), os.Getenv("CLOUDINARY_API_KEY"), os.Getenv("CLOUDINARY_API_SECRET"))
 	if err != nil {
@@ -60,8 +61,9 @@ func UploadToCloudinaryRAW(ctx *gin.Context, data multipart.File, folder string,
 			}
 			return ""
 		}(),
-		Format:     "raw",
-		Invalidate: true,
+		Format:       format,
+		ResourceType: "raw",
+		Invalidate:   true,
 		PublicID: func() string {
 			if public_id == nil {
 				return ""
@@ -72,6 +74,9 @@ func UploadToCloudinaryRAW(ctx *gin.Context, data multipart.File, folder string,
 
 	if err != nil {
 		return nil, err
+	}
+	if uploadParam == nil {
+		return nil, errors.New("could not save resource")
 	}
 	return &Upload{
 		Url:      uploadParam.SecureURL,

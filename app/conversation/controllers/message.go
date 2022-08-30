@@ -63,20 +63,23 @@ func SendMessage(ctx *gin.Context) {
 	if message.Type == messageConstants.MessageType(messageConstants.IMAGE_MESSAGE) {
 		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/message-images/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil)
 		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not send image"), StatusCode: http.StatusInternalServerError})
 			return
 		}
 		data.Type = mediaConstants.MESSAGE_IMAGE
 	}
 	if message.Type == messageConstants.MessageType(messageConstants.AUDIO_MESSAGE) {
-		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/message-audio/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil)
+		data, err = media.UploadToCloudinaryRAW(ctx, file, fmt.Sprintf("/core/message-audio/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil, "mp3")
 		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not send audio"), StatusCode: http.StatusInternalServerError})
 			return
 		}
 		data.Type = mediaConstants.MESSAGE_AUDIO
 	}
 	if message.Type == messageConstants.MessageType(messageConstants.VIDEO_MESSAGE) {
-		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/message-video/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil)
+		data, err = media.UploadToCloudinaryRAW(ctx, file, fmt.Sprintf("/core/message-video/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil, "mp4")
 		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not send video"), StatusCode: http.StatusInternalServerError})
 			return
 		}
 		data.Type = mediaConstants.MESSAGE_VIDEO
