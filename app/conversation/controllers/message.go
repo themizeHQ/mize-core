@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -11,19 +14,81 @@ import (
 	"mize.app/app/conversation/models"
 	"mize.app/app/conversation/repository"
 	"mize.app/app/conversation/usecases/message"
+	"mize.app/app/media"
 	channelsRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	mediaConstants "mize.app/constants/media"
+	messageConstants "mize.app/constants/message"
 	"mize.app/server_response"
 	"mize.app/utils"
 )
 
 func SendMessage(ctx *gin.Context) {
-	var payload models.Message
-	if err := ctx.ShouldBind(&payload); err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the required info"), StatusCode: http.StatusBadRequest})
+	raw_form, err := ctx.MultipartForm()
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in message data"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	err := messages.SendMessageUseCase(ctx, payload, ctx.Query("channel"))
+	parsed_form := map[string]interface{}{}
+	for key, value := range raw_form.Value {
+		parsed_form[key] = value[0]
+	}
+	message := models.Message{}
+	pJson, err := json.Marshal(parsed_form)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return
+	}
+	err = json.Unmarshal(pJson, &message)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return
+	}
+	file, fileHeader, err := ctx.Request.FormFile("resource")
+	if err != nil {
+		if err.Error() == "http: no such file" {
+			message.Type = messageConstants.TEXT_MESSAGE
+		} else {
+			err := errors.New("could not process media file")
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+			return
+		}
+	}
+	defer func() {
+		if file != nil {
+			file.Close()
+		}
+	}()
+	var data *media.Upload
+	if message.Type == messageConstants.MessageType(messageConstants.IMAGE_MESSAGE) {
+		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/message-images/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil)
+		if err != nil {
+			return
+		}
+		data.Type = mediaConstants.MESSAGE_IMAGE
+	}
+	if message.Type == messageConstants.MessageType(messageConstants.AUDIO_MESSAGE) {
+		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/message-audio/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil)
+		if err != nil {
+			return
+		}
+		data.Type = mediaConstants.MESSAGE_AUDIO
+	}
+	if message.Type == messageConstants.MessageType(messageConstants.VIDEO_MESSAGE) {
+		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/message-video/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil)
+		if err != nil {
+			return
+		}
+		data.Type = mediaConstants.MESSAGE_VIDEO
+	}
+	if message.Type != messageConstants.MessageType(messageConstants.TEXT_MESSAGE) {
+		data.Format = strings.Split(fileHeader.Filename, ".")[len(strings.Split(fileHeader.Filename, "."))-1]
+		data.UploadBy = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
+		data.FileName = fileHeader.Filename
+		message.ResourceUrl = &data.Url
+	}
+
+	err = messages.SendMessageUseCase(ctx, message, ctx.Query("channel"), data)
 	if err != nil {
 		return
 	}

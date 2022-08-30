@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"mize.app/constants/message"
 )
 
 type Message struct {
@@ -18,6 +19,8 @@ type Message struct {
 	ReplyTo        *primitive.ObjectID `bson:"replyTo"`
 	ReplyCount     int                 `bson:"replyCount"`
 	Username       string              `bson:"userName"`
+	Type           message.MessageType `bson:"type"`
+	ResourceUrl    *string             `bson:"resourceUrl"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

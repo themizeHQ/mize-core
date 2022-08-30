@@ -87,6 +87,9 @@ func setHeaders(headers *map[string]string, req *http.Request) {
 }
 
 func setParams(params *map[string]string, req *http.Request) {
+	if params == nil {
+		return
+	}
 	q := req.URL.Query()
 	for k := range *params {
 		q.Add(k, (*params)[k])

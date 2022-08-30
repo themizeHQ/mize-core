@@ -3,6 +3,7 @@ package messages
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -12,13 +13,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"mize.app/app/conversation/models"
 	conversationRepository "mize.app/app/conversation/repository"
+	"mize.app/app/media"
 	channelRepository "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	// mediaConstants "mize.app/constants/media"
 	"mize.app/emitter"
 	"mize.app/utils"
 )
 
-func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string) error {
+func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string, upload *media.Upload) error {
 	messageRepository := conversationRepository.GetMessageRepo()
 	channelRepository := channelRepository.GetChannelMemberRepo()
 	if channel == "true" {
@@ -59,6 +62,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 	payload.Username = ctx.GetString("Username")
 	_, err := messageRepository.CreateOne(payload)
 	if err != nil {
+		fmt.Println(err)
 		err = errors.New("message could not be sent")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return err
@@ -76,7 +80,8 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 					"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
 					"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 				}, map[string]interface{}{
-					"lastMessage": payload.Text,
+					"lastMessage":     payload.Text,
+					"lastMessageSent": primitive.NewDateTimeFromTime(time.Now()),
 				})
 				if err != nil || !success {
 					ch <- err
@@ -96,8 +101,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 					"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 				}, map[string]interface{}{
 					"$inc": map[string]interface{}{
-						"unreadMessages":  1,
-						"lastMessageSent": primitive.NewDateTimeFromTime(time.Now()),
+						"unreadMessages": 1,
 					}},
 				)
 				if err != nil || !success {
@@ -106,8 +110,27 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				}
 				ch <- nil
 			}(chan2)
-			if <-chan1 != nil || <-chan2 != nil {
-				return errors.New("could not send message")
+
+			chan3 := make(chan error)
+			wg.Add(1)
+			go func(ch chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				uploadRepo := media.GetUploadRepo()
+				_, err := uploadRepo.CreateOne(*upload)
+				if err != nil {
+					ch <- err
+					(*sc).AbortTransaction(*c)
+				}
+				ch <- nil
+			}(chan3)
+
+			err1 := <-chan1
+			err2 := <-chan2
+			err3 := <-chan3
+			if err1 != nil || err2 != nil || err3 != nil {
+				return errors.New("message could not be sent")
 			}
 			wg.Wait()
 			return nil
@@ -118,12 +141,14 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 		}
 	}
 	emitter.Emitter.Emit(emitter.Events.MESSAGES_EVENTS.MESSAGE_SENT, map[string]interface{}{
-		"time":     time.Now(),
-		"from":     payload.From.Hex(),
-		"to":       payload.To.Hex(),
-		"text":     payload.Text,
-		"replyTo":  replyTo,
-		"username": payload.Username,
+		"time":        time.Now(),
+		"from":        payload.From.Hex(),
+		"to":          payload.To.Hex(),
+		"text":        payload.Text,
+		"replyTo":     replyTo,
+		"username":    payload.Username,
+		"resourceUrl": payload.ResourceUrl,
+		"type":        payload.Type,
 	})
 	return nil
 }
