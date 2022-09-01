@@ -28,7 +28,7 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 			return
 		}
 		access_token_claims := valid_access_token.Claims.(jwt.MapClaims)
-		
+
 		if has_workspace {
 			if access_token_claims["Workspace"] == nil {
 				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this route is for tokens given workspace access"), StatusCode: http.StatusUnauthorized})
@@ -50,6 +50,7 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 		ctx.Set("Email", access_token_claims["Email"])
 		ctx.Set("Username", access_token_claims["Username"])
 		ctx.Set("Workspace", access_token_claims["Workspace"])
+		ctx.Set("ACSUserId", access_token_claims["ACSUserId"])
 		ctx.Next()
 	}
 

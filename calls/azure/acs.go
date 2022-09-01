@@ -37,3 +37,20 @@ func GenerateUserAndToken() (data *ACSUserToken, err error) {
 	json.Unmarshal([]byte(*response), &r)
 	return &r.Data, nil
 }
+
+func RefreshToken(userId *string) (data *ACSUserToken, err error) {
+	acs := network.NetworkController{
+		BaseUrl: "https://acs-authenticator.azurewebsites.net/api/refresh-acs-token",
+	}
+
+	response, err := acs.Post("/", nil, nil, &map[string]string{
+		"code": os.Getenv("ACS_REFRESH_TOKEN"),
+		"id":   *userId,
+	})
+	if err != nil {
+		return nil, errors.New("could not generate acs token")
+	}
+	var r res
+	json.Unmarshal([]byte(*response), &r)
+	return &r.Data, nil
+}

@@ -123,19 +123,23 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	}
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-user", payload.Email))
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Email))
-	err = authentication.GenerateRefreshToken(ctx, response.Id.Hex(), payload.Email, data.UserName)
+	err = authentication.GenerateRefreshToken(ctx, response.Id.Hex(), payload.Email, data.UserName, acsData.User.CommunicationUserId)
 	if err != nil {
 		return
 	}
-	err = authentication.GenerateAccessToken(ctx, response.Id.Hex(), payload.Email, data.UserName, nil)
+	err = authentication.GenerateAccessToken(ctx, response.Id.Hex(), payload.Email, data.UserName, nil, acsData.User.CommunicationUserId)
 	if err != nil {
 		return
 	}
 	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_VERIFIED, map[string]string{"email": payload.Email})
 	response.Password = ""
+	response.ACSUserId = ""
 	server_response.Response(ctx, http.StatusCreated, "account verified", true, map[string]interface{}{
-		"user":       response,
-		"acsDetails": acsData,
+		"user": response,
+		"acsDetails": map[string]string{
+			"token":     acsData.Token,
+			"expiresOn": acsData.ExpiresOn,
+		},
 	})
 }
 
@@ -176,16 +180,27 @@ func LoginUser(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("incorrect password"), StatusCode: http.StatusUnauthorized})
 		return
 	}
-	err := authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName)
+	acsDetails, err := azure.RefreshToken(&profile.ACSUserId)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return
+	}
+	err = authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.ACSUserId)
 	if err != nil {
 		return
 	}
-	err = authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, nil)
+	err = authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, nil, profile.ACSUserId)
 	if err != nil {
 		return
 	}
 	profile.Password = ""
-	server_response.Response(ctx, http.StatusCreated, "login successful", true, profile)
+	profile.ACSUserId = ""
+	server_response.Response(ctx, http.StatusCreated, "login successful", true, map[string]interface{}{
+		"user": profile,
+		"acsDetails": map[string]interface{}{
+			"token": acsDetails.Token,
+		},
+	})
 }
 
 func UpdateLoggedInUsersPassword(ctx *gin.Context) {
@@ -248,12 +263,12 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	workspace := ctx.Query("workspace_id")
 	if workspace == "" {
 		authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
-			refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), nil)
+			refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), nil, refresh_token_claims["ACSUserId"].(string))
 		server_response.Response(ctx, http.StatusCreated, "token generated", true, nil)
 		return
 	}
 	err := authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
-		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), &workspace)
+		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), &workspace, refresh_token_claims["ACSUserId"].(string))
 	if err != nil {
 		return
 	}

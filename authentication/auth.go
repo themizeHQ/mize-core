@@ -76,6 +76,7 @@ type ClaimsData struct {
 	Role      RoleType
 	ExpiresAt int64
 	Type      TokenType
+	ACSUserId string
 	Workspace *string
 	jwt.StandardClaims
 }
@@ -87,10 +88,11 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 		"UserId":    claimsData.UserId,
 		"Username":  claimsData.Username,
 		"Role":      claimsData.Role,
-		"exp": claimsData.ExpiresAt,
+		"exp":       claimsData.ExpiresAt,
 		"Type":      claimsData.Type,
 		"Email":     claimsData.Email,
 		"Workspace": claimsData.Workspace,
+		"ACSUserId": claimsData.ACSUserId,
 	}).SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 	if err != nil {
 		return nil, err
@@ -137,7 +139,7 @@ func SaveAuthToken(ctx *gin.Context, key string, score float64, payload string) 
 	return redis.RedisRepo.CreateInSet(ctx, key, score, payload)
 }
 
-func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string) error {
+func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string, acsUserId string) error {
 	refreshToken, err := GenerateAuthToken(ctx, ClaimsData{
 		Issuer:    os.Getenv("JWT_ISSUER"),
 		Type:      REFRESH_TOKEN,
@@ -145,6 +147,7 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 		ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(2400)).Unix(), // 100 days
 		UserId:    id,
 		Email:     email,
+		ACSUserId: acsUserId,
 	})
 	if err != nil {
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError}
@@ -155,7 +158,7 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 	return nil
 }
 
-func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, workspace_id *string) error {
+func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, workspace_id *string, acsUserId string) error {
 	var role RoleType = USER
 	if workspace_id != nil {
 		workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
@@ -180,6 +183,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		UserId:    id,
 		Email:     email,
 		Workspace: workspace_id,
+		ACSUserId: acsUserId,
 	})
 	if err != nil {
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized}
