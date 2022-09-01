@@ -74,7 +74,7 @@ type ClaimsData struct {
 	Email     string
 	Username  string
 	Role      RoleType
-	ExpireAt  time.Duration
+	ExpiresAt int64
 	Type      TokenType
 	Workspace *string
 	jwt.StandardClaims
@@ -87,7 +87,7 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 		"UserId":    claimsData.UserId,
 		"Username":  claimsData.Username,
 		"Role":      claimsData.Role,
-		"ExpireAt":  claimsData.ExpireAt,
+		"exp": claimsData.ExpiresAt,
 		"Type":      claimsData.Type,
 		"Email":     claimsData.Email,
 		"Workspace": claimsData.Workspace,
@@ -139,12 +139,12 @@ func SaveAuthToken(ctx *gin.Context, key string, score float64, payload string) 
 
 func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string) error {
 	refreshToken, err := GenerateAuthToken(ctx, ClaimsData{
-		Issuer:   os.Getenv("JWT_ISSUER"),
-		Type:     REFRESH_TOKEN,
-		Username: username,
-		ExpireAt: 24 * 200 * time.Hour, // 200 days
-		UserId:   id,
-		Email:    email,
+		Issuer:    os.Getenv("JWT_ISSUER"),
+		Type:      REFRESH_TOKEN,
+		Username:  username,
+		ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(2400)).Unix(), // 100 days
+		UserId:    id,
+		Email:     email,
 	})
 	if err != nil {
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError}
@@ -176,7 +176,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		Type:      ACCESS_TOKEN,
 		Username:  username,
 		Role:      role,
-		ExpireAt:  7 * time.Minute, // 30 mins
+		ExpiresAt: time.Now().Local().Add(time.Minute * time.Duration(10)).Unix(), // 10 mins
 		UserId:    id,
 		Email:     email,
 		Workspace: workspace_id,
