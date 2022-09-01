@@ -25,6 +25,7 @@ type User struct {
 	Language     string                        `bson:"language"`
 	Status       user_constants.UserStatusType `bson:"status"`
 	ProfileImage *string                       `bson:"profileImage"`
+	ACSUserId    string                        `bson:"acsUserId"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`

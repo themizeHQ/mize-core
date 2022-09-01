@@ -72,8 +72,6 @@ func (network *NetworkController) Post(path string, headers *map[string]string, 
 		return nil, err
 	}
 	res_json := string(res_body)
-	fmt.Println(res_json)
-	fmt.Println(res.Status)
 	return &res_json, nil
 }
 

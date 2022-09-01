@@ -23,7 +23,7 @@ import (
 	"mize.app/cryptography"
 	"mize.app/utils"
 
-	// "mize.app/emails"
+	"mize.app/calls/azure"
 	"mize.app/emitter"
 	"mize.app/realtime"
 	"mize.app/repository/database/redis"
@@ -110,6 +110,12 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	}
 	var data models.User
 	json.Unmarshal([]byte(*cached_user), &data)
+	acsData, err := azure.GenerateUserAndToken()
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return
+	}
+	data.ACSUserId = acsData.User.CommunicationUserId
 	response, err := userRepoInstance.CreateOne(data)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("something went wrong while creating user"), StatusCode: http.StatusNotFound})
@@ -127,7 +133,10 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	}
 	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_VERIFIED, map[string]string{"email": payload.Email})
 	response.Password = ""
-	server_response.Response(ctx, http.StatusCreated, "account verified", true, response)
+	server_response.Response(ctx, http.StatusCreated, "account verified", true, map[string]interface{}{
+		"user":       response,
+		"acsDetails": acsData,
+	})
 }
 
 func LoginUser(ctx *gin.Context) {
