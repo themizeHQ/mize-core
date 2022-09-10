@@ -325,9 +325,9 @@ func ResendOtp(ctx *gin.Context) {
 		return
 	}
 	authentication.SaveOTP(ctx, email, otp, 5*time.Minute)
-	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.RESEND_OTP, map[string]string{
+	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.RESEND_OTP, map[string]interface{}{
 		"email": email,
-		"otp":   otp,
+		"otp":   strings.Split(otp, ""),
 	})
 	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
 }

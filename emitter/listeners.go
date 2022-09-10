@@ -25,8 +25,8 @@ func HandleUserCreated(data map[string]string) {
 func HandleUserVerified(data map[string]string) {
 	emails.SendEmail(data["email"], "Welcome to Mize", "welcome", map[string]string{})
 }
-func HandleResendOtp(data map[string]string) {
-	emails.SendEmail(data["email"], "Activate your Mize account", "otp", map[string]string{"OTP": data["otp"]})
+func HandleResendOtp(data map[string]interface{}) {
+	emails.SendEmail(data["email"].(string), "Activate your Mize account", "otp", map[string]interface{}{"OTP": data["otp"]})
 }
 
 // messages
