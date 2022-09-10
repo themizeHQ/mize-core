@@ -111,24 +111,27 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				ch <- nil
 			}(chan2)
 
-			chan3 := make(chan error)
-			wg.Add(1)
-			go func(ch chan error) {
-				defer func() {
-					wg.Done()
-				}()
-				uploadRepo := media.GetUploadRepo()
-				_, err := uploadRepo.CreateOne(*upload)
-				if err != nil {
-					ch <- err
-					(*sc).AbortTransaction(*c)
-				}
-				ch <- nil
-			}(chan3)
+			var err3 error
+			if upload != nil {
+				chan3 := make(chan error)
+				wg.Add(1)
+				go func(ch chan error) {
+					defer func() {
+						wg.Done()
+					}()
+					uploadRepo := media.GetUploadRepo()
+					_, err := uploadRepo.CreateOne(*upload)
+					if err != nil {
+						ch <- err
+						(*sc).AbortTransaction(*c)
+					}
+					ch <- nil
+				}(chan3)
+				err3 = <-chan3
+			}
 
 			err1 := <-chan1
 			err2 := <-chan2
-			err3 := <-chan3
 			if err1 != nil || err2 != nil || err3 != nil {
 				return errors.New("message could not be sent")
 			}
