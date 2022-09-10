@@ -156,7 +156,9 @@ func (repo *MongoRepository[T]) FindById(id string, opts ...*options.FindOneOpti
 		cancel()
 	}()
 	var result T
-	err := repo.Model.FindOne(c, bson.M{"_id": parseStringToMongo(&id)}, opts...).Decode(&result)
+	i := parseStringToMongo(&id)
+	fmt.Println(i)
+	err := repo.Model.FindOne(c, bson.M{"_id": i}, opts...).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
