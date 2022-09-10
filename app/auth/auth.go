@@ -198,7 +198,23 @@ func LoginUser(ctx *gin.Context) {
 	server_response.Response(ctx, http.StatusCreated, "login successful", true, map[string]interface{}{
 		"user": profile,
 		"acsDetails": map[string]interface{}{
-			"token": acsDetails.Token,
+			"token":     acsDetails.Token,
+			"expiresOn": acsDetails.ExpiresOn,
+		},
+	})
+}
+
+func GenerateAcsToken(ctx *gin.Context) {
+	id := ctx.GetString("ACSUserId")
+	acsDetails, err := azure.RefreshToken(&id)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return
+	}
+	server_response.Response(ctx, http.StatusCreated, "token generated", true, map[string]interface{}{
+		"acsDetails": map[string]interface{}{
+			"token":     acsDetails.Token,
+			"expiresOn": acsDetails.ExpiresOn,
 		},
 	})
 }

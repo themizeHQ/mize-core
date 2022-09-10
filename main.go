@@ -136,6 +136,9 @@ func main() {
 
 			// centrifugo
 			authV1.GET("/realtime/authenticate", middlewares.AuthenticationMiddleware(false, false), auth.GenerateCentrifugoToken)
+
+			// acs
+			authV1.GET("/realtime/calls/token", middlewares.AuthenticationMiddleware(false, false), auth.GenerateAcsToken)
 		}
 	}
 
