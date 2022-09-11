@@ -14,29 +14,31 @@ import (
 )
 
 type User struct {
-	Id           primitive.ObjectID            `bson:"_id"`
-	FirstName    string                        `bson:"firstName"`
-	LastName     string                        `bson:"lastName"`
-	UserName     string                        `bson:"userName"`
-	Email        string                        `bson:"email"`
-	Region       string                        `bson:"region"`
-	Password     string                        `bson:"password"`
-	Verified     bool                          `bson:"verified"`
-	Language     string                        `bson:"language"`
-	Status       user_constants.UserStatusType `bson:"status"`
-	ProfileImage *string                       `bson:"profileImage"`
-	ACSUserId    string                        `bson:"acsUserId"`
+	Id              primitive.ObjectID                   `bson:"_id"`
+	FirstName       string                               `bson:"firstName"`
+	LastName        string                               `bson:"lastName"`
+	UserName        string                               `bson:"userName"`
+	Email           string                               `bson:"email"`
+	Region          string                               `bson:"region"`
+	Password        string                               `bson:"password"`
+	Verified        bool                                 `bson:"verified"`
+	Language        string                               `bson:"language"`
+	Status          user_constants.UserStatusType        `bson:"status"`
+	ProfileImage    *string                              `bson:"profileImage"`
+	ACSUserId       string                               `bson:"acsUserId"`
+	Discoverability []user_constants.UserDiscoverability `bson:"discoverability"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt"`
 }
 
 type UpdateUser struct {
-	FirstName string                        `json:"firstName" bson:"firstName,omitempty"`
-	LastName  string                        `json:"lastName" bson:"lastName,omitempty"`
-	Region    string                        `json:"region" bson:"region,omitempty"`
-	Language  string                        `json:"language" bson:"language,omitempty"`
-	Status    user_constants.UserStatusType `json:"status" bson:"status,omitempty"`
+	FirstName       string                               `json:"firstName" bson:"firstName,omitempty"`
+	LastName        string                               `json:"lastName" bson:"lastName,omitempty"`
+	Region          string                               `json:"region" bson:"region,omitempty"`
+	Language        string                               `json:"language" bson:"language,omitempty"`
+	Status          user_constants.UserStatusType        `json:"status" bson:"status,omitempty"`
+	Discoverability []user_constants.UserDiscoverability `json:"discoverability" bson:"discoverability,omitempty"`
 }
 
 // func (user *User) MarshalBinary() ([]byte, error) {
@@ -73,6 +75,7 @@ func (user *UpdateUser) ValidateUpdate() error {
 	return validation.ValidateStruct(user,
 		validation.Field(&user.Region, is.CountryCode2.Error("provide a valid ISO3166 country code")),
 		validation.Field(&user.Language, validation.In(user_constants.AvailableUserLanguage...).Error("language selected is not available on mize")),
+		validation.Field(&user.Discoverability, validation.Each(validation.In(user_constants.DISCOVERABILITY_EMAIL, user_constants.DISCOVERABILITY_PHONE, user_constants.DISCOVERABILITY_USERNAME).Error("invalid discoverability setting selected"))),
 		validation.Field(&user.Status, validation.In(user_constants.AVAILABLE, user_constants.AWAY, user_constants.BUSY, user_constants.MEETING).Error("invalid status selected")),
 	)
 }
