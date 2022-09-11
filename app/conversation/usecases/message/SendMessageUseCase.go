@@ -24,38 +24,63 @@ import (
 func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string, upload *media.Upload) error {
 	messageRepository := conversationRepository.GetMessageRepo()
 	channelRepository := channelRepository.GetChannelMemberRepo()
+	var wg sync.WaitGroup
 	if channel == "true" {
-		exist, err := channelRepository.CountDocs(map[string]interface{}{
-			"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
-			"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		})
-		if err != nil {
-			err = errors.New("an error occured")
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-			return err
-		}
-		if exist != 1 {
-			err = errors.New("you are not a member of this channel")
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusNotFound})
-			return err
+		chan1 := make(chan error)
+		wg.Add(1)
+		go func(e chan error) {
+			defer func() {
+				wg.Done()
+			}()
+
+			exist, err := channelRepository.CountDocs(map[string]interface{}{
+				"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
+				"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+			})
+			if err != nil {
+				e <- errors.New("an error occured")
+				return
+			}
+			if exist != 1 {
+				e <- errors.New("you are not a member of this channel")
+				return
+			}
+			e <- nil
+		}(chan1)
+		err1 := <-chan1
+		if err1 != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
+			return err1
 		}
 	}
 	var replyTo string
 	if payload.ReplyTo != nil {
-		exist, err := messageRepository.CountDocs(map[string]interface{}{
-			"_id": payload.ReplyTo.Hex(),
-		})
-		if err != nil {
-			err = errors.New("an error occured")
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-			return err
+		chan1 := make(chan error)
+		wg.Add(1)
+		go func(e chan error) {
+			defer func() {
+				wg.Done()
+			}()
+
+			exist, err := messageRepository.CountDocs(map[string]interface{}{
+				"_id": payload.ReplyTo.Hex(),
+			})
+			if err != nil {
+				e <- errors.New("an error occured")
+				return
+			}
+			if exist != 1 {
+				e <- errors.New("message has been deleted")
+				return
+			}
+			e <- nil
+			replyTo = payload.ReplyTo.Hex()
+		}(chan1)
+		err1 := <-chan1
+		if err1 != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
+			return err1
 		}
-		if exist != 1 {
-			err = errors.New("message has been deleted")
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusNotFound})
-			return err
-		}
-		replyTo = payload.ReplyTo.Hex()
 	}
 	payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 	payload.From = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
@@ -67,7 +92,6 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return err
 	}
-	var wg sync.WaitGroup
 	if channel == "true" {
 		chan1 := make(chan error)
 		err := messageRepository.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
