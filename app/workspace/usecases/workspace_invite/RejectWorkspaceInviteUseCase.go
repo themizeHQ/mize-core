@@ -8,11 +8,15 @@ import (
 
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	"mize.app/utils"
 )
 
 func RejectWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) (bool, error) {
 	var workspaceInviteRepoInstance = repository.GetWorkspaceInviteRepo()
-	invite, err := workspaceInviteRepoInstance.FindById(workspace_invite_id)
+	invite, err := workspaceInviteRepoInstance.FindOneByFilter(map[string]interface{}{
+		"id":    *utils.HexToMongoId(ctx, workspace_invite_id),
+		"email": ctx.GetString("Email"),
+	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return false, err
