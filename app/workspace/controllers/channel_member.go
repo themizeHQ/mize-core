@@ -182,8 +182,9 @@ func FetchPinnedChannels(ctx *gin.Context) {
 		Skip:  &skip,
 	}, options.Find().SetProjection(
 		map[string]interface{}{
-			"channelId":   1,
-			"channelName": 1,
+			"channelId":    1,
+			"channelName":  1,
+			"profileImage": 1,
 		},
 	))
 	if err != nil {
