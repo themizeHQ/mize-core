@@ -73,6 +73,8 @@ type ClaimsData struct {
 	UserId    string
 	Email     string
 	Username  string
+	Firstname string
+	Lastname  string
 	Role      RoleType
 	ExpiresAt int64
 	Type      TokenType
@@ -87,6 +89,8 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 		"Issuer":    claimsData.Issuer,
 		"UserId":    claimsData.UserId,
 		"Username":  claimsData.Username,
+		"Firstname": claimsData.Firstname,
+		"Lastname":  claimsData.Lastname,
 		"Role":      claimsData.Role,
 		"exp":       claimsData.ExpiresAt,
 		"Type":      claimsData.Type,
@@ -139,7 +143,7 @@ func SaveAuthToken(ctx *gin.Context, key string, score float64, payload string) 
 	return redis.RedisRepo.CreateInSet(ctx, key, score, payload)
 }
 
-func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string, acsUserId string) error {
+func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, acsUserId string) error {
 	refreshToken, err := GenerateAuthToken(ctx, ClaimsData{
 		Issuer:    os.Getenv("JWT_ISSUER"),
 		Type:      REFRESH_TOKEN,
@@ -148,6 +152,8 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 		UserId:    id,
 		Email:     email,
 		ACSUserId: acsUserId,
+		Firstname: firstName,
+		Lastname:  lastName,
 	})
 	if err != nil {
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError}
@@ -158,7 +164,7 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 	return nil
 }
 
-func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, workspace_id *string, acsUserId string) error {
+func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, workspace_id *string, acsUserId string) error {
 	var role RoleType = USER
 	if workspace_id != nil {
 		workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
@@ -178,6 +184,8 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		Issuer:    os.Getenv("JWT_ISSUER"),
 		Type:      ACCESS_TOKEN,
 		Username:  username,
+		Firstname: firstName,
+		Lastname:  lastName,
 		Role:      role,
 		ExpiresAt: time.Now().Local().Add(time.Minute * time.Duration(10)).Unix(), // 10 mins
 		UserId:    id,

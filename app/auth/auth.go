@@ -124,11 +124,11 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	}
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-user", payload.Email))
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Email))
-	err = authentication.GenerateRefreshToken(ctx, response.Id.Hex(), payload.Email, data.UserName, acsData.User.CommunicationUserId)
+	err = authentication.GenerateRefreshToken(ctx, response.Id.Hex(), payload.Email, data.UserName, data.FirstName, data.Language, acsData.User.CommunicationUserId)
 	if err != nil {
 		return
 	}
-	err = authentication.GenerateAccessToken(ctx, response.Id.Hex(), payload.Email, data.UserName, nil, acsData.User.CommunicationUserId)
+	err = authentication.GenerateAccessToken(ctx, response.Id.Hex(), payload.Email, data.UserName, data.FirstName, data.LastName, nil, acsData.User.CommunicationUserId)
 	if err != nil {
 		return
 	}
@@ -186,11 +186,11 @@ func LoginUser(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return
 	}
-	err = authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.ACSUserId)
+	err = authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName, profile.ACSUserId)
 	if err != nil {
 		return
 	}
-	err = authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, nil, profile.ACSUserId)
+	err = authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName, nil, profile.ACSUserId)
 	if err != nil {
 		return
 	}
@@ -280,12 +280,12 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	workspace := ctx.Query("workspace_id")
 	if workspace == "" {
 		authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
-			refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), nil, refresh_token_claims["ACSUserId"].(string))
+			refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), refresh_token_claims["Firstname"].(string), refresh_token_claims["Lastname"].(string), nil, refresh_token_claims["ACSUserId"].(string))
 		server_response.Response(ctx, http.StatusCreated, "token generated", true, nil)
 		return
 	}
 	err := authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
-		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), &workspace, refresh_token_claims["ACSUserId"].(string))
+		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), refresh_token_claims["Firstname"].(string), refresh_token_claims["Lastname"].(string), &workspace, refresh_token_claims["ACSUserId"].(string))
 	if err != nil {
 		return
 	}

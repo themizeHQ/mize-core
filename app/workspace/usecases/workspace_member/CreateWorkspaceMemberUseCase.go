@@ -16,6 +16,8 @@ func CreateWorkspaceMemberUseCase(ctx *gin.Context, workspace_id *string, name *
 	payload := models.WorkspaceMember{
 		WorkspaceId:   workspace_id_hex,
 		Username:      ctx.GetString("Username"),
+		Firstname:     ctx.GetString("Firstname"),
+		Lastname:      ctx.GetString("Lastname"),
 		WorkspaceName: *name,
 		UserId:        *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		Admin:         admin,
