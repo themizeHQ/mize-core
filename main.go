@@ -46,6 +46,8 @@ func main() {
 
 			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false, false), userControllers.FetchUsersProfile)
 
+			userV1.GET("/search", middlewares.AuthenticationMiddleware(true, false), userControllers.SearchWorkspaceUsers)
+
 			userV1.PUT("/update", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateUserData)
 
 			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateProfileImage)

@@ -15,6 +15,8 @@ type WorkspaceMember struct {
 	WorkspaceId   primitive.ObjectID                            `bson:"workspaceId"`
 	WorkspaceName string                                        `bson:"workspaceName"`
 	Username      string                                        `bson:"userName"`
+	Firstname     string                                        `bson:"firstName"`
+	Lastname      string                                        `bson:"lastName"`
 	UserId        primitive.ObjectID                            `bson:"userId"`
 	Admin         bool                                          `bson:"admin"`
 	AdminAccess   []workspace_member_constants.AdminAccessType  `bson:"adminAccess"`

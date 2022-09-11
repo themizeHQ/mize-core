@@ -11,6 +11,7 @@ import (
 	"mize.app/app/user/models"
 	userRepo "mize.app/app/user/repository"
 	userUseCases "mize.app/app/user/usecases/user"
+	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	mediaConstants "mize.app/constants/media"
 	"mize.app/server_response"
@@ -119,4 +120,36 @@ func UpdateProfileImage(ctx *gin.Context) {
 		}
 	}
 	server_response.Response(ctx, http.StatusCreated, "upload success", true, nil)
+}
+
+func SearchWorkspaceUsers(ctx *gin.Context) {
+	term := ctx.Query("term")
+	if strings.TrimSpace(term) == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a search term"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	workspaceRepo := workspaceRepo.GetWorkspaceMember()
+	profile, err := workspaceRepo.FindManyStripped(map[string]interface{}{
+		"$or": []map[string]interface{}{
+			{
+				"userName":    map[string]interface{}{"$regex": term, "$options": "im"},
+				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			},
+			{
+				"firstName":   map[string]interface{}{"$regex": term, "$options": "im"},
+				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			},
+			{
+				"lastName":    map[string]interface{}{"$regex": term, "$options": "im"},
+				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			},
+		},
+	}, options.Find().SetProjection(map[string]int{
+		"password": 0,
+	}))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete search"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "search complete", true, profile)
 }
