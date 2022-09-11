@@ -145,7 +145,10 @@ func SearchWorkspaceUsers(ctx *gin.Context) {
 			},
 		},
 	}, options.Find().SetProjection(map[string]int{
-		"password": 0,
+		"firstName":    1,
+		"lasstName":    1,
+		"userName":     1,
+		"profileImage": 1,
 	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete search"), StatusCode: http.StatusInternalServerError})
