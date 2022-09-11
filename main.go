@@ -46,8 +46,6 @@ func main() {
 
 			userV1.GET("/fetch-user/:id", middlewares.AuthenticationMiddleware(false, false), userControllers.FetchUsersProfile)
 
-			userV1.GET("/search", middlewares.AuthenticationMiddleware(true, false), userControllers.SearchWorkspaceUsers)
-
 			userV1.PUT("/update", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateUserData)
 
 			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateProfileImage)
@@ -75,6 +73,8 @@ func main() {
 			workspaceV1.PUT("/update/workspace-image", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.UpdatWorkspaceProfileImage)
 
 			workspaceV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.FetchUserWorkspaces)
+
+			workspaceV1.GET("/search/members", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.SearchWorkspaceMembers)
 
 			workspaceV1.POST("/invite", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.InviteToWorkspace)
 

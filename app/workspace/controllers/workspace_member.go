@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -41,4 +42,39 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "workspaces retrieved", true, payload)
+}
+
+func SearchWorkspaceMembers(ctx *gin.Context) {
+	term := ctx.Query("term")
+	if strings.TrimSpace(term) == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a search term"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	workspaceRepo := repository.GetWorkspaceMember()
+	profile, err := workspaceRepo.FindManyStripped(map[string]interface{}{
+		"$or": []map[string]interface{}{
+			{
+				"userName":    map[string]interface{}{"$regex": term, "$options": "im"},
+				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			},
+			{
+				"firstName":   map[string]interface{}{"$regex": term, "$options": "im"},
+				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			},
+			{
+				"lastName":    map[string]interface{}{"$regex": term, "$options": "im"},
+				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			},
+		},
+	}, options.Find().SetProjection(map[string]int{
+		"firstName":    1,
+		"lasstName":    1,
+		"userName":     1,
+		"profileImage": 1,
+	}))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete search"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "search complete", true, profile)
 }
