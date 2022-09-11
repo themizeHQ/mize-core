@@ -27,6 +27,7 @@ func FetchProfile(ctx *gin.Context) {
 		return
 	}
 	profile.Password = ""
+	profile.ACSUserId = ""
 	server_response.Response(ctx, http.StatusOK, "profile fetched", true, profile)
 }
 
@@ -45,6 +46,7 @@ func FetchUsersProfile(ctx *gin.Context) {
 		return
 	}
 	profile.Password = ""
+	profile.ACSUserId = ""
 	server_response.Response(ctx, http.StatusOK, "profile fetched", true, profile)
 }
 
