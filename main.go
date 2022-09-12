@@ -116,6 +116,8 @@ func main() {
 			messageV1.POST("/send", middlewares.AuthenticationMiddleware(true, false), conversationControllers.SendMessage)
 
 			messageV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), conversationControllers.FetchMessages)
+
+			messageV1.DELETE("/channel/delete", middlewares.AuthenticationMiddleware(true, false), conversationControllers.DeleteMessages)
 		}
 
 		// mediaV1 := v1.Group("/media")

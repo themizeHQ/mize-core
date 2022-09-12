@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"mize.app/app/conversation/models"
 	"mize.app/app/conversation/repository"
+	types "mize.app/app/conversation/types"
 	"mize.app/app/conversation/usecases/message"
 	"mize.app/app/media"
 	channelsRepo "mize.app/app/workspace/repository"
@@ -149,4 +150,17 @@ func FetchMessages(ctx *gin.Context) {
 		}()
 	}
 	server_response.Response(ctx, http.StatusOK, "messages fetched", true, <-msgChan)
+}
+
+func DeleteMessages(ctx *gin.Context) {
+	var payload []types.DeleteMessage
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("provide channels and messages ids"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	err := messages.DeleteMessageUseCase(ctx, payload)
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "messages deleted", true, nil)
 }
