@@ -15,6 +15,7 @@ import (
 
 	"mize.app/app/user/models"
 	"mize.app/app/user/repository"
+	userUseCases "mize.app/app/user/usecases/user"
 	workspaceRepository "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/authentication"
@@ -80,7 +81,7 @@ func CacheUserUseCase(ctx *gin.Context) {
 		return
 	}
 	authentication.SaveOTP(ctx, payload.Email, otp, 5*time.Minute)
-	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_CREATED, map[string]string{"email": payload.Email, "otp": otp})
+	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_CREATED, map[string]interface{}{"email": payload.Email, "otp": strings.Split(otp, "")})
 	server_response.Response(ctx, http.StatusCreated, "user created successfuly", true, nil)
 }
 
@@ -357,4 +358,29 @@ func HasChannelAccess(ctx *gin.Context, channel_id string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func VerifyPhone(ctx *gin.Context) {
+	var payload struct {
+		Phone string
+		Otp   string
+	}
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a phone number and otp code"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	valid, err := authentication.VerifyOTP(ctx, fmt.Sprintf("%s-otp", payload.Phone), payload.Otp)
+	if err != nil {
+		return
+	}
+	if !valid {
+		server_response.Response(ctx, http.StatusUnauthorized, "wrong otp provided", false, nil)
+		return
+	}
+	success := userUseCases.UpdateUserUseCase(ctx, models.UpdateUser{Phone: &payload.Phone})
+	if !success {
+		return
+	}
+	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Phone))
+	server_response.Response(ctx, http.StatusOK, "phone number updated", success, nil)
 }

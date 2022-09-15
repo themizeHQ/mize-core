@@ -140,6 +140,8 @@ func main() {
 
 			authV1.GET("/resend-otp", auth.ResendOtp)
 
+			authV1.PUT("/phone/verify", middlewares.AuthenticationMiddleware(false, false), auth.VerifyPhone)
+
 			// centrifugo
 			authV1.GET("/realtime/authenticate", middlewares.AuthenticationMiddleware(false, false), auth.GenerateCentrifugoToken)
 

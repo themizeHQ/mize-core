@@ -19,8 +19,8 @@ func EmitterListener() {
 }
 
 // users
-func HandleUserCreated(data map[string]string) {
-	emails.SendEmail(data["email"], "Activate your Mize account", "otp", map[string]string{"OTP": data["otp"]})
+func HandleUserCreated(data map[string]interface{}) {
+	emails.SendEmail(data["email"].(string), "Activate your Mize account", "otp", map[string]interface{}{"OTP": data["otp"]})
 }
 func HandleUserVerified(data map[string]string) {
 	emails.SendEmail(data["email"], "Welcome to Mize", "welcome", map[string]string{})
