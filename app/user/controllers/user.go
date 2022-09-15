@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -12,8 +14,10 @@ import (
 	userRepo "mize.app/app/user/repository"
 	userUseCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
+	"mize.app/authentication"
 	mediaConstants "mize.app/constants/media"
 	"mize.app/server_response"
+	"mize.app/sms"
 	"mize.app/utils"
 )
 
@@ -119,4 +123,26 @@ func UpdateProfileImage(ctx *gin.Context) {
 		}
 	}
 	server_response.Response(ctx, http.StatusCreated, "upload success", true, nil)
+}
+
+func UpdatePhone(ctx *gin.Context) {
+	var payload struct {
+		Phone string
+	}
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a valid phone number with country code"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	otp, err := authentication.GenerateOTP(6)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate otp"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	authentication.SaveOTP(ctx, payload.Phone, otp, 5*time.Minute)
+	err = sms.SendSms(payload.Phone, fmt.Sprintf("Your otp is %s \n Valid for 5 minutes.", otp))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not send otp"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
 }
