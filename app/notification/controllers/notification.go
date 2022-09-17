@@ -29,7 +29,7 @@ func FetchUserNotifications(ctx *gin.Context) {
 		limit = 15
 	}
 	skip := (page - 1) * limit
-	if ctx.GetString("Workspace") != "" {
+	if ctx.GetString("Workspace") == "" {
 		notifications, err = notificationRepo.FindMany(map[string]interface{}{
 			"userId": map[string]interface{}{
 				"$in": []interface{}{utils.HexToMongoId(ctx, ctx.GetString("UserId")), nil},
