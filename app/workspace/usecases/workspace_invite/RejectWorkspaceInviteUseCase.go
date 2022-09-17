@@ -14,7 +14,7 @@ import (
 func RejectWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) (bool, error) {
 	var workspaceInviteRepoInstance = repository.GetWorkspaceInviteRepo()
 	invite, err := workspaceInviteRepoInstance.FindOneByFilter(map[string]interface{}{
-		"id":    *utils.HexToMongoId(ctx, workspace_invite_id),
+		"_id":   *utils.HexToMongoId(ctx, workspace_invite_id),
 		"email": ctx.GetString("Email"),
 	})
 	if err != nil {

@@ -8,13 +8,12 @@ import (
 
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
-	"mize.app/utils"
 )
 
 func AcceptWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) (*string, *string, error) {
 	var workspaceInviteRepoInstance = repository.GetWorkspaceInviteRepo()
 	invite, err := workspaceInviteRepoInstance.FindOneByFilter(map[string]interface{}{
-		"id":    *utils.HexToMongoId(ctx, workspace_invite_id),
+		"_id":   workspace_invite_id,
 		"email": ctx.GetString("Email"),
 	})
 	if err != nil {
