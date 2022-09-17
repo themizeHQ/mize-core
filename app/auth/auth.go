@@ -138,10 +138,6 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	response.ACSUserId = ""
 	server_response.Response(ctx, http.StatusCreated, "account verified", true, map[string]interface{}{
 		"user": response,
-		"acsDetails": map[string]string{
-			"token":     acsData.Token,
-			"expiresOn": acsData.ExpiresOn,
-		},
 	})
 }
 
@@ -182,12 +178,7 @@ func LoginUser(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("incorrect password"), StatusCode: http.StatusUnauthorized})
 		return
 	}
-	acsDetails, err := azure.RefreshToken(&profile.ACSUserId)
-	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-		return
-	}
-	err = authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName, profile.ACSUserId)
+	err := authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName, profile.ACSUserId)
 	if err != nil {
 		return
 	}
@@ -199,10 +190,6 @@ func LoginUser(ctx *gin.Context) {
 	profile.ACSUserId = ""
 	server_response.Response(ctx, http.StatusCreated, "login successful", true, map[string]interface{}{
 		"user": profile,
-		"acsDetails": map[string]interface{}{
-			"token":     acsDetails.Token,
-			"expiresOn": acsDetails.ExpiresOn,
-		},
 	})
 }
 
