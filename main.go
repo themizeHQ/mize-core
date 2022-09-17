@@ -99,7 +99,7 @@ func main() {
 
 			channelV1.DELETE("/delete/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.DeleteChannel)
 
-			channelV1.POST("/add/username", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.AdminAddUserByUsername)
+			channelV1.POST("/add", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.AdminAddUserToChannel)
 
 			channelV1.GET("/members/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannelMembers)
 
