@@ -16,8 +16,7 @@ import (
 	"mize.app/app/media"
 	channelRepository "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
-	// mediaConstants "mize.app/constants/media"
-	"mize.app/emitter"
+	"mize.app/realtime"
 	"mize.app/utils"
 )
 
@@ -167,7 +166,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			return err
 		}
 	}
-	emitter.Emitter.Emit(emitter.Events.MESSAGES_EVENTS.MESSAGE_SENT, map[string]interface{}{
+	realtime.CentrifugoController.Publish(payload.To.Hex(), map[string]interface{}{
 		"time":        time.Now(),
 		"from":        payload.From.Hex(),
 		"to":          payload.To.Hex(),
