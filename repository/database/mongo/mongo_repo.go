@@ -367,11 +367,11 @@ func parsePayload[T MongoModels](payload T) *T {
 	byteA := dataToByteA(payload)
 	payload_map := *byteAToData[map[string]interface{}](byteA)
 	if payload_map["Id"] == "000000000000000000000000" {
-		payload_map["Id"] = primitive.NewObjectID()
+		payload_map["id"] = primitive.NewObjectID()
 	} else if payload_map["Id"] != nil {
-		payload_map["Id"] = parseStringToMongo(payload_map["Id"].(*string))
+		payload_map["id"] = parseStringToMongo(payload_map["Id"].(*string))
 	} else if payload_map["Id"] == nil {
-		payload_map["Id"] = primitive.NewObjectID()
+		payload_map["id"] = primitive.NewObjectID()
 	}
 	return byteAToData[T](dataToByteA(payload_map))
 }
