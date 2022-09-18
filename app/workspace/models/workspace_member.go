@@ -11,22 +11,22 @@ import (
 )
 
 type WorkspaceMember struct {
-	Id            primitive.ObjectID                            `bson:"_id"`
-	WorkspaceId   primitive.ObjectID                            `bson:"workspaceId"`
-	WorkspaceName string                                        `bson:"workspaceName"`
-	Username      string                                        `bson:"userName"`
-	Firstname     string                                        `bson:"firstName"`
-	Lastname      string                                        `bson:"lastName"`
-	UserId        primitive.ObjectID                            `bson:"userId"`
-	Admin         bool                                          `bson:"admin"`
-	AdminAccess   []workspace_member_constants.AdminAccessType  `bson:"adminAccess"`
-	JoinDate      int64                                         `bson:"joinDate"`
-	Banned        bool                                          `bson:"banned"`
-	Restricted    []workspace_member_constants.MemberActionType `bson:"restricted"`
-	ProfileImage  *string                                       `bson:"profileImage"`
+	Id            primitive.ObjectID                            `bson:"_id" json:"id"`
+	WorkspaceId   primitive.ObjectID                            `bson:"workspaceId" json:"workspace"`
+	WorkspaceName string                                        `bson:"workspaceName" json:"workspaceName"`
+	Username      string                                        `bson:"userName" json:"userName"`
+	Firstname     string                                        `bson:"firstName" json:"firstName"`
+	Lastname      string                                        `bson:"lastName" json:"lastName"`
+	UserId        primitive.ObjectID                            `bson:"userId" json:"userId"`
+	Admin         bool                                          `bson:"admin" json:"admin"`
+	AdminAccess   []workspace_member_constants.AdminAccessType  `bson:"adminAccess" json:"adminAccess"`
+	JoinDate      int64                                         `bson:"joinDate" json:"joinDate"`
+	Banned        bool                                          `bson:"banned" json:"banned"`
+	Restricted    []workspace_member_constants.MemberActionType `bson:"restricted" json:"restricted"`
+	ProfileImage  *string                                       `bson:"profileImage" json:"profileImage"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (member *WorkspaceMember) MarshalBinary() ([]byte, error) {

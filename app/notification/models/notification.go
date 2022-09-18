@@ -10,17 +10,17 @@ import (
 )
 
 type Notification struct {
-	Id          primitive.ObjectID                                 `bson:"_id"`
-	WorkspaceId *primitive.ObjectID                                `bson:"workspaceId"`
-	UserId      *primitive.ObjectID                                `bson:"userId"`
-	ResourceId  primitive.ObjectID                                 `bson:"resourceId"`
-	Scope       notification_constants.NotificationScope           `bson:"scope"`
-	Importance  notification_constants.NotificationImportanceLevel `bson:"importance"`
-	Type        notification_constants.NotificationType            `bson:"type"`
-	Message     string                                             `bson:"message"`
+	Id          primitive.ObjectID                                 `bson:"_id" json:"id"`
+	WorkspaceId *primitive.ObjectID                                `bson:"workspaceId" json:"workspaceId"`
+	UserId      *primitive.ObjectID                                `bson:"userId" json:"userId"`
+	ResourceId  primitive.ObjectID                                 `bson:"resourceId" json:"resourceId"`
+	Scope       notification_constants.NotificationScope           `bson:"scope" json:"scope"`
+	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
+	Type        notification_constants.NotificationType            `bson:"type" json:"type"`
+	Message     string                                             `bson:"message" json:"message"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (notification *Notification) MarshalBinary() ([]byte, error) {

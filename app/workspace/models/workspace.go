@@ -12,17 +12,17 @@ import (
 )
 
 type Workspace struct {
-	Id           primitive.ObjectID      `bson:"_id"`
-	Name         string                  `bson:"name"`
-	Email        string                  `bson:"email"`
-	Description  string                  `bson:"description"`
-	Censor       bool                    `bson:"censor"`
-	Type         workspace.WorkspaceType `bson:"type"`
-	CreatedBy    primitive.ObjectID      `bson:"createdBy"`
-	ProfileImage *string                 `bson:"profileImage"`
+	Id           primitive.ObjectID      `bson:"_id" json:"_id"`
+	Name         string                  `bson:"name" json:"name"`
+	Email        string                  `bson:"email" json:"email"`
+	Description  string                  `bson:"description" json:"description"`
+	Censor       bool                    `bson:"censor" json:"censor"`
+	Type         workspace.WorkspaceType `bson:"type" json:"type"`
+	CreatedBy    primitive.ObjectID      `bson:"createdBy" json:"createdBy"`
+	ProfileImage *string                 `bson:"profileImage" json:"profileImage"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (workspace *Workspace) MarshalBinary() ([]byte, error) {

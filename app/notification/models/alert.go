@@ -10,16 +10,16 @@ import (
 )
 
 type Alert struct {
-	Id          primitive.ObjectID                                 `bson:"_id"`
-	WorkspaceId primitive.ObjectID                                 `bson:"workspaceId"`
-	UserIds     []primitive.ObjectID                               `bson:"usersId"`
-	AdminId     primitive.ObjectID                                 `bson:"adminId"`
-	ResourceId  *primitive.ObjectID                                `bson:"resourceId"`
-	Importance  notification_constants.NotificationImportanceLevel `bson:"importance"`
-	Message     string                                             `bson:"message"`
+	Id          primitive.ObjectID                                 `bson:"_id" json:"id"`
+	WorkspaceId primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
+	UserIds     []primitive.ObjectID                               `bson:"usersId" json:"userId"`
+	AdminId     primitive.ObjectID                                 `bson:"adminId" json:"adminId"`
+	ResourceId  *primitive.ObjectID                                `bson:"resourceId" json:"resourceId"`
+	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
+	Message     string                                             `bson:"message" json:"message"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (alert *Alert) MarshalBinary() ([]byte, error) {

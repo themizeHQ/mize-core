@@ -10,20 +10,20 @@ import (
 )
 
 type Message struct {
-	Id             primitive.ObjectID  `bson:"_id"`
-	To             primitive.ObjectID  `bson:"to"`
-	From           primitive.ObjectID  `bson:"from"`
-	WorkspaceId    primitive.ObjectID  `bson:"workspaceId"`
-	Text           string              `bson:"text"`
-	ReactionsCount int                 `bson:"reactionsCount"`
-	ReplyTo        *primitive.ObjectID `bson:"replyTo"`
-	ReplyCount     int                 `bson:"replyCount"`
-	Username       string              `bson:"userName"`
-	Type           message.MessageType `bson:"type"`
-	ResourceUrl    *string             `bson:"resourceUrl"`
+	Id             primitive.ObjectID  `bson:"_id" json:"id"`
+	To             primitive.ObjectID  `bson:"to" json:"to"`
+	From           primitive.ObjectID  `bson:"from" json:"from"`
+	WorkspaceId    primitive.ObjectID  `bson:"workspaceId" json:"workspaceId"`
+	Text           string              `bson:"text" json:"text"`
+	ReactionsCount int                 `bson:"reactionsCount" json:"reactionCount"`
+	ReplyTo        *primitive.ObjectID `bson:"replyTo" json:"replyTo"`
+	ReplyCount     int                 `bson:"replyCount" json:"replyCount"`
+	Username       string              `bson:"userName" json:"userName"`
+	Type           message.MessageType `bson:"type" json:"type"`
+	ResourceUrl    *string             `bson:"resourceUrl" json:"resourceUrl"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (message *Message) MarshalBinary() ([]byte, error) {

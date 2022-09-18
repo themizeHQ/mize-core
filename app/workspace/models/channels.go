@@ -9,17 +9,17 @@ import (
 )
 
 type Channel struct {
-	Id           primitive.ObjectID `bson:"_id"`
-	WorkspaceId  primitive.ObjectID `bson:"workspaceId"`
-	Name         string             `bson:"name"`
-	Description  string             `bson:"description"`
-	Private      bool               `bson:"private"`
-	CreatedBy    primitive.ObjectID `bson:"createdBy"`
-	Compulsory   bool               `bson:"compulsory"`
-	ProfileImage *string            `bson:"profileImage"`
+	Id           primitive.ObjectID `bson:"_id" json:"id"`
+	WorkspaceId  primitive.ObjectID `bson:"workspaceId" json:"workspaceId"`
+	Name         string             `bson:"name" json:"name"`
+	Description  string             `bson:"description" json:"description"`
+	Private      bool               `bson:"private" json:"private"`
+	CreatedBy    primitive.ObjectID `bson:"createdBy" json:"createdBy"`
+	Compulsory   bool               `bson:"compulsory" json:"compulsory"`
+	ProfileImage *string            `bson:"profileImage" json:"profileImage"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (channel *Channel) MarshalBinary() ([]byte, error) {

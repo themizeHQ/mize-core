@@ -14,23 +14,23 @@ import (
 )
 
 type User struct {
-	Id              primitive.ObjectID                   `bson:"_id"`
-	FirstName       string                               `bson:"firstName"`
-	LastName        string                               `bson:"lastName"`
-	UserName        string                               `bson:"userName"`
-	Email           string                               `bson:"email"`
-	Region          string                               `bson:"region"`
-	Password        string                               `bson:"password"`
-	Verified        bool                                 `bson:"verified"`
-	Language        string                               `bson:"language"`
-	Phone           string                               `bson:"phone"`
-	Status          user_constants.UserStatusType        `bson:"status"`
-	ProfileImage    *string                              `bson:"profileImage"`
-	ACSUserId       string                               `bson:"acsUserId"`
-	Discoverability []user_constants.UserDiscoverability `bson:"discoverability"`
+	Id              primitive.ObjectID                   `bson:"_id" json:"id"`
+	FirstName       string                               `bson:"firstName" json:"firstName"`
+	LastName        string                               `bson:"lastName" json:"lastName"`
+	UserName        string                               `bson:"userName" json:"userName"`
+	Email           string                               `bson:"email" json:"email"`
+	Region          string                               `bson:"region" json:"region"`
+	Password        string                               `bson:"password" json:"password"`
+	Verified        bool                                 `bson:"verified" json:"verified"`
+	Language        string                               `bson:"language" json:"language"`
+	Phone           string                               `bson:"phone" json:"phone"`
+	Status          user_constants.UserStatusType        `bson:"status" json:"status"`
+	ProfileImage    *string                              `bson:"profileImage" json:"profileImage"`
+	ACSUserId       string                               `bson:"acsUserId" json:"acsUserId"`
+	Discoverability []user_constants.UserDiscoverability `bson:"discoverability" json:"discoverability"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 type UpdateUser struct {

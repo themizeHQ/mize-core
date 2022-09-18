@@ -9,18 +9,18 @@ import (
 )
 
 type Upload struct {
-	Id       primitive.ObjectID `bson:"_id"`
-	Url      string             `bson:"url"`
-	Bytes    int                `bson:"bytes"`
-	FileName string             `bson:"fileName"`
-	Type     string             `bson:"type"`
-	PublicID string             `bson:"publicId"`
-	Service  string             `bson:"service"`
-	UploadBy primitive.ObjectID `bson:"uploadBy"`
-	Format   string             `bson:"format"`
+	Id       primitive.ObjectID `bson:"_id" json:"id"`
+	Url      string             `bson:"url" json:"url"`
+	Bytes    int                `bson:"bytes" json:"bytes"`
+	FileName string             `bson:"fileName" json:"fileName"`
+	Type     string             `bson:"type" json:"type"`
+	PublicID string             `bson:"publicId" json:"publicId"`
+	Service  string             `bson:"service" json:"service"`
+	UploadBy primitive.ObjectID `bson:"uploadBy" json:"uploadBy"`
+	Format   string             `bson:"format" json:"format"`
 
-	CreatedAt primitive.DateTime `bson:"createdAt"`
-	UpdatedAt primitive.DateTime `bson:"updatedAt"`
+	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (upload *Upload) MarshalBinary() ([]byte, error) {
