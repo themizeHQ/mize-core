@@ -73,8 +73,8 @@ func FetchConversation(ctx *gin.Context) {
 		map[string]interface{}{
 			"lastMessage":     1,
 			"unreadMessages":  1,
-			"channelId":       1,
-			"channelName":     1,
+			"reciepientId":       1,
+			"reciepientName":     1,
 			"lastMessageSent": 1,
 			"profileImage":    1,
 		},
