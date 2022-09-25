@@ -25,7 +25,10 @@ func CreateConversationUseCase(ctx *gin.Context, payload *types.CreateConv) (*pr
 	var profileImage *string
 	if workspaceConv {
 		workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
-		member, err := workspaceMemberRepo.FindById(payload.ReciepientId.Hex(), options.FindOne().SetProjection(map[string]int{
+		member, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{
+			"userId":      payload.ReciepientId,
+			"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		}, options.FindOne().SetProjection(map[string]int{
 			"userName":     1,
 			"profileImage": 1,
 		}))
