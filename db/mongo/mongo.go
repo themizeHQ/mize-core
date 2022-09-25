@@ -30,7 +30,9 @@ var (
 	Notification *mongo.Collection
 
 	// messages
-	Message *mongo.Collection
+	Message            *mongo.Collection
+	Conversation       *mongo.Collection
+	ConversationMember *mongo.Collection
 
 	// media
 	Upload *mongo.Collection
@@ -166,6 +168,23 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "format", Value: 1}},
+		},
+	})
+
+	Conversation = db.Collection("Conversation")
+	Upload.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "participants", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "format", Value: 1}},
+		},
+	})
+
+	ConversationMember = db.Collection("ConversationMembers")
+	Upload.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "workspaceConv", Value: 1}},
 		},
 	})
 }

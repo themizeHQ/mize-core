@@ -157,9 +157,11 @@ func (repo *MongoRepository[T]) FindById(id string, opts ...*options.FindOneOpti
 	}()
 	var result T
 	i := parseStringToMongo(&id)
-	fmt.Println(i)
 	err := repo.Model.FindOne(c, bson.M{"_id": i}, opts...).Decode(&result)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &result, nil

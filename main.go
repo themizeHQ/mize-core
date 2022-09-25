@@ -122,6 +122,11 @@ func main() {
 			messageV1.DELETE("/channel/delete", middlewares.AuthenticationMiddleware(true, false), conversationControllers.DeleteMessages)
 		}
 
+		conversationV1 := v1.Group("/conversation")
+		{
+			conversationV1.POST("/start", middlewares.AuthenticationMiddleware(false, false), conversationControllers.StartConversation)
+		}
+
 		// mediaV1 := v1.Group("/media")
 		// {
 		// }
