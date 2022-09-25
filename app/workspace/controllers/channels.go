@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -10,12 +11,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/auth"
+	convRepo "mize.app/app/conversation/repository"
 	"mize.app/app/media"
 	"mize.app/app/workspace/models"
 	channelUseCases "mize.app/app/workspace/usecases/channel"
 	channelmembersUseCases "mize.app/app/workspace/usecases/channel_member"
 	"mize.app/app_errors"
 	mediaConstants "mize.app/constants/media"
+	"mize.app/constants/message"
 	"mize.app/server_response"
 	"mize.app/utils"
 )
@@ -115,4 +118,78 @@ func UpdateChannelProfileImage(ctx *gin.Context) {
 		}
 	}
 	server_response.Response(ctx, http.StatusCreated, "upload success", true, nil)
+}
+
+func FetchChannelMedia(ctx *gin.Context) {
+	channel := ctx.Query("channel")
+	if channel == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a channel id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	mediaType := ctx.Query("type")
+	mediaTypes := []string{"image", "video", "audio", "docs", "links"}
+	match := false
+	for _, t := range mediaTypes {
+		if t == mediaType {
+			match = true
+			break
+		}
+	}
+	if !match {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("valid media types are image, video, audio, docs, links"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	if err != nil || page == 0 {
+		page = 1
+	}
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
+	skip := (page - 1) * limit
+	messageRepo := convRepo.GetMessageRepo()
+	var resources *[]map[string]interface{}
+	if mediaType == "image" {
+		resources, err = messageRepo.FindManyStripped(map[string]interface{}{
+			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			"to":          *utils.HexToMongoId(ctx, channel),
+			"type":        message.IMAGE_MESSAGE,
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
+		}, options.Find().SetProjection(map[string]int{
+			"resourceUrl": 1,
+			"userName":    1,
+		}))
+	} else if mediaType == "video" {
+		resources, err = messageRepo.FindManyStripped(map[string]interface{}{
+			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			"to":          *utils.HexToMongoId(ctx, channel),
+			"type":        message.VIDEO_MESSAGE,
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
+		}, options.Find().SetProjection(map[string]int{
+			"resourceUrl": 1,
+			"userName":    1,
+		}))
+	} else if mediaType == "audio" {
+		resources, err = messageRepo.FindManyStripped(map[string]interface{}{
+			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			"to":          *utils.HexToMongoId(ctx, channel),
+			"type":        message.AUDIO_MESSAGE,
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
+		}, options.Find().SetProjection(map[string]int{
+			"resourceUrl": 1,
+			"userName":    1,
+		}))
+	}
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch resources"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "resources fetched", true, resources)
 }

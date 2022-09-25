@@ -111,6 +111,8 @@ func main() {
 
 			channelV1.GET("/pinned/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchPinnedChannels)
 
+			channelV1.GET("/resources/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannelMedia)
+
 		}
 
 		messageV1 := v1.Group("/message")
