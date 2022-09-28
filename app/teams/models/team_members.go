@@ -10,9 +10,12 @@ import (
 
 type TeamMembers struct {
 	Id           primitive.ObjectID `bson:"_id" json:"id"`
-	FirstName    string             `bson:"firstName" json:"firstNname"`
+	FirstName    string             `bson:"firstName" json:"firstName"`
 	LastName     string             `bson:"lastName" json:"lastName"`
+	UserId       primitive.ObjectID `bson:"userId" json:"userId"`
 	WorkspaceId  primitive.ObjectID `bson:"workspaceId" json:"workspaceId"`
+	TeamId       primitive.ObjectID `bson:"teamId" json:"teamId"`
+	TeamName     string             `bson:"teamName" json:"teamName"`
 	ProfileImage *string            `bson:"profileImage" json:"profileImage"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`

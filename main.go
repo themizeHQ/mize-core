@@ -14,6 +14,7 @@ import (
 	appControllers "mize.app/app/application/controllers"
 	conversationControllers "mize.app/app/conversation/controllers"
 	notificationControllers "mize.app/app/notification/controllers"
+	teamControllers "mize.app/app/teams/controllers"
 	userControllers "mize.app/app/user/controllers"
 	workspaceControllers "mize.app/app/workspace/controllers"
 )
@@ -131,9 +132,10 @@ func main() {
 			conversationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchConversation)
 		}
 
-		// mediaV1 := v1.Group("/media")
-		// {
-		// }
+		teamV1 := v1.Group("/team")
+		{
+			teamV1.POST("/create", middlewares.AuthenticationMiddleware(true, true), teamControllers.CreateTeam)
+		}
 
 		authV1 := v1.Group("/auth")
 		{

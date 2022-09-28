@@ -36,6 +36,10 @@ var (
 
 	// media
 	Upload *mongo.Collection
+
+	// team
+	Team       *mongo.Collection
+	TeamMember *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -172,7 +176,7 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	})
 
 	Conversation = db.Collection("Conversation")
-	Upload.Indexes().CreateMany(ctx, []mongo.IndexModel{
+	Conversation.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "participants", Value: 1}},
 		},
@@ -182,9 +186,30 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	})
 
 	ConversationMember = db.Collection("ConversationMembers")
-	Upload.Indexes().CreateMany(ctx, []mongo.IndexModel{
+	ConversationMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "workspaceConv", Value: 1}},
 		},
 	})
+
+	Team = db.Collection("Teams")
+	Team.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+	})
+
+	TeamMember = db.Collection("Teams")
+	TeamMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "teamId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "userId", Value: 1}},
+		},
+	})
+
 }
