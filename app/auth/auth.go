@@ -321,7 +321,7 @@ func ResendOtp(ctx *gin.Context) {
 	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
 }
 
-func HasChannelAccess(ctx *gin.Context, channel_id string) (bool, error) {
+func HasChannelAccess(ctx *gin.Context, channel_id string, accessToCheck []channel.ChannelAdminAccess) (bool, error) {
 	channelMemberRepo := workspaceRepository.GetChannelMemberRepo()
 	channelMembership, err := channelMemberRepo.FindOneByFilter(map[string]interface{}{
 		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
@@ -333,12 +333,11 @@ func HasChannelAccess(ctx *gin.Context, channel_id string) (bool, error) {
 		return false, err
 	}
 	if !channelMembership.Admin {
-		err = errors.New("only admins can delete channels")
+		err = errors.New("only admins can perform this action")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
 		return false, err
 	}
-	has_access := channelMembership.HasAccess(channelMembership.AdminAccess,
-		[]channel.ChannelAdminAccess{channel.CHANNEL_FULL_ACCESS, channel.CHANNEL_DELETE_ACCESS})
+	has_access := channelMembership.HasAccess(channelMembership.AdminAccess, accessToCheck)
 	if !has_access {
 		err = errors.New("you do not have delete access to this channel")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})

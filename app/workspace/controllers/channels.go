@@ -17,6 +17,7 @@ import (
 	channelUseCases "mize.app/app/workspace/usecases/channel"
 	channelmembersUseCases "mize.app/app/workspace/usecases/channel_member"
 	"mize.app/app_errors"
+	channelConstants "mize.app/constants/channel"
 	mediaConstants "mize.app/constants/media"
 	"mize.app/constants/message"
 	"mize.app/server_response"
@@ -73,7 +74,7 @@ func UpdateChannelProfileImage(ctx *gin.Context) {
 		return
 	}
 
-	success, err := auth.HasChannelAccess(ctx, channel_id)
+	success, err := auth.HasChannelAccess(ctx, channel_id, []channelConstants.ChannelAdminAccess{channelConstants.CHANNEL_INFO_EDIT_ACCESS})
 	if err != nil || !success {
 		return
 	}
