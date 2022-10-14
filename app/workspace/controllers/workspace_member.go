@@ -68,7 +68,7 @@ func SearchWorkspaceMembers(ctx *gin.Context) {
 		},
 	}, options.Find().SetProjection(map[string]int{
 		"firstName":    1,
-		"lasstName":    1,
+		"lastName":    1,
 		"userName":     1,
 		"profileImage": 1,
 	}))
