@@ -52,6 +52,8 @@ func main() {
 			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateProfileImage)
 
 			userV1.POST("/update/phone", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdatePhone)
+
+			userV1.POST("/fetch-users/phone", userControllers.FetchUsersByPhoneNumber)
 		}
 
 		notificationV1 := v1.Group("/notification")

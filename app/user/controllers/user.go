@@ -12,6 +12,7 @@ import (
 	"mize.app/app/media"
 	"mize.app/app/user/models"
 	userRepo "mize.app/app/user/repository"
+	"mize.app/app/user/types"
 	userUseCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
 	"mize.app/authentication"
@@ -147,4 +148,31 @@ func UpdatePhone(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
+}
+
+func FetchUsersByPhoneNumber(ctx *gin.Context) {
+	var filter types.PhoneNumberFilter
+	if err := ctx.ShouldBind(&filter); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass an array of mobile numbers"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	if len(filter.Phone) <= 0 {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in at least 1 mobile number"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	userRepo := userRepo.GetUserRepo()
+	profile, err := userRepo.FindManyStripped(map[string]interface{}{
+		"phone": map[string]interface{}{
+			"$in": filter.Phone,
+		},
+	}, options.Find().SetProjection(map[string]int{
+		"firstName":    1,
+		"lastName":     1,
+		"profileImage": 1,
+	}))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not find users"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "users found", true, profile)
 }
