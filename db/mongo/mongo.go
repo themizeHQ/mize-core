@@ -75,6 +75,9 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}, {
+		Keys:    bson.D{{Key: "phone", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}, {
 		Keys:    bson.D{{Key: "userName", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}})
