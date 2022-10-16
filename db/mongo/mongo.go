@@ -40,6 +40,9 @@ var (
 	// team
 	Team       *mongo.Collection
 	TeamMember *mongo.Collection
+
+	// schedule
+	Schedule *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -215,4 +218,13 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 	})
 
+	Schedule = db.Collection("Schedules")
+	Schedule.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "createdBy", Value: 1}},
+		},
+	})
 }
