@@ -57,7 +57,7 @@ func main() {
 
 			userV1.POST("/update/phone", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdatePhone)
 
-			userV1.POST("/fetch-users/phone", userControllers.FetchUsersByPhoneNumber)
+			userV1.POST("/fetch-users/phone", middlewares.AuthenticationMiddleware(false, false), userControllers.FetchUsersByPhoneNumber)
 		}
 
 		notificationV1 := v1.Group("/notification")
