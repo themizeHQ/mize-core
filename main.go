@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"mize.app/app/auth"
 	"mize.app/middlewares"
+	"mize.app/schedule_manager"
 	"mize.app/server_response"
 
 	appControllers "mize.app/app/application/controllers"
@@ -28,6 +29,9 @@ func main() {
 	}
 
 	server := gin.Default()
+
+	// start scheduler
+	schedule_manager.StartScheduleManager()
 
 	// start all services
 	StartServices()

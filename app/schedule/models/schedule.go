@@ -22,9 +22,9 @@ var UserRecipient RecipientType = "user_recipient"
 var TeamRecipient RecipientType = "team_recipient"
 
 type Recipients struct {
-	Name        string        `bson:"name" json:"name"`
-	RecipientId string        `bson:"recipientId" json:"recipientId"`
-	Type        RecipientType `bson:"type" json:"type"`
+	Name        string             `bson:"name" json:"name"`
+	RecipientId primitive.ObjectID `bson:"recipientId" json:"recipientId"`
+	Type        RecipientType      `bson:"type" json:"type"`
 }
 
 type Schedule struct {
@@ -33,8 +33,8 @@ type Schedule struct {
 	Location    string                                             `bson:"location" json:"location"`
 	Details     string                                             `bson:"details" json:"details"`
 	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
-	Events      []Event                                            `bson:"time" json:"time"`
-	WorkspaceId *primitive.ObjectID                                `bson:"workspaceId" json:"workspaceId"`
+	Events      []Event                                            `bson:"events" json:"events"`
+	WorkspaceId primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
 	CreatedBy   primitive.ObjectID                                 `bson:"createdBy" json:"createdBy"`
 	Recipients  []Recipients                                       `bson:"recipient" json:"recipient"`
 

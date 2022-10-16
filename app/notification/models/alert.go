@@ -15,6 +15,7 @@ type Alert struct {
 	UserIds     []primitive.ObjectID                               `bson:"usersId" json:"userId"`
 	AdminId     primitive.ObjectID                                 `bson:"adminId" json:"adminId"`
 	ResourceId  *primitive.ObjectID                                `bson:"resourceId" json:"resourceId"`
+	ResourceUrl string                                             `bson:"resourceUrl" json:"resourceUrl"`
 	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
 	Message     string                                             `bson:"message" json:"message"`
 

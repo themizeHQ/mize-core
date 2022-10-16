@@ -8,7 +8,8 @@ package notification
 type NotificationType string
 
 var (
-	WORKSPACE_INVITE NotificationType = "workspace_invite"
+	WORKSPACE_INVITE  NotificationType = "workspace_invite"
+	SCHEDULE_REMINDER NotificationType = "schedule_reminder"
 )
 
 // NOTIFICATION CONSTANT
