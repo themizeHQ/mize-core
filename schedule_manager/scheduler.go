@@ -19,7 +19,7 @@ type Options struct {
 	Url string
 }
 
-func Schedule(schedule scheduleModels.Schedule, eventTime int64, opts Options) {
+func Schedule(schedule *scheduleModels.Schedule, eventTime int64, opts Options) {
 	taskScheduler := chrono.NewDefaultTaskScheduler()
 	taskScheduler.Schedule(func(ctx context.Context) {
 

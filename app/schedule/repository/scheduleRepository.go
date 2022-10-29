@@ -14,7 +14,7 @@ var ScheduleRepository mongoRepo.MongoRepository[models.Schedule]
 
 func GetScheduleRepo() mongoRepo.MongoRepository[models.Schedule] {
 	once.Do(func() {
-		ScheduleRepository = mongoRepo.MongoRepository[models.Schedule]{Model: dbMongo.Upload}
+		ScheduleRepository = mongoRepo.MongoRepository[models.Schedule]{Model: dbMongo.Schedule}
 	})
 	return ScheduleRepository
 }

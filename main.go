@@ -15,6 +15,7 @@ import (
 	appControllers "mize.app/app/application/controllers"
 	conversationControllers "mize.app/app/conversation/controllers"
 	notificationControllers "mize.app/app/notification/controllers"
+	scheduleControllers "mize.app/app/schedule/controllers"
 	teamControllers "mize.app/app/teams/controllers"
 	userControllers "mize.app/app/user/controllers"
 	workspaceControllers "mize.app/app/workspace/controllers"
@@ -30,9 +31,6 @@ func main() {
 
 	server := gin.Default()
 
-	// start scheduler
-	schedule_manager.StartScheduleManager()
-
 	// start all services
 	StartServices()
 
@@ -40,6 +38,9 @@ func main() {
 		// clean up resources
 		CleanUp()
 	}()
+
+	// start scheduler
+	schedule_manager.StartScheduleManager()
 
 	// set up routing
 	v1 := server.Group("/api/v1")
@@ -141,6 +142,11 @@ func main() {
 		teamV1 := v1.Group("/team")
 		{
 			teamV1.POST("/create", middlewares.AuthenticationMiddleware(true, true), teamControllers.CreateTeam)
+		}
+
+		schduleV1 := v1.Group("/schedule")
+		{
+			schduleV1.POST("/create", middlewares.AuthenticationMiddleware(false, false), scheduleControllers.CreateSchedule)
 		}
 
 		authV1 := v1.Group("/auth")

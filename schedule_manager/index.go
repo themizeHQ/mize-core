@@ -19,16 +19,17 @@ func StartScheduleManager() {
 		schedules, err := scheduleRepo.FindMany(map[string]interface{}{
 			"events.time": map[string]interface{}{
 				"$gte": now,
-				"$let": end,
+				"$lte": end,
 			},
 		})
 		if err != nil {
 			fmt.Println("alert on sentry")
+			return
 		}
 		for _, schedule := range *schedules {
 			for _, event := range schedule.Events {
 				if event.Time <= end || event.Time >= now {
-					Schedule(schedule, event.Time, Options{
+					Schedule(&schedule, event.Time, Options{
 						Url: event.Url,
 					})
 				}
