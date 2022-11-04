@@ -10,14 +10,14 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
 	github.com/matthewhartstonge/argon2 v0.2.1
+	github.com/procyon-projects/chrono v1.1.2
+	github.com/vonage/vonage-go-sdk v0.14.0
 	go.mongodb.org/mongo-driver v1.9.0
 )
 
 require (
 	github.com/antihax/optional v1.0.0 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
-	github.com/procyon-projects/chrono v1.1.2 // indirect
-	github.com/vonage/vonage-go-sdk v0.14.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 )
