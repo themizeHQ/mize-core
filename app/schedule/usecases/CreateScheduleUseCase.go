@@ -13,6 +13,7 @@ import (
 func CreateScheduleUseCase(ctx *gin.Context, payload *models.Schedule) {
 	scheduleRepository := repository.GetScheduleRepo()
 	payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
+	payload.CreatedBy =  *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
 	scheduleRepository.CreateOne(*payload)
 	now := time.Now().Unix()
 	end := time.Now().Add(time.Hour * 1).Unix()
