@@ -143,7 +143,7 @@ func SaveAuthToken(ctx *gin.Context, key string, score float64, payload string) 
 	return redis.RedisRepo.CreateInSet(ctx, key, score, payload)
 }
 
-func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, acsUserId string) error {
+func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, acsUserId string) (string, error) {
 	refreshToken, err := GenerateAuthToken(ctx, ClaimsData{
 		Issuer:    os.Getenv("JWT_ISSUER"),
 		Type:      REFRESH_TOKEN,
@@ -158,13 +158,12 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 	if err != nil {
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError}
 		app_errors.ErrorHandler(ctx, err)
-		return err
+		return "", err
 	}
-	ctx.SetCookie(string(REFRESH_TOKEN), *refreshToken, int(24*200*time.Hour.Seconds()), "/", os.Getenv("APP_DOMAIN"), false, false)
-	return nil
+	return *refreshToken, nil
 }
 
-func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, workspace_id *string, acsUserId string) error {
+func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, workspace_id *string, acsUserId string) (string, error) {
 	var role RoleType = USER
 	if workspace_id != nil {
 		workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
@@ -172,7 +171,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		if workspaceMember == nil || err != nil {
 			err := app_errors.RequestError{StatusCode: http.StatusUnauthorized, Err: errors.New("you do not belong to this workspace")}
 			app_errors.ErrorHandler(ctx, err)
-			return err
+			return "", err
 		}
 		if workspaceMember.Admin {
 			role = ADMIN
@@ -196,8 +195,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 	if err != nil {
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized}
 		app_errors.ErrorHandler(ctx, err)
-		return err
+		return "", err
 	}
-	ctx.SetCookie(string(ACCESS_TOKEN), *accessToken, int(30*time.Minute.Seconds()), "/", os.Getenv("APP_DOMAIN"), false, false)
-	return nil
+	return *accessToken, nil
 }
