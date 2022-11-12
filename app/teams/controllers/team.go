@@ -88,8 +88,8 @@ func FetchTeams(ctx *gin.Context) {
 			Skip:  &skip,
 		}, options.Find().SetProjection(
 			map[string]interface{}{
-				"name":        1,
-				"memberCount": 1,
+				"name":         1,
+				"membersCount": 1,
 			}))
 
 	} else {

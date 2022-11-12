@@ -13,6 +13,7 @@ type Team struct {
 	Name         string             `bson:"name" json:"name"`
 	Description  string             `bson:"description" json:"description"`
 	WorkspaceId  primitive.ObjectID `bson:"workspaceId" json:"workspaceId"`
+	MembersCount int                `bson:"membersCount" json:"membersCount"`
 	ProfileImage *string            `bson:"profileImage" json:"profileImage"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
