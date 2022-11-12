@@ -142,6 +142,8 @@ func main() {
 		teamV1 := v1.Group("/team")
 		{
 			teamV1.POST("/create", middlewares.AuthenticationMiddleware(true, true), teamControllers.CreateTeam)
+
+			teamV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), teamControllers.FetchTeams)
 		}
 
 		schduleV1 := v1.Group("/schedule")

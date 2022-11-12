@@ -19,7 +19,7 @@ type TeamMembers struct {
 	TeamId       primitive.ObjectID `bson:"teamId" json:"teamId"`
 	TeamName     string             `bson:"teamName" json:"teamName"`
 	ProfileImage *string            `bson:"profileImage" json:"profileImage"`
-	Type    TeamMemberType     `bson:"type" json:"type"`
+	Type         TeamMemberType     `bson:"type" json:"type"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`

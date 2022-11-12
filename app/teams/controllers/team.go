@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/teams/models"
+	teamsRepository "mize.app/app/teams/repository"
 	"mize.app/app/teams/usecases"
 	"mize.app/app_errors"
+	"mize.app/authentication"
 	"mize.app/server_response"
+	"mize.app/utils"
 )
 
 func CreateTeam(ctx *gin.Context) {
@@ -59,4 +64,51 @@ func CreateTeam(ctx *gin.Context) {
 		}
 	}
 	server_response.Response(ctx, http.StatusCreated, "team created", true, nil)
+}
+
+// FetchTeams - controller function to fetch teams
+func FetchTeams(ctx *gin.Context) {
+	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	if err != nil || page == 0 {
+		page = 1
+	}
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
+	skip := (page - 1) * limit
+	var teams *[]map[string]interface{}
+
+	if authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+		teamsRepo := teamsRepository.GetTeamRepo()
+		teams, err = teamsRepo.FindManyStripped(map[string]interface{}{
+			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
+		}, options.Find().SetProjection(
+			map[string]interface{}{
+				"name":        1,
+				"memberCount": 1,
+			}))
+
+	} else {
+		teamMemberRepo := teamsRepository.GetTeamMemberRepo()
+		teams, err = teamMemberRepo.FindManyStripped(map[string]interface{}{
+			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		}, &options.FindOptions{
+			Limit: &limit,
+			Skip:  &skip,
+		}, options.Find().SetProjection(
+			map[string]interface{}{
+				"name":        1,
+				"memberCount": 1,
+			}))
+
+	}
+	if err != nil {
+		server_response.Response(ctx, http.StatusInternalServerError, "could not fetch teams", false, teams)
+	}
+	server_response.Response(ctx, http.StatusOK, "teams fetched", true, teams)
 }
