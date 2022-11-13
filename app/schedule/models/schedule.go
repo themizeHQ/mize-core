@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -28,15 +28,17 @@ type Recipients struct {
 }
 
 type Schedule struct {
-	Id          primitive.ObjectID                                 `bson:"_id" json:"id"`
-	Name        string                                             `bson:"name" json:"name"`
-	Location    string                                             `bson:"location" json:"location"`
-	Details     string                                             `bson:"details" json:"details"`
-	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
-	Events      []Event                                            `bson:"events" json:"events"`
-	WorkspaceId primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
-	CreatedBy   primitive.ObjectID                                 `bson:"createdBy" json:"createdBy"`
-	Recipients  []Recipients                                       `bson:"recipient" json:"recipient"`
+	Id            primitive.ObjectID                                 `bson:"_id" json:"id"`
+	Name          string                                             `bson:"name" json:"name"`
+	Location      string                                             `bson:"location" json:"location"`
+	Details       string                                             `bson:"details" json:"details"`
+	Importance    notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
+	Events        []Event                                            `bson:"events" json:"events"`
+	WorkspaceId   primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
+	CreatedBy     primitive.ObjectID                                 `bson:"createdBy" json:"createdBy"`
+	Recipients    []Recipients                                       `bson:"recipient" json:"recipient"`
+	RemindByEmail bool                                               `bson:"remindByEmail" json:"remindbyEmail"`
+	RemindBySMS   bool                                               `bson:"remindBySMS" json:"remindbySMS"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`

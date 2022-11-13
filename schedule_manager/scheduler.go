@@ -3,6 +3,7 @@ package schedule_manager
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/procyon-projects/chrono"
@@ -11,7 +12,11 @@ import (
 	notificationModels "mize.app/app/notification/models"
 	alertRepoository "mize.app/app/notification/repository"
 	scheduleModels "mize.app/app/schedule/models"
+	teamModels "mize.app/app/teams/models"
+	teamsRepo "mize.app/app/teams/repository"
+	userRepo "mize.app/app/user/repository"
 	notification_constants "mize.app/constants/notification"
+	"mize.app/emails"
 	"mize.app/realtime"
 )
 
@@ -50,4 +55,60 @@ func Schedule(schedule *scheduleModels.Schedule, eventTime int64, opts Options) 
 		}
 
 	}, chrono.WithTime(time.Unix(eventTime, 0)))
+}
+
+func ScheduleEmail(payload *scheduleModels.Schedule, schedule scheduleModels.Event, workspaceId string) {
+	taskScheduler := chrono.NewDefaultTaskScheduler()
+	taskScheduler.Schedule(func(ctx context.Context) {
+		userRepo := userRepo.GetUserRepo()
+		teamMemberRepo := teamsRepo.GetTeamMemberRepo()
+		wg := sync.WaitGroup{}
+
+		if payload.RemindByEmail {
+			for _, recipient := range payload.Recipients {
+				wg.Add(1)
+				go func(rcp scheduleModels.Recipients) {
+					defer func() {
+						wg.Done()
+					}()
+					if rcp.Type == scheduleModels.UserRecipient {
+						user, err := userRepo.FindById(rcp.RecipientId.Hex())
+						if err != nil {
+							return
+						}
+						emails.SendEmail(user.Email, payload.Name, "alert_reminder", map[string]interface{}{
+							"TIME":    schedule.Time,
+							"DETAILS": payload.Details,
+						})
+					} else if rcp.Type == scheduleModels.TeamRecipient {
+						members, err := teamMemberRepo.FindMany(map[string]interface{}{
+							"workspaceId": workspaceId,
+						})
+						if err != nil {
+							return
+						}
+
+						for _, member := range *members {
+							wg.Add(1)
+							go func(mem teamModels.TeamMembers) {
+								defer func() {
+									wg.Done()
+								}()
+								user, err := userRepo.FindById(mem.UserId.String())
+								if err != nil {
+									return
+								}
+								emails.SendEmail(user.Email, payload.Name, "alert_reminder", map[string]interface{}{
+									"TIME":    time.Unix(schedule.Time, 0),
+									"DETAILS": payload.Details,
+								})
+							}(member)
+						}
+					}
+				}(recipient)
+			}
+			wg.Wait()
+		}
+	}, chrono.WithTime(time.Unix(schedule.Time-1800, 0)))
+
 }

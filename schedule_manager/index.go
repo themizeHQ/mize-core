@@ -33,6 +33,9 @@ func StartScheduleManager() {
 						Url: event.Url,
 					})
 				}
+				if schedule.RemindByEmail {
+					ScheduleEmail(&schedule, event, schedule.WorkspaceId.Hex())
+				}
 			}
 		}
 	}, 2*time.Hour, chrono.WithTime(time.Now()))
