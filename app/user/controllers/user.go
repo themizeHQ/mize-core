@@ -17,6 +17,7 @@ import (
 	"mize.app/app_errors"
 	"mize.app/authentication"
 	mediaConstants "mize.app/constants/media"
+	user_constants "mize.app/constants/user"
 	"mize.app/server_response"
 	"mize.app/sms"
 	"mize.app/utils"
@@ -164,6 +165,7 @@ func FetchUsersByPhoneNumber(ctx *gin.Context) {
 		"phone": map[string]interface{}{
 			"$in": filter.Phone,
 		},
+		"discoverability": user_constants.DISCOVERABILITY_PHONE,
 	}, options.Find().SetProjection(map[string]int{
 		"firstName":    1,
 		"lastName":     1,
