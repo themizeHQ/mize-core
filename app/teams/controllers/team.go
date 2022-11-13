@@ -12,7 +12,7 @@ import (
 
 	"mize.app/app/teams/models"
 	teamsRepository "mize.app/app/teams/repository"
-	"mize.app/app/teams/usecases"
+	"mize.app/app/teams/usecases/team"
 	"mize.app/app_errors"
 	"mize.app/authentication"
 	"mize.app/server_response"

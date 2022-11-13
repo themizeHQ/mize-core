@@ -204,8 +204,7 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 			Keys: bson.D{{Key: "workspaceId", Value: 1}},
 		},
 	})
-
-	TeamMember = db.Collection("Teams")
+	TeamMember = db.Collection("TeamMembers")
 	TeamMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "workspaceId", Value: 1}},
@@ -215,6 +214,12 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "userId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "workspaceMemberId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "userName", Value: 1}},
 		},
 	})
 

@@ -22,8 +22,6 @@ func GetTeamRepo() mongoRepo.MongoRepository[models.Team] {
 }
 
 func GetTeamMemberRepo() mongoRepo.MongoRepository[models.TeamMembers] {
-	once.Do(func() {
-		TeamMembersRepository = mongoRepo.MongoRepository[models.TeamMembers]{Model: dbMongo.TeamMember}
-	})
+	TeamMembersRepository = mongoRepo.MongoRepository[models.TeamMembers]{Model: dbMongo.TeamMember}
 	return TeamMembersRepository
 }
