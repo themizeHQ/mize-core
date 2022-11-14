@@ -101,7 +101,6 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				}()
 				success, err := channelRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
 					"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
-					"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 				}, map[string]interface{}{
 					"lastMessage":     payload.Text,
 					"lastMessageSent": primitive.NewDateTimeFromTime(time.Now()),
@@ -121,7 +120,9 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				}()
 				success, err := channelRepository.UpdateWithOperator(map[string]interface{}{
 					"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
-					"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+					"userId": map[string]interface{}{
+						"$ne": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+					},
 				}, map[string]interface{}{
 					"$inc": map[string]interface{}{
 						"unreadMessages": 1,
