@@ -23,3 +23,13 @@ func CreateTeamMembers(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusCreated, "team members created", true, nil)
 }
+
+func RemoveTeamMembers(ctx *gin.Context) {
+	var payload types.IDArray
+	if err := ctx.ShouldBind(&payload); err != nil {
+		server_response.Response(ctx, http.StatusBadRequest, "pass in an array of team members to remove", false, nil)
+		return
+	}
+	teammembersUseCases.RemoveTeamMembers(ctx, payload)
+	server_response.Response(ctx, http.StatusCreated, "team members removed", true, nil)
+}

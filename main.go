@@ -153,6 +153,8 @@ func main() {
 			teamV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), teamControllers.FetchTeams)
 
 			teamV1.POST("/members/add/:id", middlewares.AuthenticationMiddleware(true, true), teamControllers.CreateTeamMembers)
+
+			teamV1.DELETE("/members/remove", middlewares.AuthenticationMiddleware(true, true), teamControllers.RemoveTeamMembers)
 		}
 
 		schduleV1 := v1.Group("/schedule")

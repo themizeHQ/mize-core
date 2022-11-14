@@ -11,3 +11,5 @@ type TeamMembersPayload struct {
 	UserID primitive.ObjectID `bson:"userId" json:"userId"`
 	Type   TeamMemberType     `bson:"type" json:"type"`
 }
+
+type IDArray []primitive.ObjectID
