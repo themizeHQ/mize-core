@@ -273,9 +273,14 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	}
 	workspace := ctx.Query("workspace_id")
 	if workspace == "" {
-		authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
+		accessToken, err := authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
 			refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), refresh_token_claims["Firstname"].(string), refresh_token_claims["Lastname"].(string), nil, refresh_token_claims["ACSUserId"].(string))
-		server_response.Response(ctx, http.StatusCreated, "token generated", true, nil)
+		if err != nil {
+			return
+		}
+		server_response.Response(ctx, http.StatusCreated, "token generated", true, map[string]string{
+			"accessToken": accessToken,
+		})
 		return
 	}
 	accessToken, err := authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
