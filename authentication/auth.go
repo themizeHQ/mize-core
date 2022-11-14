@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/cryptography"
@@ -69,34 +70,36 @@ const (
 )
 
 type ClaimsData struct {
-	Issuer    string
-	UserId    string
-	Email     string
-	Username  string
-	Firstname string
-	Lastname  string
-	Role      RoleType
-	ExpiresAt int64
-	Type      TokenType
-	ACSUserId string
-	Workspace *string
+	Issuer        string
+	UserId        string
+	Email         string
+	Username      string
+	Firstname     string
+	Lastname      string
+	Role          RoleType
+	ExpiresAt     int64
+	Type          TokenType
+	ACSUserId     string
+	Workspace     *string
+	WorkspaceName *string
 	jwt.StandardClaims
 }
 
 // tokens
 func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error) {
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"Issuer":    claimsData.Issuer,
-		"UserId":    claimsData.UserId,
-		"Username":  claimsData.Username,
-		"Firstname": claimsData.Firstname,
-		"Lastname":  claimsData.Lastname,
-		"Role":      claimsData.Role,
-		"exp":       claimsData.ExpiresAt,
-		"Type":      claimsData.Type,
-		"Email":     claimsData.Email,
-		"Workspace": claimsData.Workspace,
-		"ACSUserId": claimsData.ACSUserId,
+		"Issuer":        claimsData.Issuer,
+		"UserId":        claimsData.UserId,
+		"Username":      claimsData.Username,
+		"Firstname":     claimsData.Firstname,
+		"Lastname":      claimsData.Lastname,
+		"Role":          claimsData.Role,
+		"exp":           claimsData.ExpiresAt,
+		"Type":          claimsData.Type,
+		"Email":         claimsData.Email,
+		"Workspace":     claimsData.Workspace,
+		"WorkspaceName": claimsData.WorkspaceName,
+		"ACSUserId":     claimsData.ACSUserId,
 	}).SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 	if err != nil {
 		return nil, err
@@ -165,9 +168,13 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 
 func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, workspace_id *string, acsUserId string) (string, error) {
 	var role RoleType = USER
+	var workspaceName string
 	if workspace_id != nil {
 		workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
-		workspaceMember, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{"userId": utils.HexToMongoId(ctx, id), "workspaceId": utils.HexToMongoId(ctx, *workspace_id)})
+		workspaceMember, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{"userId": utils.HexToMongoId(ctx, id), "workspaceId": utils.HexToMongoId(ctx, *workspace_id)}, options.FindOne().SetProjection(map[string]interface{}{
+			"admin":         1,
+			"workspaceName": 1,
+		}))
 		if workspaceMember == nil || err != nil {
 			err := app_errors.RequestError{StatusCode: http.StatusUnauthorized, Err: errors.New("you do not belong to this workspace")}
 			app_errors.ErrorHandler(ctx, err)
@@ -175,22 +182,22 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		}
 		if workspaceMember.Admin {
 			role = ADMIN
-		} else {
-			role = USER
 		}
+		workspaceName = workspaceMember.WorkspaceName
 	}
 	accessToken, err := GenerateAuthToken(ctx, ClaimsData{
-		Issuer:    os.Getenv("JWT_ISSUER"),
-		Type:      ACCESS_TOKEN,
-		Username:  username,
-		Firstname: firstName,
-		Lastname:  lastName,
-		Role:      role,
-		ExpiresAt: time.Now().Local().Add(time.Minute * time.Duration(10)).Unix(), // 10 mins
-		UserId:    id,
-		Email:     email,
-		Workspace: workspace_id,
-		ACSUserId: acsUserId,
+		Issuer:        os.Getenv("JWT_ISSUER"),
+		Type:          ACCESS_TOKEN,
+		Username:      username,
+		Firstname:     firstName,
+		Lastname:      lastName,
+		Role:          role,
+		ExpiresAt:     time.Now().Local().Add(time.Minute * time.Duration(10)).Unix(), // 10 mins
+		UserId:        id,
+		Email:         email,
+		Workspace:     workspace_id,
+		WorkspaceName: &workspaceName,
+		ACSUserId:     acsUserId,
 	})
 	if err != nil {
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized}
