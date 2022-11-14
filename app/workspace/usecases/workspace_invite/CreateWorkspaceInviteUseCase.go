@@ -16,7 +16,7 @@ import (
 	"mize.app/utils"
 )
 
-func CreateWorkspaceInviteUseCase(ctx *gin.Context, workspace_name string, filter map[string]interface{}, payload map[string]interface{}) error {
+func CreateWorkspaceInviteUseCase(ctx *gin.Context, filter map[string]interface{}, payload map[string]interface{}) error {
 	var workspaceInviteRepoInstance = workspaceRepo.GetWorkspaceInviteRepo()
 	inviteId, err := workspaceInviteRepoInstance.UpdateOrCreateByFieldAndReturn(filter, payload, options.Update().SetUpsert(true))
 	if err != nil {
@@ -45,7 +45,7 @@ func CreateWorkspaceInviteUseCase(ctx *gin.Context, workspace_name string, filte
 		Importance:  notification_constants.NOTIFICATION_NORMAL,
 		Type:        notification_constants.WORKSPACE_INVITE,
 		Scope:       notification_constants.USER_NOTIFICATION,
-		Message:     fmt.Sprintf("You have been invited to join the %s workspace", workspace_name),
+		Message:     fmt.Sprintf("You have been invited to join the %s workspace", ctx.GetString("WorkspaceName")),
 	})
 	return nil
 }
