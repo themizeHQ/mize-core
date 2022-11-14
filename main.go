@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
 	"mize.app/app/auth"
 	"mize.app/middlewares"
 	"mize.app/schedule_manager"
@@ -30,6 +32,9 @@ func main() {
 	}
 
 	server := gin.Default()
+
+	// CORS
+	server.Use(cors.Default())
 
 	// start all services
 	StartServices()

@@ -17,6 +17,7 @@ require (
 
 require (
 	github.com/antihax/optional v1.0.0 // indirect
+	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	google.golang.org/appengine v1.4.0 // indirect
@@ -36,7 +37,7 @@ require (
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
