@@ -17,6 +17,7 @@ import (
 
 func FetchUserWorkspaces(ctx *gin.Context) {
 	workspaceMemberRepo := repository.GetWorkspaceMember()
+	admin := ctx.Query("admin")
 	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
 	if err != nil || page == 0 {
 		page = 1
@@ -28,6 +29,20 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 	skip := (page - 1) * limit
 	payload, err := workspaceMemberRepo.FindManyStripped(map[string]interface{}{
 		"userId": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"admin": func() interface{} {
+			if admin != "" {
+				adminBool, err := strconv.ParseBool(admin)
+				if err != nil {
+					return map[string]interface{}{
+						"$in": []bool{true, false},
+					}
+				}
+				return adminBool
+			}
+			return map[string]interface{}{
+				"$in": []bool{true, false},
+			}
+		}(),
 	}, &options.FindOptions{
 		Limit: &limit,
 		Skip:  &skip,
@@ -61,10 +76,10 @@ func FetchWorkspacesMembers(ctx *gin.Context) {
 		Limit: &limit,
 		Skip:  &skip,
 	}, options.Find().SetProjection(map[string]int{
-		"profileImage":  1,
-		"firstName":  1,
-		"lastName":  1,
-		"admin":  1,
+		"profileImage": 1,
+		"firstName":    1,
+		"lastName":     1,
+		"admin":        1,
 	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
@@ -98,7 +113,7 @@ func SearchWorkspaceMembers(ctx *gin.Context) {
 		},
 	}, options.Find().SetProjection(map[string]int{
 		"firstName":    1,
-		"lastName":    1,
+		"lastName":     1,
 		"userName":     1,
 		"profileImage": 1,
 	}))
