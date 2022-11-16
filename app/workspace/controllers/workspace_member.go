@@ -106,6 +106,16 @@ func FetchWorkspacesMembers(ctx *gin.Context) {
 
 func SearchWorkspaceMembers(ctx *gin.Context) {
 	term := ctx.Query("term")
+	admin := ctx.Query("admin")
+	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	if err != nil || page == 0 {
+		page = 1
+	}
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
+	skip := (page - 1) * limit
 	if strings.TrimSpace(term) == "" {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a search term"), StatusCode: http.StatusBadRequest})
 		return
@@ -126,11 +136,27 @@ func SearchWorkspaceMembers(ctx *gin.Context) {
 				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 			},
 		},
-	}, options.Find().SetProjection(map[string]int{
-		"firstName":    1,
-		"lastName":     1,
-		"userName":     1,
-		"profileImage": 1,
+	}, &options.FindOptions{
+		Limit: &limit,
+		Skip:  &skip,
+	}, options.Find().SetProjection(func() map[string]int {
+		if admin == "true" && authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+			return map[string]int{
+				"profileImage": 1,
+				"firstName":    1,
+				"lastName":     1,
+				"userName":     1,
+				"email":        1,
+				"phone":        1,
+				"admin":        1,
+			}
+		}
+		return map[string]int{
+			"profileImage": 1,
+			"firstName":    1,
+			"lastName":     1,
+			"userName":     1,
+		}
 	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete search"), StatusCode: http.StatusInternalServerError})
