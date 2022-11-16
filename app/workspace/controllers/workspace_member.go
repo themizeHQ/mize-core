@@ -11,6 +11,7 @@ import (
 
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	"mize.app/authentication"
 	"mize.app/server_response"
 	"mize.app/utils"
 )
@@ -61,6 +62,7 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 
 func FetchWorkspacesMembers(ctx *gin.Context) {
 	workspaceMemberRepo := repository.GetWorkspaceMember()
+	admin := ctx.Query("admin")
 	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
 	if err != nil || page == 0 {
 		page = 1
@@ -75,11 +77,24 @@ func FetchWorkspacesMembers(ctx *gin.Context) {
 	}, &options.FindOptions{
 		Limit: &limit,
 		Skip:  &skip,
-	}, options.Find().SetProjection(map[string]int{
-		"profileImage": 1,
-		"firstName":    1,
-		"lastName":     1,
-		"admin":        1,
+	}, options.Find().SetProjection(func() map[string]int {
+		if admin == "true" && authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+			return map[string]int{
+				"profileImage": 1,
+				"firstName":    1,
+				"lastName":     1,
+				"userName":     1,
+				"email":        1,
+				"phone":        1,
+				"admin":        1,
+			}
+		}
+		return map[string]int{
+			"profileImage": 1,
+			"firstName":    1,
+			"lastName":     1,
+			"admin":        1,
+		}
 	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
