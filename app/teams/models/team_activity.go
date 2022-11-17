@@ -13,6 +13,7 @@ type TeamActivity struct {
 	Id           primitive.ObjectID     `bson:"_id" json:"id"`
 	WorkspaceId  primitive.ObjectID     `bson:"workspaceId" json:"workspaceId"`
 	TeamId       primitive.ObjectID     `bson:"teamId" json:"teamId"`
+	ResourceID   primitive.ObjectID     `bson:"resourceID" json:"resourceID"`
 	TeamName     string                 `bson:"teamName" json:"teamName"`
 	ProfileImage *string                `bson:"profileImage" json:"profileImage"`
 	Name         string                 `bson:"name" json:"name"`
