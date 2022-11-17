@@ -14,6 +14,8 @@ var TeamRepository mongoRepo.MongoRepository[models.Team]
 
 var TeamMembersRepository mongoRepo.MongoRepository[models.TeamMembers]
 
+var TeamActivityRepository mongoRepo.MongoRepository[models.TeamActivity]
+
 func GetTeamRepo() mongoRepo.MongoRepository[models.Team] {
 	once.Do(func() {
 		TeamRepository = mongoRepo.MongoRepository[models.Team]{Model: dbMongo.Team}
@@ -24,4 +26,9 @@ func GetTeamRepo() mongoRepo.MongoRepository[models.Team] {
 func GetTeamMemberRepo() mongoRepo.MongoRepository[models.TeamMembers] {
 	TeamMembersRepository = mongoRepo.MongoRepository[models.TeamMembers]{Model: dbMongo.TeamMember}
 	return TeamMembersRepository
+}
+
+func GetTeamActivityRepo() mongoRepo.MongoRepository[models.TeamActivity] {
+	TeamActivityRepository = mongoRepo.MongoRepository[models.TeamActivity]{Model: dbMongo.TeamActivity}
+	return TeamActivityRepository
 }

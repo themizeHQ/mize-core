@@ -13,3 +13,9 @@ type TeamMembersPayload struct {
 }
 
 type IDArray []primitive.ObjectID
+
+type TeamActivityType string
+
+var AddToChannel TeamActivityType = "add_to_channel"
+var AddToTeam TeamActivityType = "add_to_team"
+var AddToSchedule TeamActivityType = "add_to_schedule"

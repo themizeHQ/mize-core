@@ -38,8 +38,9 @@ var (
 	Upload *mongo.Collection
 
 	// team
-	Team       *mongo.Collection
-	TeamMember *mongo.Collection
+	Team         *mongo.Collection
+	TeamMember   *mongo.Collection
+	TeamActivity *mongo.Collection
 
 	// schedule
 	Schedule *mongo.Collection
@@ -220,6 +221,16 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "userName", Value: 1}},
+		},
+	})
+
+	TeamMember = db.Collection("TeamActivity")
+	TeamMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "teamId", Value: 1}},
 		},
 	})
 
