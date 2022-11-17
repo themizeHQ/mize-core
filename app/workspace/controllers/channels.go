@@ -14,9 +14,11 @@ import (
 	convRepo "mize.app/app/conversation/repository"
 	"mize.app/app/media"
 	"mize.app/app/workspace/models"
+	"mize.app/app/workspace/repository"
 	channelUseCases "mize.app/app/workspace/usecases/channel"
 	channelmembersUseCases "mize.app/app/workspace/usecases/channel_member"
 	"mize.app/app_errors"
+	"mize.app/authentication"
 	channelConstants "mize.app/constants/channel"
 	mediaConstants "mize.app/constants/media"
 	"mize.app/constants/message"
@@ -193,4 +195,59 @@ func FetchChannelMedia(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "resources fetched", true, resources)
+}
+
+func FetchAllChannels(ctx *gin.Context) {
+	admin := ctx.Query("admin")
+	channelsRepo := repository.GetChannelRepo()
+	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	if err != nil || page == 0 {
+		page = 1
+	}
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
+	skip := (page - 1) * limit
+	channels, err := channelsRepo.FindManyStripped(map[string]interface{}{
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"private": func() map[string]interface{} {
+			if admin == "true" && authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+				return map[string]interface{}{
+					"$in": []bool{true, false},
+				}
+			}
+			return map[string]interface{}{
+				"$in": []bool{false},
+			}
+		}(),
+	}, &options.FindOptions{
+		Limit: &limit,
+		Skip:  &skip,
+	}, options.Find().SetProjection(func() map[string]int {
+		if admin == "true" && authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+			return map[string]int{
+				"compulsory":   1,
+				"private":      1,
+				"channelId":    1,
+				"name":  1,
+				"membersCount": 1,
+				"profileImage": 1,
+			}
+		}
+		return map[string]int{
+			"channelId":    1,
+			"membersCount": 1,
+			"name":  1,
+			"profileImage": 1,
+		}
+	}(),
+	))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
+			Err: errors.New("could not retrieve your channels at this time")}, StatusCode: http.StatusBadRequest})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "channels retrieved", true, channels)
+
 }

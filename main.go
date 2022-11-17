@@ -110,6 +110,8 @@ func main() {
 
 			channelV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannels)
 
+			channelV1.GET("/fetch/all", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchAllChannels)
+
 			channelV1.POST("/join/:id", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.CreateChannelMember)
 
 			channelV1.DELETE("/delete/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.DeleteChannel)
