@@ -82,7 +82,8 @@ func CacheUserUseCase(ctx *gin.Context) {
 		return
 	}
 	authentication.SaveOTP(ctx, payload.Email, otp, 5*time.Minute)
-	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_CREATED, map[string]interface{}{"email": payload.Email, "otp": strings.Split(otp, "")})
+	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.USER_CREATED, map[string]interface{}{"email": payload.Email,
+		"otp": strings.Split(otp, ""), "header": "Verify Your Email Address"})
 	server_response.Response(ctx, http.StatusCreated, "user created successfuly", true, nil)
 }
 
@@ -350,8 +351,9 @@ func ResendOtp(ctx *gin.Context) {
 	}
 	authentication.SaveOTP(ctx, email, otp, 5*time.Minute)
 	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.RESEND_OTP, map[string]interface{}{
-		"email": email,
-		"otp":   strings.Split(otp, ""),
+		"email":  email,
+		"otp":    strings.Split(otp, ""),
+		"header": "OTP requested",
 	})
 	server_response.Response(ctx, http.StatusCreated, "otp sent", true, nil)
 }
