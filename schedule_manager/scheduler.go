@@ -76,7 +76,10 @@ func ScheduleEmail(payload *scheduleModels.Schedule, schedule scheduleModels.Eve
 						if err != nil {
 							return
 						}
-						emails.SendEmail(user.Email, payload.Name, "alert_reminder", map[string]interface{}{
+						if user == nil {
+							return
+						}
+						emails.SendEmail(user.Email, fmt.Sprintf("Alert reminder from %s", payload.From), "alert_reminder", map[string]interface{}{
 							"TIME":    schedule.Time,
 							"DETAILS": payload.Details,
 							"FROM":    payload.From,
