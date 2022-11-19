@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/mail"
+	"strconv"
 	"strings"
 	"time"
 
@@ -267,9 +268,30 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	}
 
 	refresh_token_claims := valid_refresh_token.Claims.(jwt.MapClaims)
+
+	// tokenRevoked := redis.RedisRepo.FindOne(ctx, refresh_token_claims["UserId"].(string)+refresh_token)
+
+	// if tokenRevoked != nil {
+	// 	app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this token has been revoked"), StatusCode: http.StatusUnauthorized})
+	// 	return
+	// }
+
 	if refresh_token_claims["Type"].(string) != string(authentication.REFRESH_TOKEN) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid refresh token used"), StatusCode: http.StatusUnauthorized})
 		return
+	}
+	invokedAllAt := redis.RedisRepo.FindOne(ctx, refresh_token_claims["UserId"].(string)+"INVALID_AT")
+
+	if invokedAllAt != nil {
+		invokedAllAtInt, err := strconv.Atoi(*invokedAllAt)
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid refresh token used"), StatusCode: http.StatusUnauthorized})
+			return
+		}
+		if int(invokedAllAtInt)-int(refresh_token_claims["exp"].(float64)) > 0 {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("revoked refresh token used"), StatusCode: http.StatusUnauthorized})
+			return
+		}
 	}
 	workspace := ctx.Query("workspace_id")
 	if workspace == "" {
@@ -382,4 +404,16 @@ func VerifyPhone(ctx *gin.Context) {
 	}
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Phone))
 	server_response.Response(ctx, http.StatusOK, "phone number updated", success, nil)
+}
+
+func SignOut(ctx *gin.Context) {
+	allDevices := ctx.Query("all")
+	refreshToken := ctx.GetHeader("RefreshToken")
+	if allDevices == "true" {
+		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+"INVALID_AT", time.Now().Local().Add(time.Hour*time.Duration(2400)).Unix(), 2400*time.Hour)
+	}
+	if refreshToken != "" {
+		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+refreshToken, refreshToken, 2400*time.Hour)
+	}
+	server_response.Response(ctx, http.StatusOK, "signout success", true, nil)
 }

@@ -180,6 +180,8 @@ func main() {
 
 			authV1.PUT("/phone/verify", middlewares.AuthenticationMiddleware(false, false), auth.VerifyPhone)
 
+			authV1.POST("/signout", middlewares.AuthenticationMiddleware(false, false), auth.SignOut)
+
 			// centrifugo
 			authV1.GET("/realtime/authenticate", middlewares.AuthenticationMiddleware(false, false), auth.GenerateCentrifugoToken)
 
