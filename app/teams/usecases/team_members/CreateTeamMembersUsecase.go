@@ -12,6 +12,7 @@ import (
 	"mize.app/app/teams/types"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	"mize.app/utils"
 )
 
 // CreateTeamMemberUseCase - usecase function to create multiple team members
@@ -44,6 +45,17 @@ func CreateTeamMemberUseCase(ctx *gin.Context, teamID string, payload []types.Te
 					return
 				}
 				if member == nil {
+					return
+				}
+				teamMemberExists, err := teamMembersRepo.CountDocs(map[string]interface{}{
+					"userId": member.UserId,
+					"teamId": *utils.HexToMongoId(ctx, teamID),
+				})
+				if err != nil {
+					return
+				}
+				fmt.Println(member.UserId)
+				if teamMemberExists > 0 {
 					return
 				}
 				members = append(members, teamModels.TeamMembers{
@@ -88,12 +100,17 @@ func CreateTeamMemberUseCase(ctx *gin.Context, teamID string, payload []types.Te
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return err
 	}
-	fmt.Println("members")
-	fmt.Println(members)
 	_, err = teamMembersRepo.CreateBulk(members)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not create team members"), StatusCode: http.StatusInternalServerError})
 		return err
 	}
+	teamRepo.UpdateWithOperator(map[string]interface{}{
+		"_id":         *utils.HexToMongoId(ctx, teamID),
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	}, map[string]interface{}{
+		"$inc": map[string]interface{}{
+			"membersCount": len(members),
+		}})
 	return nil
 }
