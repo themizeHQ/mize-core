@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -15,6 +16,7 @@ func CreateScheduleUseCase(ctx *gin.Context, payload *models.Schedule) {
 	scheduleRepository := repository.GetScheduleRepo()
 	payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 	payload.CreatedBy = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
+	payload.From = fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname"))
 	scheduleRepository.CreateOne(*payload)
 	now := time.Now().Unix()
 	end := time.Now().Add(time.Hour * 1).Unix()

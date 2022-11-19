@@ -79,6 +79,7 @@ func ScheduleEmail(payload *scheduleModels.Schedule, schedule scheduleModels.Eve
 						emails.SendEmail(user.Email, payload.Name, "alert_reminder", map[string]interface{}{
 							"TIME":    schedule.Time,
 							"DETAILS": payload.Details,
+							"FROM":    payload.From,
 						})
 					} else if rcp.Type == scheduleModels.TeamRecipient {
 						members, err := teamMemberRepo.FindMany(map[string]interface{}{

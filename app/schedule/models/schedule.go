@@ -32,6 +32,7 @@ type Schedule struct {
 	Name          string                                             `bson:"name" json:"name"`
 	Location      string                                             `bson:"location" json:"location"`
 	Details       string                                             `bson:"details" json:"details"`
+	From          string                                             `bson:"from" json:"from"`
 	Importance    notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
 	Events        []Event                                            `bson:"events" json:"events"`
 	WorkspaceId   primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
