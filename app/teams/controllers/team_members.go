@@ -70,6 +70,7 @@ func FetchTeamMembers(ctx *gin.Context) {
 func RemoveTeamMembers(ctx *gin.Context) {
 	var payload types.IDArray
 	var teamId = ctx.Query("id")
+	var team = ctx.Query("team")
 	if teamId == "" {
 		server_response.Response(ctx, http.StatusBadRequest, "pass in teamId", false, nil)
 		return
@@ -78,6 +79,6 @@ func RemoveTeamMembers(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusBadRequest, "pass in an array of team members to remove", false, nil)
 		return
 	}
-	teammembersUseCases.RemoveTeamMembers(ctx, payload, teamId)
+	teammembersUseCases.RemoveTeamMembers(ctx, payload, teamId, team == "true")
 	server_response.Response(ctx, http.StatusCreated, "team members removed", true, nil)
 }

@@ -3,7 +3,6 @@ package teammembers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -56,7 +55,6 @@ func CreateTeamMemberUseCase(ctx *gin.Context, teamID string, payload []types.Te
 				if err != nil {
 					return
 				}
-				fmt.Println(member.UserId)
 				if teamMemberExists > 0 {
 					return
 				}
@@ -84,8 +82,18 @@ func CreateTeamMemberUseCase(ctx *gin.Context, teamID string, payload []types.Te
 					return
 				}
 				for _, teamMember := range *teamMembers {
+					teamMemberExists, err := teamMembersRepo.CountDocs(map[string]interface{}{
+						"userId": teamMember.UserId,
+						"teamId": *utils.HexToMongoId(ctx, teamID),
+					})
+					if err != nil {
+						return
+					}
+					if teamMemberExists > 0 {
+						return
+					}
 					parentTeamName := teamMember.TeamName
-					parentTeamNameID := teamMember.Id
+					parentTeamNameID := teamMember.TeamId
 					teamMember.ParentTeamName = &parentTeamName
 					teamMember.ParentTeamID = &parentTeamNameID
 					teamMember.TeamId = team.Id

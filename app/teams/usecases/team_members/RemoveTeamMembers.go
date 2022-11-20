@@ -2,6 +2,7 @@ package teammembers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,17 +12,33 @@ import (
 	"mize.app/utils"
 )
 
-func RemoveTeamMembers(ctx *gin.Context, ids types.IDArray, teamId string) error {
+func RemoveTeamMembers(ctx *gin.Context, ids types.IDArray, teamId string, removeTeam bool) error {
 	teamMemberRepo := teamsRepo.GetTeamMemberRepo()
 	teamMemberRepo.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
-		deleted, err := teamMemberRepo.DeleteMany(ctx, map[string]interface{}{
-			"_id": map[string]interface{}{
-				"$in": ids,
-			},
-			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-		})
-		if err != nil {
-			(*sc).AbortTransaction(*c)
+		var deleted int64
+		var err error
+		if removeTeam {
+			deleted, err = teamMemberRepo.DeleteMany(ctx, map[string]interface{}{
+				"parentTeamId": map[string]interface{}{
+					"$in": ids,
+				},
+				"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			})
+			fmt.Println(ids)
+			fmt.Println(deleted)
+			if err != nil {
+				(*sc).AbortTransaction(*c)
+			}
+		} else {
+			deleted, err = teamMemberRepo.DeleteMany(ctx, map[string]interface{}{
+				"_id": map[string]interface{}{
+					"$in": ids,
+				},
+				"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			})
+			if err != nil {
+				(*sc).AbortTransaction(*c)
+			}
 		}
 
 		teamRepo := teamsRepo.GetTeamRepo()
