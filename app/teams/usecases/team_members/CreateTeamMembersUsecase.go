@@ -103,34 +103,25 @@ func CreateTeamMemberUseCase(ctx *gin.Context, teamID string, payload []types.Te
 		return err
 	}
 	teamMembersRepo.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
-		err1 := make(chan error)
-		go func(mems []teamModels.TeamMembers, err chan error) {
-			_, e := teamMembersRepo.CreateBulk(mems)
-			if e != nil {
-				err <- e
-				return
-			}
-			err <- nil
-		}(members, err1)
-		err2 := make(chan error)
-		go func(err chan error) {
-			_, e :=
-				teamRepo.UpdateWithOperator(map[string]interface{}{
-					"_id":         *utils.HexToMongoId(ctx, teamID),
-					"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-				}, map[string]interface{}{
-					"$inc": map[string]interface{}{
-						"membersCount": len(members),
-					}})
-			if err != nil {
-				err <- e
-				return
-			}
-			err <- nil
-		}(err2)
+		created, e := teamMembersRepo.CreateBulk(members)
+		if e != nil {
+			return err
+		}
+		_, err :=
+			teamRepo.UpdateWithOperator(map[string]interface{}{
+				"_id":         *utils.HexToMongoId(ctx, teamID),
+				"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			}, map[string]interface{}{
+				"$inc": map[string]interface{}{
+					"membersCount": len(*created),
+				}})
+		if err != nil {
+			return err
+		}
 		if err != nil {
 			(*sc).AbortTransaction(*c)
 		}
+		(*sc).CommitTransaction(*c)
 		return err
 	})
 	return err

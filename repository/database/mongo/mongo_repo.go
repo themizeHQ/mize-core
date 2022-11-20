@@ -224,12 +224,12 @@ func (repo *MongoRepository[T]) DeleteById(id string) (bool, error) {
 	return true, err
 }
 
-func (repo *MongoRepository[T]) DeleteMany(ctx *gin.Context, filter map[string]interface{}) (bool, error) {
-	_, err := repo.Model.DeleteMany(ctx, filter)
+func (repo *MongoRepository[T]) DeleteMany(ctx *gin.Context, filter map[string]interface{}) (int64, error) {
+	count, err := repo.Model.DeleteMany(ctx, filter)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
-	return true, err
+	return count.DeletedCount, err
 }
 
 func (repo *MongoRepository[T]) UpdateByField(filter map[string]interface{}, payload *T, opts ...*options.UpdateOptions) (bool, error) {

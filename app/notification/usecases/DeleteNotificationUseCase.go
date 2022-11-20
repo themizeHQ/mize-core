@@ -21,7 +21,7 @@ func DeleteNotificationsUseCase(ctx *gin.Context, ids []string) bool {
 		}
 		parsedIds = append(parsedIds, *parsed)
 	}
-	success, err := notificationRepo.DeleteMany(ctx, map[string]interface{}{
+	_, err := notificationRepo.DeleteMany(ctx, map[string]interface{}{
 		"_id": map[string]interface{}{
 			"$in": parsedIds,
 		},
@@ -31,5 +31,5 @@ func DeleteNotificationsUseCase(ctx *gin.Context, ids []string) bool {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return false
 	}
-	return success
+	return true
 }
