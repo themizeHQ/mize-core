@@ -1,12 +1,14 @@
 package teammembers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 	teamModels "mize.app/app/teams/models"
 	teamsRepo "mize.app/app/teams/repository"
 	"mize.app/app/teams/types"
@@ -100,17 +102,36 @@ func CreateTeamMemberUseCase(ctx *gin.Context, teamID string, payload []types.Te
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return err
 	}
-	_, err = teamMembersRepo.CreateBulk(members)
-	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not create team members"), StatusCode: http.StatusInternalServerError})
+	teamMembersRepo.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
+		err1 := make(chan error)
+		go func(mems []teamModels.TeamMembers, err chan error) {
+			_, e := teamMembersRepo.CreateBulk(mems)
+			if e != nil {
+				err <- e
+				return
+			}
+			err <- nil
+		}(members, err1)
+		err2 := make(chan error)
+		go func(err chan error) {
+			_, e :=
+				teamRepo.UpdateWithOperator(map[string]interface{}{
+					"_id":         *utils.HexToMongoId(ctx, teamID),
+					"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+				}, map[string]interface{}{
+					"$inc": map[string]interface{}{
+						"membersCount": len(members),
+					}})
+			if err != nil {
+				err <- e
+				return
+			}
+			err <- nil
+		}(err2)
+		if err != nil {
+			(*sc).AbortTransaction(*c)
+		}
 		return err
-	}
-	teamRepo.UpdateWithOperator(map[string]interface{}{
-		"_id":         *utils.HexToMongoId(ctx, teamID),
-		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-	}, map[string]interface{}{
-		"$inc": map[string]interface{}{
-			"membersCount": len(members),
-		}})
-	return nil
+	})
+	return err
 }
