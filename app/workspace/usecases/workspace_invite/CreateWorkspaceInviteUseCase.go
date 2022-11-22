@@ -10,13 +10,14 @@ import (
 	notificationModels "mize.app/app/notification/models"
 	notificationUseCases "mize.app/app/notification/usecases"
 	userRepo "mize.app/app/user/repository"
+	workspaceModels "mize.app/app/workspace/models"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	notification_constants "mize.app/constants/notification"
 	"mize.app/utils"
 )
 
-func CreateWorkspaceInviteUseCase(ctx *gin.Context, filter map[string]interface{}, payload map[string]interface{}) error {
+func CreateWorkspaceInviteUseCase(ctx *gin.Context, filter map[string]interface{}, payload workspaceModels.WorkspaceInvite) error {
 	var workspaceInviteRepoInstance = workspaceRepo.GetWorkspaceInviteRepo()
 	inviteId, err := workspaceInviteRepoInstance.UpdateOrCreateByFieldAndReturn(filter, payload, options.Update().SetUpsert(true))
 	if err != nil {

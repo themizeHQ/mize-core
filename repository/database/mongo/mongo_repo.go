@@ -274,14 +274,14 @@ func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interfac
 	return true, err
 }
 
-func (repo *MongoRepository[T]) UpdateOrCreateByFieldAndReturn(filter map[string]interface{}, payload interface{}, opts ...*options.UpdateOptions) (*string, error) {
+func (repo *MongoRepository[T]) UpdateOrCreateByFieldAndReturn(filter map[string]interface{}, payload T, opts ...*options.UpdateOptions) (*string, error) {
 	c, cancel := createCtx()
 
 	defer func() {
 		cancel()
 	}()
 
-	result, err := repo.Model.UpdateOne(c, parseFilter(filter), bson.D{primitive.E{Key: "$set", Value: payload}}, opts...)
+	result, err := repo.Model.UpdateOne(c, parseFilter(filter), bson.D{primitive.E{Key: "$set", Value: &payload}}, opts...)
 	if err != nil {
 		return nil, err
 	}

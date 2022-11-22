@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/usecases/workspace_invite"
 	"mize.app/app_errors"
 	"mize.app/emails"
@@ -26,7 +27,7 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 				"workspace_invite", map[string]string{"WORKSPACE_NAME": ctx.GetString("WorkspaceName"), "LINK": fmt.Sprintf("https://mize.app/invite?%s&?%s", ctx.GetString("Workspace"), e)})
 			er := workspace_invite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{
 				"email": e, "workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-			}, map[string]interface{}{"email": e, "success": success, "workspaceName": ctx.GetString("WorkspaceName"), "workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace"))})
+			}, models.WorkspaceInvite{Email: e, Success: success, WorkspaceName: ctx.GetString("WorkspaceName"), WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))})
 			if !success || er != nil {
 				failed++
 			}
