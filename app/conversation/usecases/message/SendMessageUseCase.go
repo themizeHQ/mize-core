@@ -22,9 +22,11 @@ import (
 
 func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string, upload *media.Upload) error {
 	messageRepository := conversationRepository.GetMessageRepo()
+	convMemberRepository := conversationRepository.GetConversationMemberRepo()
 	channelRepository := channelRepository.GetChannelMemberRepo()
 	var wg sync.WaitGroup
 	if channel == "true" {
+		payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		chan1 := make(chan error)
 		wg.Add(1)
 		go func(e chan error) {
@@ -51,7 +53,37 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
 			return err1
 		}
+		payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
+	} else {
+		chan1 := make(chan error)
+		wg.Add(1)
+		go func(e chan error) {
+			defer func() {
+				wg.Done()
+			}()
+
+			exist, err := convMemberRepository.CountDocs(map[string]interface{}{
+				"userId":         *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+				"conversationId": payload.To,
+			})
+			if err != nil {
+				e <- errors.New("an error occured")
+				return
+			}
+			fmt.Println(payload.To)
+			if exist != 1 {
+				e <- errors.New("invalid conversation id provided")
+				return
+			}
+			e <- nil
+		}(chan1)
+		err1 := <-chan1
+		if err1 != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
+			return err1
+		}
 	}
+
 	var replyTo string
 	if payload.ReplyTo != nil {
 		chan1 := make(chan error)
@@ -81,16 +113,6 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			return err1
 		}
 	}
-	payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
-	payload.From = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
-	payload.Username = ctx.GetString("Username")
-	_, err := messageRepository.CreateOne(payload)
-	if err != nil {
-		fmt.Println(err)
-		err = errors.New("message could not be sent")
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-		return err
-	}
 	if channel == "true" {
 		chan1 := make(chan error)
 		err := messageRepository.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
@@ -110,9 +132,26 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 					(*sc).AbortTransaction(*c)
 				}
 				ch <- nil
+				(*sc).CommitTransaction(*c)
 			}(chan1)
 
 			chan2 := make(chan error)
+			wg.Add(1)
+			go func(ch chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				_, err := messageRepository.CreateOne(payload)
+				if err != nil {
+					err = errors.New("message could not be sent")
+					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+					ch <- err
+					(*sc).AbortTransaction(*c)
+				}
+				ch <- nil
+			}(chan2)
+
+			chan3 := make(chan error)
 			wg.Add(1)
 			go func(ch chan error) {
 				defer func() {
@@ -133,11 +172,11 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 					(*sc).AbortTransaction(*c)
 				}
 				ch <- nil
-			}(chan2)
+			}(chan3)
 
-			var err3 error
+			var err4 error
 			if upload != nil {
-				chan3 := make(chan error)
+				chan4 := make(chan error)
 				wg.Add(1)
 				go func(ch chan error) {
 					defer func() {
@@ -150,18 +189,115 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 						(*sc).AbortTransaction(*c)
 					}
 					ch <- nil
-				}(chan3)
-				err3 = <-chan3
+				}(chan4)
+				err4 = <-chan4
 			}
 
 			err1 := <-chan1
 			err2 := <-chan2
-			if err1 != nil || err2 != nil || err3 != nil {
+			err3 := <-chan3
+			if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 				return errors.New("message could not be sent")
 			}
-			wg.Wait()
 			return nil
 		})
+		wg.Wait()
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+			return err
+		}
+	} else {
+		err := messageRepository.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
+			chan1 := make(chan error)
+			wg.Add(1)
+			go func(ch chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				success, err := convMemberRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
+					"conversationId": utils.HexToMongoId(ctx, payload.To.Hex()),
+					"userId": map[string]interface{}{
+						"$ne": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+					},
+				}, map[string]interface{}{
+					"lastMessage":     payload.Text,
+					"lastMessageSent": primitive.NewDateTimeFromTime(time.Now()),
+				})
+				if err != nil || !success {
+					ch <- err
+					(*sc).AbortTransaction(*c)
+				}
+				ch <- nil
+			}(chan1)
+
+			chan2 := make(chan error)
+			wg.Add(1)
+			go func(ch chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				_, err := messageRepository.CreateOne(payload)
+				if err != nil {
+					err = errors.New("message could not be sent")
+					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+					ch <- err
+					(*sc).AbortTransaction(*c)
+				}
+				ch <- nil
+			}(chan2)
+
+			chan3 := make(chan error)
+			wg.Add(1)
+			go func(ch chan error) {
+				defer func() {
+					wg.Done()
+					fmt.Println("dne 2")
+				}()
+				success, err := convMemberRepository.UpdateWithOperator(map[string]interface{}{
+					"conversationId": utils.HexToMongoId(ctx, payload.To.Hex()),
+					"_id": map[string]interface{}{
+						"$ne": payload.From,
+					},
+				}, map[string]interface{}{
+					"$inc": map[string]interface{}{
+						"unreadMessages": 1,
+					}},
+				)
+				if err != nil || !success {
+					ch <- err
+					(*sc).AbortTransaction(*c)
+				}
+				ch <- nil
+			}(chan3)
+
+			var err4 error
+			if upload != nil {
+				chan4 := make(chan error)
+				wg.Add(1)
+				go func(ch chan error) {
+					defer func() {
+						wg.Done()
+					}()
+					uploadRepo := media.GetUploadRepo()
+					_, err := uploadRepo.CreateOne(*upload)
+					if err != nil {
+						ch <- err
+						(*sc).AbortTransaction(*c)
+					}
+					ch <- nil
+				}(chan4)
+				err4 = <-chan4
+			}
+
+			err1 := <-chan1
+			err2 := <-chan2
+			err3 := <-chan3
+			if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+				return errors.New("message could not be sent")
+			}
+			return nil
+		})
+		wg.Wait()
 		if err != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 			return err

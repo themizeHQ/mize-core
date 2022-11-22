@@ -35,7 +35,7 @@ func StartConversation(ctx *gin.Context) {
 			wg.Done()
 		}()
 		profileImage := ctx.GetString("ProfileImage")
-		_, err := convUsecases.CreateConversationMemberUseCase(ctx, &payload, convId, *reciepientName, payload.ReciepientId.Hex(), *utils.HexToMongoId(ctx, ctx.GetString("UserId")), &profileImage)
+		_, err := convUsecases.CreateConversationMemberUseCase(ctx, &payload, convId, ctx.GetString("Username"), ctx.GetString("UserId"), *utils.HexToMongoId(ctx, ctx.GetString("UserId")), &profileImage)
 		e <- err
 	}(chan1)
 
@@ -45,7 +45,7 @@ func StartConversation(ctx *gin.Context) {
 		defer func() {
 			wg.Done()
 		}()
-		_, err := convUsecases.CreateConversationMemberUseCase(ctx, &payload, convId, ctx.GetString("Username"), ctx.GetString("UserId"), payload.ReciepientId, recipientImage)
+		_, err := convUsecases.CreateConversationMemberUseCase(ctx, &payload, convId, *reciepientName, payload.ReciepientId.Hex(), payload.ReciepientId, recipientImage)
 		e <- err
 	}(chan2)
 
@@ -73,10 +73,11 @@ func FetchConversation(ctx *gin.Context) {
 		map[string]interface{}{
 			"lastMessage":     1,
 			"unreadMessages":  1,
-			"reciepientId":       1,
-			"reciepientName":     1,
+			"reciepientId":    1,
+			"reciepientName":  1,
 			"lastMessageSent": 1,
 			"profileImage":    1,
+			"conversationId":  1,
 		},
 	))
 	if err != nil {

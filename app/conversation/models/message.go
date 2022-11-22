@@ -21,6 +21,7 @@ type Message struct {
 	Username       string              `bson:"userName" json:"userName"`
 	Type           message.MessageType `bson:"type" json:"type"`
 	ResourceUrl    *string             `bson:"resourceUrl" json:"resourceUrl"`
+	ProfileImage   string              `bson:"profileImage" json:"profileImage"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`

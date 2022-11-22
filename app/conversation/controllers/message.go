@@ -14,7 +14,7 @@ import (
 	"mize.app/app/conversation/models"
 	"mize.app/app/conversation/repository"
 	types "mize.app/app/conversation/types"
-	"mize.app/app/conversation/usecases/message"
+	messages "mize.app/app/conversation/usecases/message"
 	"mize.app/app/media"
 	channelsRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
@@ -91,6 +91,9 @@ func SendMessage(ctx *gin.Context) {
 		data.FileName = fileHeader.Filename
 		message.ResourceUrl = &data.Url
 	}
+	message.From = *utils.HexToMongoId(ctx, ctx.GetString("UserId"))
+	message.ProfileImage = ctx.GetString("ProfileImage")
+	message.Username = ctx.GetString("Username")
 
 	err = messages.SendMessageUseCase(ctx, message, ctx.Query("channel"), data)
 	if err != nil {
@@ -125,9 +128,8 @@ func FetchMessages(ctx *gin.Context) {
 	msgChan := make(chan *[]models.Message)
 	go func(msg chan *[]models.Message) {
 		m, err := messageRepository.FindMany(map[string]interface{}{
-			"to":          utils.HexToMongoId(ctx, to),
-			"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-			"replyTo":     replyTo,
+			"to":      utils.HexToMongoId(ctx, to),
+			"replyTo": replyTo,
 		}, &options.FindOptions{
 			Limit: &limit,
 			Skip:  &skip,
