@@ -99,9 +99,12 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 								return
 							}
 							emails.SendEmail(user.Email, fmt.Sprintf("Alert reminder from %s", payload.From), "alert_reminder", map[string]interface{}{
-								"TIME":    payload.Time,
-								"DETAILS": payload.Details,
-								"FROM":    payload.From,
+								"TIME":     time.Unix(payload.Time, 0).Local(),
+								"DETAILS":  payload.Details,
+								"NAME":     payload.Name,
+								"LOCATION": payload.Location,
+								"FROM":     payload.From,
+								"URL":      payload.Url,
 							})
 						} else if rcp.Type == scheduleModels.TeamRecipient {
 							members, err := teamMemberRepo.FindMany(map[string]interface{}{
@@ -123,8 +126,12 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 										return
 									}
 									emails.SendEmail(user.Email, payload.Name, "alert_reminder", map[string]interface{}{
-										"TIME":    time.Unix(payload.Time, 0),
-										"DETAILS": payload.Details,
+										"TIME":     time.Unix(payload.Time, 0).Local(),
+										"DETAILS":  payload.Details,
+										"NAME":     payload.Name,
+										"LOCATION": payload.Location,
+										"FROM":     payload.From,
+										"URL":      payload.Url,
 									})
 								}(member)
 							}

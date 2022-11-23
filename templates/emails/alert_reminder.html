@@ -30,7 +30,7 @@
       div,
       h1,
       p {
-        font-family: 'Montserrat', sans-serif;
+        font-family: "Montserrat", sans-serif;
       }
     </style>
   </head>
@@ -99,7 +99,7 @@
                           margin: 0 0 30px 0;
                         "
                       >
-                        Reminder
+                        {{ .NAME }}
                       </h1>
                       <p
                         style="
@@ -108,8 +108,7 @@
                           font-weight: 500;
                           line-height: 24px;
                         "
-                      >
-                      </p>
+                      ></p>
                       <p
                         style="
                           margin: 0 0 12px 0;
@@ -118,11 +117,35 @@
                           line-height: 24px;
                         "
                       >
-					  {{ .DETAILS }}
+                        {{ .DETAILS }}
                         <br />
                         <br />
                         <br />
-                         - {{ .FROM }}
+                        <span style="font-weight: 500">Venue</span> - {{
+                        .LOCATION }}
+                        <br />
+                        <span style="font-weight: 500">Time</span> - {{ .TIME }}
+                        <br />
+                        {{ if .URL }}
+                        <span style="color: #ffa507">
+                          <a
+                            href="{{ .URL }}"
+                            style="
+                              text-decoration: none;
+                              color: #ffffff;
+                              display: block;
+                              padding: 16px 96px;
+                              background: #04647a;
+                              border-radius: 4px;
+                              text-align: center;
+                            "
+                            >Meeting URL</a
+                          ></span
+                        >
+                        {{ end }}
+                        <br />
+                        <br />
+                        - {{ .FROM }}
                       </p>
                       <p
                         style="
@@ -131,8 +154,7 @@
                           font-weight: 600;
                           line-height: 24px;
                         "
-                      >
-                      </p>
+                      ></p>
                     </td>
                   </tr>
                   <tr>
