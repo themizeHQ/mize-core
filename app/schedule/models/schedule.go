@@ -30,14 +30,15 @@ type Recipients struct {
 type Schedule struct {
 	Id            primitive.ObjectID                                 `bson:"_id" json:"id"`
 	Name          string                                             `bson:"name" json:"name"`
+	Time          int64                                              `bson:"time" json:"time"`
 	Location      string                                             `bson:"location" json:"location"`
+	Importance    notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
+	Url           *string                                            `bson:"url" json:"url"`
 	Details       string                                             `bson:"details" json:"details"`
 	From          string                                             `bson:"from" json:"from"`
-	Importance    notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
-	Events        []Event                                            `bson:"events" json:"events"`
-	WorkspaceId   primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
+	WorkspaceId   *primitive.ObjectID                                `bson:"workspaceId" json:"workspaceId"`
 	CreatedBy     primitive.ObjectID                                 `bson:"createdBy" json:"createdBy"`
-	Recipients    []Recipients                                       `bson:"recipient" json:"recipient"`
+	Recipients    *[]Recipients                                      `bson:"recipient" json:"recipient"`
 	RemindByEmail bool                                               `bson:"remindByEmail" json:"remindbyEmail"`
 	RemindBySMS   bool                                               `bson:"remindBySMS" json:"remindbySMS"`
 
@@ -63,7 +64,6 @@ func (sch *Schedule) Validate() error {
 		validation.Field(&sch.Location, validation.Required.Error("location name is a required field")),
 		validation.Field(&sch.Details, validation.Required.Error("details is a required field")),
 		validation.Field(&sch.Importance, validation.Required.Error("importance is a required field")),
-		validation.Field(&sch.Events, validation.Required.Error("pass in at least 1 event")),
 		validation.Field(&sch.Recipients, validation.Required.Error("pass in at least 1 recipient")),
 	)
 }

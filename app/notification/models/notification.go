@@ -13,7 +13,8 @@ type Notification struct {
 	Id          primitive.ObjectID                                 `bson:"_id" json:"id"`
 	WorkspaceId *primitive.ObjectID                                `bson:"workspaceId" json:"workspaceId"`
 	UserId      *primitive.ObjectID                                `bson:"userId" json:"userId"`
-	ResourceId  primitive.ObjectID                                 `bson:"resourceId" json:"resourceId"`
+	ResourceId  *primitive.ObjectID                                `bson:"resourceId" json:"resourceId"`
+	ExternalUrl *string                                            `bson:"externalURL" json:"externalURL"`
 	Scope       notification_constants.NotificationScope           `bson:"scope" json:"scope"`
 	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
 	Type        notification_constants.NotificationType            `bson:"type" json:"type"`

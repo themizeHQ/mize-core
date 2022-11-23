@@ -42,7 +42,7 @@ func CreateWorkspaceInviteUseCase(ctx *gin.Context, filter map[string]interface{
 	notificationUseCases.CreateNotificationUseCase(ctx, notificationModels.Notification{
 		WorkspaceId: nil,
 		UserId:      utils.HexToMongoId(ctx, user.Id.Hex()),
-		ResourceId:  *utils.HexToMongoId(ctx, *inviteId),
+		ResourceId:  utils.HexToMongoId(ctx, *inviteId),
 		Importance:  notification_constants.NOTIFICATION_NORMAL,
 		Type:        notification_constants.WORKSPACE_INVITE,
 		Scope:       notification_constants.USER_NOTIFICATION,

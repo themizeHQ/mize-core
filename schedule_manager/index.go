@@ -17,7 +17,7 @@ func StartScheduleManager() {
 		end := time.Now().Add(time.Hour * 1).Unix()
 		scheduleRepo := scheduleRepository.GetScheduleRepo()
 		schedules, err := scheduleRepo.FindMany(map[string]interface{}{
-			"events.time": map[string]interface{}{
+			"time": map[string]interface{}{
 				"$gte": now,
 				"$lte": end,
 			},
@@ -27,15 +27,13 @@ func StartScheduleManager() {
 			return
 		}
 		for _, schedule := range *schedules {
-			for _, event := range schedule.Events {
-				if event.Time <= end || event.Time >= now {
-					Schedule(&schedule, event.Time, Options{
-						Url: event.Url,
-					})
-				}
-				if schedule.RemindByEmail {
-					ScheduleEmail(&schedule, event, schedule.WorkspaceId.Hex())
-				}
+			if schedule.Time <= end || schedule.Time >= now {
+				Schedule(&schedule, schedule.Time, Options{
+					Url: schedule.Url,
+				})
+			}
+			if schedule.RemindByEmail {
+				ScheduleEmail(&schedule, schedule.WorkspaceId.Hex())
 			}
 		}
 	}, 2*time.Hour, chrono.WithTime(time.Now()))
