@@ -12,7 +12,7 @@ import (
 
 	"mize.app/app/teams/models"
 	teamsRepository "mize.app/app/teams/repository"
-	"mize.app/app/teams/usecases/team"
+	usecases "mize.app/app/teams/usecases/team"
 	"mize.app/app_errors"
 	"mize.app/authentication"
 	"mize.app/server_response"
@@ -68,6 +68,7 @@ func CreateTeam(ctx *gin.Context) {
 
 // FetchTeams - controller function to fetch teams
 func FetchTeams(ctx *gin.Context) {
+	admin := ctx.Query("admin")
 	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
 	if err != nil || page == 0 {
 		page = 1
@@ -79,7 +80,7 @@ func FetchTeams(ctx *gin.Context) {
 	skip := (page - 1) * limit
 	var teams *[]map[string]interface{}
 
-	if authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+	if authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN && admin == "admin" {
 		teamsRepo := teamsRepository.GetTeamRepo()
 		teams, err = teamsRepo.FindManyStripped(map[string]interface{}{
 			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
