@@ -2,8 +2,10 @@ package middlewares
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +14,7 @@ import (
 
 	"mize.app/app_errors"
 	"mize.app/authentication"
+	"mize.app/repository/database/redis"
 )
 
 func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerFunc {
@@ -41,7 +44,29 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 		}
 		if admin_route {
 			if access_token_claims["Role"] != string(authentication.ADMIN) {
-				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you shall not pass"), StatusCode: http.StatusUnauthorized})
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you are not authorized here"), StatusCode: http.StatusUnauthorized})
+				return
+			}
+		}
+		accessRevoked := redis.RedisRepo.FindOne(ctx, access_token_claims["UserId"].(string)+access_token)
+		if accessRevoked != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this token has been revoked"), StatusCode: http.StatusUnauthorized})
+			return
+		}
+		if access_token_claims["Type"].(string) != string(authentication.ACCESS_TOKEN) {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid access token used"), StatusCode: http.StatusUnauthorized})
+			return
+		}
+		invokedAllAt := redis.RedisRepo.FindOne(ctx, access_token_claims["UserId"].(string)+"INVALID_AT")
+		if invokedAllAt != nil {
+			invokedAllAtInt, err := strconv.Atoi(*invokedAllAt)
+			if err != nil {
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid access token used"), StatusCode: http.StatusUnauthorized})
+				return
+			}
+			fmt.Println(int(invokedAllAtInt) - int(access_token_claims["exp"].(float64)))
+			if int(invokedAllAtInt)-int(access_token_claims["exp"].(float64)) > 0 {
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("revoked access token used"), StatusCode: http.StatusUnauthorized})
 				return
 			}
 		}

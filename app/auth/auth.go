@@ -270,12 +270,12 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 
 	refresh_token_claims := valid_refresh_token.Claims.(jwt.MapClaims)
 
-	// tokenRevoked := redis.RedisRepo.FindOne(ctx, refresh_token_claims["UserId"].(string)+refresh_token)
+	tokenRevoked := redis.RedisRepo.FindOne(ctx, refresh_token_claims["UserId"].(string)+refresh_token)
 
-	// if tokenRevoked != nil {
-	// 	app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this token has been revoked"), StatusCode: http.StatusUnauthorized})
-	// 	return
-	// }
+	if tokenRevoked != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this token has been revoked"), StatusCode: http.StatusUnauthorized})
+		return
+	}
 
 	if refresh_token_claims["Type"].(string) != string(authentication.REFRESH_TOKEN) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid refresh token used"), StatusCode: http.StatusUnauthorized})
@@ -289,6 +289,7 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid refresh token used"), StatusCode: http.StatusUnauthorized})
 			return
 		}
+		fmt.Println(int(invokedAllAtInt) - int(refresh_token_claims["exp"].(float64)))
 		if int(invokedAllAtInt)-int(refresh_token_claims["exp"].(float64)) > 0 {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("revoked refresh token used"), StatusCode: http.StatusUnauthorized})
 			return
@@ -411,11 +412,13 @@ func VerifyPhone(ctx *gin.Context) {
 func SignOut(ctx *gin.Context) {
 	allDevices := ctx.Query("all")
 	refreshToken := ctx.GetHeader("RefreshToken")
+	accessToken := ctx.GetHeader("AccessToken")
 	if allDevices == "true" {
 		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+"INVALID_AT", time.Now().Local().Add(time.Hour*time.Duration(2400)).Unix(), 2400*time.Hour)
 	}
 	if refreshToken != "" {
 		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+refreshToken, refreshToken, 2400*time.Hour)
+		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+accessToken, accessToken, 10*time.Hour)
 	}
 	server_response.Response(ctx, http.StatusOK, "signout success", true, nil)
 }
