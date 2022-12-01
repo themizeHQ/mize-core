@@ -164,6 +164,8 @@ func main() {
 		schduleV1 := v1.Group("/schedule")
 		{
 			schduleV1.POST("/create", middlewares.AuthenticationMiddleware(true, false), scheduleControllers.CreateSchedule)
+
+			schduleV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), scheduleControllers.FetchUserSchedule)
 		}
 
 		authV1 := v1.Group("/auth")
