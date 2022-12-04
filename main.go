@@ -48,7 +48,7 @@ func main() {
 	schedule_manager.StartScheduleManager()
 
 	// set up routing
-	v1 := server.Group("/api/v1")
+	v1 := server.Group("/api/v1", middlewares.RateLimiter())
 
 	{
 		userV1 := v1.Group("/user")
