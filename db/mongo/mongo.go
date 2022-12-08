@@ -44,6 +44,9 @@ var (
 
 	// schedule
 	Schedule *mongo.Collection
+
+	// call log
+	CallLog *mongo.Collection
 )
 
 func ConnectMongo() context.CancelFunc {
@@ -241,6 +244,19 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "createdBy", Value: 1}},
+		},
+	})
+
+	CallLog = db.Collection("CallLogs")
+	CallLog.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "userId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "userId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "userId", Value: 1}},
 		},
 	})
 }
