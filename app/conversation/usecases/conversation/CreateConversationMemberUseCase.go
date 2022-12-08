@@ -2,6 +2,7 @@ package conversation
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 	"mize.app/app/conversation/repository"
 	"mize.app/app/conversation/types"
 	"mize.app/app_errors"
+	"mize.app/realtime"
 	"mize.app/utils"
 )
 
@@ -44,5 +46,10 @@ func CreateConversationMemberUseCase(ctx *gin.Context, payload *types.CreateConv
 		return nil, err
 	}
 	id := data.Id.Hex()
+	realtime.CentrifugoController.Publish(fmt.Sprintf("%s-new-conversation", payload.ReciepientId.Hex()), map[string]interface{}{
+		"userName":       member.ReciepientId.Hex(),
+		"conversationId": member.ConversationId.Hex(),
+		"profileImage":   member.ProfileImage,
+	})
 	return &id, err
 }
