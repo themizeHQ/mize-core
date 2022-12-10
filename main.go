@@ -193,6 +193,11 @@ func main() {
 
 			// acs
 			authV1.GET("/realtime/calls/token", middlewares.AuthenticationMiddleware(false, false), auth.GenerateAcsToken)
+
+			// oauth
+			authV1.GET("/google/web/login", auth.GoogleLogin)
+
+			authV1.GET("/google/callback", auth.GoogleCallBack)
 		}
 	}
 

@@ -23,6 +23,7 @@ import (
 	"mize.app/constants/channel"
 	user_constants "mize.app/constants/user"
 	"mize.app/cryptography"
+	"mize.app/network"
 	"mize.app/utils"
 
 	"mize.app/calls/azure"
@@ -421,4 +422,37 @@ func SignOut(ctx *gin.Context) {
 		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+accessToken, accessToken, 10*time.Hour)
 	}
 	server_response.Response(ctx, http.StatusOK, "signout success", true, nil)
+}
+
+func GoogleLogin(ctx *gin.Context) {
+	state := utils.GenerateUUID()
+	redis.RedisRepo.CreateEntry(ctx, ctx.ClientIP()+"GOOGLE_OAUTH_STATE", state, 20*time.Minute)
+	url := authentication.SetUpConfig().AuthCodeURL(state)
+
+	http.Redirect(ctx.Writer, ctx.Request, url, http.StatusSeeOther)
+}
+
+func GoogleCallBack(ctx *gin.Context) {
+	state := redis.RedisRepo.FindOne(ctx, ctx.ClientIP()+"GOOGLE_OAUTH_STATE")
+	if ctx.Query("state") != *state {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("unrecognised state used"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	code := ctx.Query("code")
+	config := authentication.SetUpConfig()
+
+	token, err := config.Exchange(ctx, code)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("code - token exchange failed"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	networkController := network.NetworkController{BaseUrl: "https://www.googleapis.com/oauth2/v2/userinfo"}
+	res, err := networkController.Get("/", nil, &map[string]string{
+		"access_token": token.AccessToken,
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("user data fetch failed"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	server_response.Response(ctx, http.StatusAccepted, "success", true, res)
 }
