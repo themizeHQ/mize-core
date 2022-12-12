@@ -171,7 +171,7 @@ func main() {
 
 		authV1 := v1.Group("/auth")
 		{
-			authV1.POST("/create", auth.CacheUserUseCase)
+			authV1.POST("/create", auth.CreateUser)
 
 			authV1.POST("/verify", auth.VerifyAccountUseCase)
 

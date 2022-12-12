@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	"mize.app/constants/channel"
 	"mize.app/cryptography"
 	"mize.app/repository/database/redis"
 	"mize.app/utils"
@@ -78,6 +79,7 @@ type ClaimsData struct {
 	Lastname      string
 	Role          RoleType
 	ExpiresAt     int64
+	IssuedAt      int64
 	Type          TokenType
 	ACSUserId     string
 	Workspace     *string
@@ -100,6 +102,7 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 		"Workspace":     claimsData.Workspace,
 		"WorkspaceName": claimsData.WorkspaceName,
 		"ACSUserId":     claimsData.ACSUserId,
+		"iat":           claimsData.IssuedAt,
 	}).SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 	if err != nil {
 		return nil, err
@@ -152,6 +155,7 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 		Type:      REFRESH_TOKEN,
 		Username:  username,
 		ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(2400)).Unix(), // 100 days
+		IssuedAt:  time.Now().Unix(),
 		UserId:    id,
 		Email:     email,
 		ACSUserId: acsUserId,
@@ -190,6 +194,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		Type:          ACCESS_TOKEN,
 		Username:      username,
 		Firstname:     firstName,
+		IssuedAt:      time.Now().Unix(),
 		Lastname:      lastName,
 		Role:          role,
 		ExpiresAt:     time.Now().Local().Add(time.Minute * time.Duration(10)).Unix(), // 10 mins
@@ -205,4 +210,29 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		return "", err
 	}
 	return *accessToken, nil
+}
+
+func HasChannelAccess(ctx *gin.Context, channel_id string, accessToCheck []channel.ChannelAdminAccess) (bool, error) {
+	channelMemberRepo := workspaceRepo.GetChannelMemberRepo()
+	channelMembership, err := channelMemberRepo.FindOneByFilter(map[string]interface{}{
+		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	})
+	if err != nil || channelMembership == nil {
+		err = errors.New("you are not a member of this channel")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusNotFound})
+		return false, err
+	}
+	if !channelMembership.Admin {
+		err = errors.New("only admins can perform this action")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
+		return false, err
+	}
+	has_access := channelMembership.HasAccess(accessToCheck)
+	if !has_access {
+		err = errors.New("you do not have delete access to this channel")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
+		return false, err
+	}
+	return true, nil
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"mize.app/app/auth"
 	convRepo "mize.app/app/conversation/repository"
 	"mize.app/app/media"
 	"mize.app/app/workspace/models"
@@ -76,7 +75,7 @@ func UpdateChannelProfileImage(ctx *gin.Context) {
 		return
 	}
 
-	success, err := auth.HasChannelAccess(ctx, channel_id, []channelConstants.ChannelAdminAccess{channelConstants.CHANNEL_INFO_EDIT_ACCESS})
+	success, err := authentication.HasChannelAccess(ctx, channel_id, []channelConstants.ChannelAdminAccess{channelConstants.CHANNEL_INFO_EDIT_ACCESS})
 	if err != nil || !success {
 		return
 	}
@@ -230,7 +229,7 @@ func FetchAllChannels(ctx *gin.Context) {
 				"compulsory":   1,
 				"private":      1,
 				"channelId":    1,
-				"name":  1,
+				"name":         1,
 				"membersCount": 1,
 				"profileImage": 1,
 			}
@@ -238,7 +237,7 @@ func FetchAllChannels(ctx *gin.Context) {
 		return map[string]int{
 			"channelId":    1,
 			"membersCount": 1,
-			"name":  1,
+			"name":         1,
 			"profileImage": 1,
 		}
 	}(),

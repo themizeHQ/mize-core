@@ -56,7 +56,7 @@ func AddUserByUsernameUseCase(ctx *gin.Context, id string, channel_id string, ad
 			name <- nil
 			return
 		}
-		has_access := admin.HasAccess(admin.AdminAccess, []channel_constants.ChannelAdminAccess{channel_constants.CHANNEL_MEMBERSHIP_ACCESS, channel_constants.CHANNEL_FULL_ACCESS})
+		has_access := admin.HasAccess([]channel_constants.ChannelAdminAccess{channel_constants.CHANNEL_MEMBERSHIP_ACCESS, channel_constants.CHANNEL_FULL_ACCESS})
 		if !has_access {
 			ch <- app_errors.RequestError{Err: errors.New("you do not have this permission"), StatusCode: http.StatusUnauthorized}
 			name <- nil

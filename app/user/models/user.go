@@ -2,7 +2,7 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"time"
 
 	"github.com/go-ozzo/ozzo-validation"
@@ -60,7 +60,6 @@ func (user *User) MarshalBSON() ([]byte, error) {
 }
 
 func (user *User) Validate() error {
-	fmt.Println(user.Language)
 	return validation.ValidateStruct(user,
 		validation.Field(&user.UserName, validation.Required.Error("username is a required field")),
 		validation.Field(&user.LastName, validation.Required.Error("lastname is a required field")),

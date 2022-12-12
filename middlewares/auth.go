@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -64,8 +63,7 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("invalid access token used"), StatusCode: http.StatusUnauthorized})
 				return
 			}
-			fmt.Println(int(invokedAllAtInt) - int(access_token_claims["exp"].(float64)))
-			if int(invokedAllAtInt)-int(access_token_claims["exp"].(float64)) > 0 {
+			if int(invokedAllAtInt)-int(access_token_claims["iat"].(float64)) > 0 {
 				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("revoked access token used"), StatusCode: http.StatusUnauthorized})
 				return
 			}
