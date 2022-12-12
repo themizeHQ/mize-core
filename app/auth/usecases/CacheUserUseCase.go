@@ -12,20 +12,14 @@ import (
 	"mize.app/app/user/models"
 	"mize.app/app/user/repository"
 	"mize.app/app_errors"
-	user_constants "mize.app/constants/user"
 	"mize.app/repository/database/redis"
 )
 
 func CacheUserUseCase(ctx *gin.Context, payload models.User) error {
 	var userRepoInstance = repository.GetUserRepo()
-	payload.Status = user_constants.AVAILABLE
-	if payload.Language == "" {
-		payload.Language = "english"
-	}
-	payload.Discoverability = []user_constants.UserDiscoverability{user_constants.DISCOVERABILITY_EMAIL, user_constants.DISCOVERABILITY_USERNAME, user_constants.DISCOVERABILITY_PHONE}
 	payload.RunHooks()
 	var wg sync.WaitGroup
-	errChan := make(chan error)
+	emailExistsErrChan := make(chan error)
 	wg.Add(1)
 	go func(e chan error) {
 		defer func() {
@@ -36,12 +30,13 @@ func CacheUserUseCase(ctx *gin.Context, payload models.User) error {
 			e <- err
 			return
 		}
-		if emailExists != 0 {
+		if emailExists == 1 {
 			e <- errors.New("user with email already exists")
 			return
 		}
 		e <- nil
-	}(errChan)
+	}(emailExistsErrChan)
+	usernameExistsErrChan := make(chan error)
 	wg.Add(1)
 	go func(e chan error) {
 		defer func() {
@@ -52,13 +47,18 @@ func CacheUserUseCase(ctx *gin.Context, payload models.User) error {
 			e <- err
 			return
 		}
-		if usernameExists != 0 {
+		if usernameExists == 1 {
 			e <- errors.New("user with username already exists")
 			return
 		}
 		e <- nil
-	}(errChan)
-	err := <-errChan
+	}(usernameExistsErrChan)
+	err := <-usernameExistsErrChan
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusConflict})
+		return err
+	}
+	err = <-emailExistsErrChan
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusConflict})
 		return err

@@ -36,6 +36,10 @@ func LoginUserUseCase(ctx *gin.Context, payload types.LoginDetails) (refreshToke
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("user does not exist"), StatusCode: http.StatusNotFound})
 		return
 	}
+	if profile.Password == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("sign in using oauth"), StatusCode: http.StatusBadRequest})
+		return
+	}
 	success := cryptography.VerifyData(profile.Password, payload.Password)
 	if !success {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("incorrect password"), StatusCode: http.StatusUnauthorized})

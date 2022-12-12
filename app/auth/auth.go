@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,10 +11,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/auth/types"
 	authUseCases "mize.app/app/auth/usecases"
 	"mize.app/app/user/models"
+
+	userRepo "mize.app/app/user/repository"
 	"mize.app/app_errors"
 	"mize.app/authentication"
 	"mize.app/network"
@@ -65,7 +69,14 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 		server_response.Response(ctx, http.StatusUnauthorized, "wrong otp provided", false, nil)
 		return
 	}
-	accessToken, refreshToken, user := authUseCases.CreateUserUseCase(ctx, payload)
+	cached_user := redis.RedisRepo.FindOne(ctx, fmt.Sprintf("%s-user", payload.Email))
+	if cached_user == nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this user does not exist"), StatusCode: http.StatusNotFound})
+		return
+	}
+	var data models.User
+	json.Unmarshal([]byte(*cached_user), &data)
+	accessToken, refreshToken, user := authUseCases.CreateUserUseCase(ctx, data)
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-user", payload.Email))
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Email))
 	server_response.Response(ctx, http.StatusCreated, "account verified", true, map[string]interface{}{
@@ -270,5 +281,52 @@ func GoogleCallBack(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("user data fetch failed"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	server_response.Response(ctx, http.StatusAccepted, "success", true, res)
+	fmt.Println(res)
+	userRepo := userRepo.GetUserRepo()
+	var user map[string]interface{}
+	json.Unmarshal([]byte(*res), &user)
+	userExists, err := userRepo.FindOneByFilter(map[string]interface{}{
+		"email": user["email"],
+	}, options.FindOne().SetProjection(map[string]interface{}{
+		"email":     1,
+		"_id":       1,
+		"userName":  1,
+		"firstName": 1,
+		"lastName":  1,
+		"acsUserId": 1,
+	}))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("user data fetch failed"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	var refreshToken *string
+	var accessToken *string
+	if userExists == nil {
+		accessToken, refreshToken, userExists = authUseCases.CreateUserUseCase(ctx, models.User{
+			Email:     user["email"].(string),
+			UserName:  user["email"].(string),
+			FirstName: user["given_name"].(string),
+			LastName:  user["family_name"].(string),
+			Verified:  true,
+		})
+	}
+	rT, err := authentication.GenerateRefreshToken(ctx, userExists.Id.Hex(), userExists.Email, userExists.UserName, userExists.FirstName, userExists.LastName, userExists.ACSUserId)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete request"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	aT, err := authentication.GenerateAccessToken(ctx, userExists.Id.Hex(), userExists.Email, userExists.UserName, userExists.FirstName, userExists.LastName, nil, userExists.ACSUserId)
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete request"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	refreshToken = &rT
+	accessToken = &aT
+	server_response.Response(ctx, http.StatusCreated, "account verified", true, map[string]interface{}{
+		"user": userExists,
+		"tokens": map[string]string{
+			"refreshToken": *refreshToken,
+			"accessToken":  *accessToken,
+		},
+	})
 }

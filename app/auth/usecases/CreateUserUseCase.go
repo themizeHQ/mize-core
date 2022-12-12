@@ -1,47 +1,42 @@
 package usecases
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"mize.app/app/auth/types"
 	"mize.app/app/user/models"
 	"mize.app/app/user/repository"
 	"mize.app/app_errors"
 	"mize.app/authentication"
 	"mize.app/calls/azure"
+	user_constants "mize.app/constants/user"
 	"mize.app/emitter"
-	"mize.app/repository/database/redis"
 )
 
-func CreateUserUseCase(ctx *gin.Context, payload types.VerifyData) (accessToken *string, refreshToken *string, user *models.User) {
-	cached_user := redis.RedisRepo.FindOne(ctx, fmt.Sprintf("%s-user", payload.Email))
-	if cached_user == nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this user does not exist"), StatusCode: http.StatusNotFound})
-		return nil, nil, nil
-	}
-	var data models.User
-	json.Unmarshal([]byte(*cached_user), &data)
+func CreateUserUseCase(ctx *gin.Context, payload models.User) (accessToken *string, refreshToken *string, user *models.User) {
 	acsData, err := azure.GenerateUserAndToken()
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return nil, nil, nil
 	}
-	data.ACSUserId = acsData.User.CommunicationUserId
+	payload.ACSUserId = acsData.User.CommunicationUserId
 	var userRepoInstance = repository.GetUserRepo()
-	user, err = userRepoInstance.CreateOne(data)
+	payload.Status = user_constants.AVAILABLE
+	if payload.Language == "" {
+		payload.Language = "english"
+	}
+	payload.Discoverability = []user_constants.UserDiscoverability{user_constants.DISCOVERABILITY_EMAIL, user_constants.DISCOVERABILITY_USERNAME, user_constants.DISCOVERABILITY_PHONE}
+	user, err = userRepoInstance.CreateOne(payload)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("something went wrong while creating user"), StatusCode: http.StatusNotFound})
 		return nil, nil, nil
 	}
-	rT, err := authentication.GenerateRefreshToken(ctx, user.Id.Hex(), payload.Email, data.UserName, data.FirstName, data.Language, acsData.User.CommunicationUserId)
+	rT, err := authentication.GenerateRefreshToken(ctx, user.Id.Hex(), payload.Email, payload.UserName, payload.FirstName, payload.Language, acsData.User.CommunicationUserId)
 	if err != nil {
 		return nil, nil, nil
 	}
-	aT, err := authentication.GenerateAccessToken(ctx, user.Id.Hex(), payload.Email, data.UserName, data.FirstName, data.LastName, nil, acsData.User.CommunicationUserId)
+	aT, err := authentication.GenerateAccessToken(ctx, user.Id.Hex(), payload.Email, payload.UserName, payload.FirstName, payload.LastName, nil, acsData.User.CommunicationUserId)
 	if err != nil {
 		return nil, nil, nil
 	}
