@@ -10,10 +10,10 @@ import (
 )
 
 func StartServices() {
-	// initialise error monitoring
-	errormonitoring.Initialise()
 	// set up logger
 	logger.InitializeLogger()
+	// initialise error monitoring
+	errormonitoring.Initialise()
 	// connect to the databases
 	db.ConnectToDb()
 	// set up redis
@@ -22,9 +22,13 @@ func StartServices() {
 	realtime.InitialiseCentrifugoController()
 	// initialiae emitter listener
 	emitter.EmitterListener()
+
+	logger.Info("all services started")
 }
 
 func CleanUp() {
 	// clean up resources
 	db.CleanUp()
+
+	logger.Info("all services and resources offline")
 }

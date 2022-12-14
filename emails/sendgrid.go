@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"go.uber.org/zap"
+	"mize.app/logger"
 )
 
 var dir, _ = os.Getwd()
@@ -22,12 +23,16 @@ func SendEmail(toEmail string, subject string, templateName string, opts interfa
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	response, err := client.Send(message)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err, zap.String("to", toEmail), zap.String("template_name", templateName))
 		return false
 	} else {
-		fmt.Println(response.Body)
-		fmt.Println(response.StatusCode)
-		return response.StatusCode == 202
+		if response.StatusCode == 202 {
+			logger.Info("request completed without errors", zap.Any("response", response))
+			return true
+		} else {
+			logger.Info("failed to complete request", zap.Any("response", response))
+			return false
+		}
 	}
 }
 

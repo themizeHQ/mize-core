@@ -2,12 +2,14 @@ package schedule_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/procyon-projects/chrono"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.uber.org/zap"
 
 	notificationModels "mize.app/app/notification/models"
 	notificationRepoository "mize.app/app/notification/repository"
@@ -17,6 +19,7 @@ import (
 	userRepo "mize.app/app/user/repository"
 	notification_constants "mize.app/constants/notification"
 	"mize.app/emails"
+	"mize.app/logger"
 	"mize.app/realtime"
 )
 
@@ -58,7 +61,7 @@ func Schedule(schedule *scheduleModels.Schedule, eventTime int64, opts Options) 
 			})
 		}
 		if err != nil {
-			fmt.Println("alert on sentry")
+			logger.Error(errors.New("schedule error - could not create notification"), zap.Error(err))
 		}
 		if schedule.Recipients != nil {
 			for _, recipient := range *schedule.Recipients {
@@ -93,6 +96,7 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 						if rcp.Type == scheduleModels.UserRecipient {
 							user, err := userRepo.FindById(rcp.RecipientId.Hex())
 							if err != nil {
+								logger.Error(errors.New("schedule error - could not find user"), zap.Error(err))
 								return
 							}
 							if user == nil {
@@ -112,6 +116,7 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 								"teamId":      rcp.RecipientId,
 							})
 							if err != nil {
+								logger.Error(errors.New("schedule error - could not find team members"), zap.Error(err))
 								return
 							}
 
@@ -123,6 +128,7 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 									}()
 									user, err := userRepo.FindById(mem.UserId.String())
 									if err != nil {
+										logger.Error(errors.New("schedule error -could not create notification"), zap.Error(err))
 										return
 									}
 									emails.SendEmail(user.Email, payload.Name, "alert_reminder", map[string]interface{}{

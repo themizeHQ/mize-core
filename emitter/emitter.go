@@ -1,9 +1,9 @@
 package emitter
 
 import (
-	"fmt"
-
 	"github.com/CHH/eventemitter"
+	"go.uber.org/zap"
+	"mize.app/logger"
 )
 
 type emitter struct {
@@ -18,13 +18,12 @@ func (em emitter) Initialise() *emitter {
 }
 
 func (em *emitter) Listen(event string, cb interface{}) {
-	fmt.Println("listening to...")
-	fmt.Println(event)
+	logger.Info("emitter listening", zap.String("event", event))
 	em.e.On(event, cb)
 }
 
 func (em *emitter) Emit(event string, data interface{}) {
-	fmt.Println("emitted")
+	logger.Info("emitted event", zap.String("event", event))
 	<-em.e.Emit(event, data)
 }
 

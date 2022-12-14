@@ -5,6 +5,8 @@ import (
 	"errors"
 	"os"
 
+	"go.uber.org/zap"
+	"mize.app/logger"
 	"mize.app/network"
 )
 
@@ -31,7 +33,9 @@ func GenerateUserAndToken() (data *ACSUserToken, err error) {
 		"code": os.Getenv("ACS_GEN_USER_AND_TOKEN_CODE"),
 	})
 	if err != nil {
-		return nil, errors.New("could not register user to acs")
+		e := errors.New("could not register user to acs")
+		logger.Error(e, zap.Error(err))
+		return nil, e
 	}
 	var r res
 	json.Unmarshal([]byte(*response), &r)
@@ -48,7 +52,9 @@ func RefreshToken(userId *string) (data *ACSUserToken, err error) {
 		"id":   *userId,
 	})
 	if err != nil {
-		return nil, errors.New("could not generate acs token")
+		e := errors.New("could not generate acs token")
+		logger.Error(e, zap.Error(err))
+		return nil, e
 	}
 	var r res
 	json.Unmarshal([]byte(*response), &r)

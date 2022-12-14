@@ -1,9 +1,11 @@
 package cryptography
 
 import (
-	"log"
+	"errors"
 
 	"github.com/matthewhartstonge/argon2"
+	"go.uber.org/zap"
+	"mize.app/logger"
 )
 
 func HashString(data string, cfg *argon2.Config) []byte {
@@ -15,8 +17,7 @@ func HashString(data string, cfg *argon2.Config) []byte {
 
 	raw, err := cfg.Hash([]byte(data), nil)
 	if err != nil {
-		log.Fatalln("Error while hashing data")
-		panic(err)
+		logger.Error(errors.New("error while hashing data"), zap.Error(err))
 	}
 
 	return raw.Encode()
@@ -25,13 +26,11 @@ func HashString(data string, cfg *argon2.Config) []byte {
 func VerifyData(hash string, password string) bool {
 	raw, err := argon2.Decode([]byte(hash))
 	if err != nil {
-		log.Fatalln("Error while decoding hash")
-		panic(err)
+		logger.Error(errors.New("could not decode data - argon"), zap.Error(err))
 	}
 	ok, err := raw.Verify([]byte(password))
 	if err != nil {
-		log.Fatalln("Error while verifying data")
-		panic(err)
+		logger.Error(errors.New("error while verifying password - argon"), zap.Error(err))
 	}
 
 	return ok

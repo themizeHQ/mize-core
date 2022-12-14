@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"mize.app/emails"
+	"mize.app/logger"
 	"mize.app/realtime"
 )
 
@@ -16,6 +17,8 @@ func EmitterListener() {
 	// messages
 	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_SENT, HandleMessageSent)
 	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_DELETED, HandleMessageDeleted)
+
+	logger.Info("emitter listening to all events")
 }
 
 // users

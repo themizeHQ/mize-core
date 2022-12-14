@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
+	"go.uber.org/zap"
+	"mize.app/logger"
 )
 
 func Initialise() {
@@ -35,8 +37,10 @@ func Initialise() {
 	// Flush buffered events before the program terminates.
 	// Set the timeout to the maximum duration the program can afford to wait.
 	defer sentry.Flush(2 * time.Second)
+	logger.Info("error monitoring (sentry) - ONLINE")
 }
 
 func ReportError(err error) {
+	logger.Info("error captured by sentry", zap.String("error", err.Error()))
 	sentry.CaptureException(err)
 }

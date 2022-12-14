@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"errors"
 	"net/http"
 	"os"
 
@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"mize.app/app/auth"
+	"mize.app/logger"
 	"mize.app/middlewares"
 	"mize.app/schedule_manager"
 	"mize.app/server_response"
@@ -28,7 +29,7 @@ func main() {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Println("No .env file found")
+		logger.Error(errors.New("no .env file found"))
 	}
 
 	server := gin.Default()
@@ -212,12 +213,14 @@ func main() {
 		server_response.Response(ctx, http.StatusNotFound, "this route does not exist", false, nil)
 	})
 
-	if os.Getenv("GIN_MODE") == "debug" {
-		server.Run(os.Getenv("PORT"))
-	} else if os.Getenv("GIN_MODE") == "release" {
-		server.Run(":" + os.Getenv("PORT"))
+	port := os.Getenv("GIN_MODE")
+	if port == "debug" {
+		server.Run(":" + port)
+	} else if port == "release" {
+		server.Run(":" + port)
 	} else {
+		logger.Error(errors.New("invalid gin mode selected"))
 		panic("invalid gin mode used")
 	}
-
+	logger.Info("server is up on port" + port)
 }

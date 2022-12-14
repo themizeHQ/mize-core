@@ -16,6 +16,7 @@ import (
 	"mize.app/app_errors"
 	"mize.app/constants/channel"
 	"mize.app/cryptography"
+	"mize.app/logger"
 	"mize.app/repository/database/redis"
 	"mize.app/utils"
 )
@@ -163,8 +164,8 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 		Lastname:  lastName,
 	})
 	if err != nil {
-		err := app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError}
-		app_errors.ErrorHandler(ctx, err)
+		logger.Error(err)
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return "", err
 	}
 	return *refreshToken, nil
@@ -180,6 +181,9 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 			"workspaceName": 1,
 		}))
 		if workspaceMember == nil || err != nil {
+			if err != nil {
+				logger.Error(err)
+			}
 			err := app_errors.RequestError{StatusCode: http.StatusUnauthorized, Err: errors.New("you do not belong to this workspace")}
 			app_errors.ErrorHandler(ctx, err)
 			return "", err
@@ -205,6 +209,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		ACSUserId:     acsUserId,
 	})
 	if err != nil {
+		logger.Error(err)
 		err := app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized}
 		app_errors.ErrorHandler(ctx, err)
 		return "", err

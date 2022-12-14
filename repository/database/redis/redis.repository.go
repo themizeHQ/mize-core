@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	redisDb "mize.app/db/redis"
+	"mize.app/logger"
 )
 
 var (
@@ -100,4 +101,5 @@ func (redisRepo *RedisRepository) FindSet(ctx *gin.Context, key string) *[]strin
 
 func SetUpRedisRepo() {
 	RedisRepo = RedisRepository{Clinet: redisDb.Client}
+	logger.Info("redis repository initialisation complete")
 }

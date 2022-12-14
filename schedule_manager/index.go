@@ -2,11 +2,15 @@ package schedule_manager
 
 import (
 	"context"
-	"fmt"
+	"errors"
+
+	// "fmt"
 	"time"
 
 	"github.com/procyon-projects/chrono"
+	"go.uber.org/zap"
 	scheduleRepository "mize.app/app/schedule/repository"
+	"mize.app/logger"
 )
 
 // fetch schdules in db every to minitues and book them
@@ -23,7 +27,7 @@ func StartScheduleManager() {
 			},
 		})
 		if err != nil {
-			fmt.Println("alert on sentry")
+			logger.Error(errors.New("could not fetch all user schedule on application start"), zap.Error(err))
 			return
 		}
 		for _, schedule := range *schedules {

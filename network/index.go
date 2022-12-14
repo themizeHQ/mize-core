@@ -3,9 +3,13 @@ package network
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"go.uber.org/zap"
+	"mize.app/logger"
 )
 
 type NetworkController struct {
@@ -50,7 +54,7 @@ func (network *NetworkController) Post(path string, headers *map[string]string, 
 	}
 	parsed_body, err := json.Marshal(body)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(errors.New("error converting body to JSON"), zap.Error(err))
 		return nil, err
 	}
 	req, err := http.NewRequest("POST", network.BaseUrl+path, bytes.NewBuffer(parsed_body))

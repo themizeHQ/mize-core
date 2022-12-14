@@ -29,4 +29,5 @@ func InitializeLogger() {
 		})
 	})
 	Logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel), sentryOptions)
+	Logger.Info("logger - ONLINE")
 }
