@@ -48,7 +48,8 @@ func main() {
 	schedule_manager.StartScheduleManager()
 
 	// set up routing
-	v1 := server.Group("/api/v1", middlewares.RateLimiter(60, 20, ""))
+	v1 := server.Group("/api/v1")
+	// v1 := server.Group("/api/v1", middlewares.RateLimiter(60, 20, ""))
 
 	{
 		userV1 := v1.Group("/user")
@@ -62,7 +63,8 @@ func main() {
 			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateProfileImage)
 
 			// can be called only 3 times per day
-			userV1.POST("/update/phone", middlewares.RateLimiter(86400, 3, "phone-limiter"), middlewares.AuthenticationMiddleware(false, false), userControllers.UpdatePhone)
+			userV1.POST("/update/phone", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdatePhone)
+			// userV1.POST("/update/phone", middlewares.RateLimiter(86400, 3, "phone-limiter"), middlewares.AuthenticationMiddleware(false, false), userControllers.UpdatePhone)
 
 			userV1.POST("/fetch-users/phone", middlewares.AuthenticationMiddleware(false, false), userControllers.FetchUsersByPhoneNumber)
 		}
@@ -182,7 +184,8 @@ func main() {
 			authV1.GET("/generate-access-token", auth.GenerateAccessTokenFromRefresh)
 
 			// can be called only 5 times per day
-			authV1.GET("/resend-otp", middlewares.RateLimiter(86400, 5, "email-otp-limiter"), auth.ResendOtp)
+			authV1.GET("/resend-otp", auth.ResendOtp)
+			// authV1.GET("/resend-otp", middlewares.RateLimiter(86400, 5, "email-otp-limiter"), auth.ResendOtp)
 
 			authV1.PUT("/phone/verify", middlewares.AuthenticationMiddleware(false, false), auth.VerifyPhone)
 
