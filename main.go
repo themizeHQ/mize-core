@@ -213,13 +213,13 @@ func main() {
 		server_response.Response(ctx, http.StatusNotFound, "this route does not exist", false, nil)
 	})
 
-	port := os.Getenv("GIN_MODE")
-	if port == "debug" {
-		server.Run(":" + port)
-	} else if port == "release" {
+	gin_mode := os.Getenv("GIN_MODE")
+	port := os.Getenv("PORT")
+	if gin_mode == "debug" {
+		server.Run(port)
+	} else if gin_mode == "release" {
 		server.Run(":" + port)
 	} else {
-		logger.Error(errors.New("invalid gin mode selected"))
 		panic("invalid gin mode used")
 	}
 	logger.Info("server is up on port" + port)
