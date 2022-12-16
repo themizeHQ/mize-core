@@ -9,7 +9,10 @@ import (
 	"mize.app/logger"
 )
 
-func SendSms(to string, message string) error {
+type VonageService struct {
+}
+
+func (s *VonageService) SendSms(to string, message string) error {
 	auth := vonage.CreateAuthFromKeySecret(os.Getenv("VONAGE_API_KEY"), os.Getenv("VONAGE_API_SECRET"))
 	smsClient := vonage.NewSMSClient(auth)
 	response, smsErr, err := smsClient.Send("Mize", to, message, vonage.SMSOpts{})

@@ -142,7 +142,7 @@ func UpdatePhone(ctx *gin.Context) {
 		return
 	}
 	authentication.SaveOTP(ctx, payload.Phone, otp, 5*time.Minute)
-	err = sms.SendSms(payload.Phone, fmt.Sprintf("Your otp is %s \n Valid for 5 minutes.", otp))
+	err = sms.SmsService.SendSms(payload.Phone, fmt.Sprintf("Your Mize otp is %s \n Valid for 5 minutes.", otp))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not send otp"), StatusCode: http.StatusBadRequest})
 		return
