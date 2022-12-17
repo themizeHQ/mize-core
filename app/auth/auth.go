@@ -309,6 +309,14 @@ func GoogleCallBack(ctx *gin.Context) {
 			LastName:  user["family_name"].(string),
 			Verified:  true,
 		})
+		server_response.Response(ctx, http.StatusCreated, "account verified", true, map[string]interface{}{
+			"user": userExists,
+			"tokens": map[string]string{
+				"refreshToken": *refreshToken,
+				"accessToken":  *accessToken,
+			},
+		})
+		return
 	}
 	rT, err := authentication.GenerateRefreshToken(ctx, userExists.Id.Hex(), userExists.Email, userExists.UserName, userExists.FirstName, userExists.LastName, userExists.ACSUserId)
 	if err != nil {
