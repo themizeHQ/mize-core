@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -37,7 +37,7 @@ func (network *NetworkController) Get(path string, headers *map[string]string, p
 		fmt.Println(err)
 		return nil, err
 	}
-	res_body, err := ioutil.ReadAll(res.Body)
+	res_body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -70,7 +70,7 @@ func (network *NetworkController) Post(path string, headers *map[string]string, 
 		fmt.Println(err)
 		return nil, err
 	}
-	res_body, err := ioutil.ReadAll(res.Body)
+	res_body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

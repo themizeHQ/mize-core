@@ -281,7 +281,6 @@ func GoogleCallBack(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("user data fetch failed"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	fmt.Println(res)
 	userRepo := userRepo.GetUserRepo()
 	var user map[string]interface{}
 	json.Unmarshal([]byte(*res), &user)
