@@ -18,6 +18,7 @@ require (
 	github.com/vonage/vonage-go-sdk v0.14.0
 	go.mongodb.org/mongo-driver v1.11.1
 	go.uber.org/zap v1.24.0
+	golang.org/x/oauth2 v0.3.0
 )
 
 require (
@@ -54,7 +55,6 @@ require (
 	github.com/subosito/gotenv v1.4.1 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/oauth2 v0.3.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -87,7 +87,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.1 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/jiyeyuran/go-eventemitter v1.4.0
+	github.com/jiyeyuran/go-eventemitter v1.4.2
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
