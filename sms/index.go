@@ -1,3 +1,3 @@
 package sms
 
-var SmsService = VonageService{}
+var SmsService = TermiiService{BaseUrl: "https://api.ng.termii.com"}
