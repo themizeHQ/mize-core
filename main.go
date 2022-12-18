@@ -28,10 +28,6 @@ func main() {
 	// loads all env vars from current dir
 	err := godotenv.Load()
 
-	if err != nil {
-		logger.Error(errors.New("no .env file found"))
-	}
-
 	server := gin.Default()
 
 	// CORS
@@ -39,6 +35,10 @@ func main() {
 
 	// start all services
 	StartServices()
+
+	if err != nil {
+		logger.Error(errors.New("no .env file found"))
+	}
 
 	defer func() {
 		// clean up resources
