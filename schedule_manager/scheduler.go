@@ -103,7 +103,7 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 						if user == nil {
 							return
 						}
-						emails.SendEmail(user.Email, fmt.Sprintf("Alert reminder from %s", payload.From), "alert_reminder", map[string]interface{}{
+						emails.SendEmail(user.Email, fmt.Sprintf("Schedule Reminder from %s", payload.From), "alert_reminder", map[string]interface{}{
 							"TIME":     formatedTime,
 							"DETAILS":  payload.Details,
 							"NAME":     payload.Name,
@@ -132,7 +132,7 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 									logger.Error(errors.New("schedule error -could not create notification"), zap.Error(err))
 									return
 								}
-								emails.SendEmail(user.Email, payload.Name, "alert_reminder", map[string]interface{}{
+								emails.SendEmail(user.Email, fmt.Sprintf("Schedule Reminder from %s", payload.From), "alert_reminder", map[string]interface{}{
 									"TIME":     formatedTime,
 									"DETAILS":  payload.Details,
 									"NAME":     payload.Name,
