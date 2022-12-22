@@ -31,5 +31,10 @@ func CreateScheduleUseCase(ctx *gin.Context, payload *models.Schedule) {
 		go schedule_manager.ScheduleEmail(payload, ctx.GetString("Workspace"))
 		wg.Done()
 	}
+	if payload.RemindBySMS {
+		wg.Add(1)
+		go schedule_manager.ScheduleSMS(payload, ctx.GetString("Workspace"))
+		wg.Done()
+	}
 	wg.Wait()
 }

@@ -21,6 +21,7 @@ import (
 	"mize.app/emails"
 	"mize.app/logger"
 	"mize.app/realtime"
+	"mize.app/sms"
 )
 
 type Options struct {
@@ -150,4 +151,66 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 		// remind 30 mins before time
 	}, chrono.WithTime(time.Unix(payload.Time-1800, 0)))
 
+}
+
+func ScheduleSMS(payload *scheduleModels.Schedule, workspaceId string) {
+	taskScheduler := chrono.NewDefaultTaskScheduler()
+	taskScheduler.Schedule(func(ctx context.Context) {
+		userRepo := userRepo.GetUserRepo()
+		teamMemberRepo := teamsRepo.GetTeamMemberRepo()
+		wg := sync.WaitGroup{}
+
+		if payload.Recipients != nil {
+			formatedTime := time.Unix(payload.Time, 0).Local().Format(time.UnixDate)
+			for _, recipient := range *payload.Recipients {
+				wg.Add(1)
+				go func(rcp scheduleModels.Recipients) {
+					defer func() {
+						wg.Done()
+					}()
+					if rcp.Type == scheduleModels.UserRecipient {
+						user, err := userRepo.FindById(rcp.RecipientId.Hex())
+						if err != nil {
+							logger.Error(errors.New("schedule error - could not find user"), zap.Error(err))
+							return
+						}
+						if user == nil || user.Phone == "" {
+							return
+						}
+						sms.SmsService.SendSms(user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s.\nVenue is %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
+					} else if rcp.Type == scheduleModels.TeamRecipient {
+						members, err := teamMemberRepo.FindMany(map[string]interface{}{
+							"workspaceId": workspaceId,
+							"teamId":      rcp.RecipientId,
+						})
+						if err != nil {
+							logger.Error(errors.New("schedule error - could not find team members"), zap.Error(err))
+							return
+						}
+
+						for _, member := range *members {
+							wg.Add(1)
+							go func(mem teamModels.TeamMembers) {
+								defer func() {
+									wg.Done()
+								}()
+								user, err := userRepo.FindById(mem.UserId.String())
+								if err != nil {
+									logger.Error(errors.New("schedule error -could not find team member"), zap.Error(err))
+									return
+								}
+								if user == nil || user.Phone == "" {
+									return
+								}
+								sms.SmsService.SendSms(user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s at %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
+							}(member)
+						}
+					}
+				}(recipient)
+			}
+			wg.Wait()
+		}
+		// remind 30 mins before time
+	}, chrono.WithTime(time.Unix(payload.Time-1800, 0)))
+	logger.Info("schedule reminder for sms set", zap.String("scheduleID", payload.Id.Hex()))
 }
