@@ -132,6 +132,29 @@ func UpdateLoggedInUsersPassword(ctx *gin.Context) {
 	server_response.Response(ctx, http.StatusOK, "password change successful", true, nil)
 }
 
+func ResetUserPassword(ctx *gin.Context) {
+	var payload types.ResetPassword
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in otp and new password"), StatusCode: http.StatusBadRequest})
+		return
+	}
+
+	valid, err := authentication.VerifyOTP(ctx, fmt.Sprintf("%s-otp", payload.Email), payload.Otp)
+	if err != nil {
+		return
+	}
+	if !valid {
+		server_response.Response(ctx, http.StatusUnauthorized, "wrong otp provided", false, nil)
+		return
+	}
+	err = authUseCases.ResetPasswordUseCase(ctx, payload)
+	if err != nil {
+		return
+	}
+	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Email))
+	server_response.Response(ctx, http.StatusOK, "password reset successful", true, nil)
+}
+
 func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	refresh_token := ctx.GetHeader("Authorization")
 	if refresh_token == "" {

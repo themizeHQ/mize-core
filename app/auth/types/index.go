@@ -5,6 +5,12 @@ type VerifyData struct {
 	Email string
 }
 
+type ResetPassword struct {
+	Otp         string
+	NewPassword string
+	Email       string
+}
+
 type LoginDetails struct {
 	Password string
 	Account  string

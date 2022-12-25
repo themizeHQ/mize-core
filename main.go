@@ -182,6 +182,8 @@ func main() {
 
 			authV1.PUT("/update-password", middlewares.AuthenticationMiddleware(false, false), auth.UpdateLoggedInUsersPassword)
 
+			authV1.PUT("/reset-password", auth.ResetUserPassword)
+
 			authV1.GET("/generate-access-token", auth.GenerateAccessTokenFromRefresh)
 
 			// can be called only 5 times per day
