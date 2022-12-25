@@ -50,7 +50,7 @@ func SaveOTP(ctx *gin.Context, email string, otp string, ttl time.Duration) bool
 func VerifyOTP(ctx *gin.Context, key string, otp string) (bool, error) {
 	data := redis.RedisRepo.FindOne(ctx, key)
 	if data == nil {
-		err := errors.New("otp not found. create a account and try again")
+		err := errors.New("otp not found")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{StatusCode: http.StatusNotFound, Err: errors.New("account not found. create a account and try again")})
 		return false, err
 	}
