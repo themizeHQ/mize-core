@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	notificationUseCases "mize.app/app/notification/usecases"
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 )
@@ -53,6 +54,9 @@ func AcceptWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) 
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, nil, err
 	}
+	notificationUseCases.UpdateNotificationUseCase(ctx, map[string]interface{}{
+		"reacted": true,
+	})
 	workspaceId := invite.WorkspaceId.Hex()
 	workspaceName := invite.WorkspaceName
 	return &workspaceId, &workspaceName, nil

@@ -39,6 +39,7 @@ func CreateWorkspaceInviteUseCase(ctx *gin.Context, filter map[string]interface{
 	if user == nil {
 		return nil
 	}
+	reacted := false
 	notificationUseCases.CreateNotificationUseCase(ctx, notificationModels.Notification{
 		WorkspaceId: nil,
 		UserId:      utils.HexToMongoId(ctx, user.Id.Hex()),
@@ -46,7 +47,8 @@ func CreateWorkspaceInviteUseCase(ctx *gin.Context, filter map[string]interface{
 		Importance:  notification_constants.NOTIFICATION_NORMAL,
 		Type:        notification_constants.WORKSPACE_INVITE,
 		Scope:       notification_constants.USER_NOTIFICATION,
-		Message:     fmt.Sprintf("You have been invited to join the %s workspace", ctx.GetString("WorkspaceName")),
+		Message:     fmt.Sprintf("%s added you to %s", ctx.GetString("Firstname"), ctx.GetString("WorkspaceName")),
+		Reacted:     &reacted,
 	})
 	return nil
 }
