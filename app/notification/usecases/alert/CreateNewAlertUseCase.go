@@ -2,31 +2,28 @@ package alert
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/notification/models"
 	"mize.app/app/notification/repository"
+	userRepository "mize.app/app/user/repository"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	notification_constants "mize.app/constants/notification"
 	workspace_constants "mize.app/constants/workspace"
+	"mize.app/emails"
 	"mize.app/realtime"
+	"mize.app/sms"
 	"mize.app/utils"
 )
 
-type UserPayload struct {
-	Message    string
-	Importance string
-	ResourceId *string
-	UserIds    []string
-}
-
-func CreateNewAlertUseCase(ctx *gin.Context, payload UserPayload) bool {
+func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 	workspaceMemberRepo := workspaceRepo.GetWorkspaceMember()
 	admin, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{
 		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
@@ -49,40 +46,68 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload UserPayload) bool {
 	}
 	alertRepo := repository.GetAlertRepo()
 	_, err = alertRepo.CreateOne(models.Alert{
-		Message:     payload.Message,
-		Importance:  notification_constants.NotificationImportanceLevel(payload.Importance),
-		ResourceId:  parseResourceId(ctx, payload.ResourceId),
-		UserIds:     *parseUserIds(ctx, payload.UserIds),
-		AdminId:     *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		Message:      payload.Message,
+		Importance:   notification_constants.NotificationImportanceLevel(payload.Importance),
+		ResourceId:   payload.ResourceId,
+		UserIds:      payload.UserIds,
+		AdminId:      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		WorkspaceId:  *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		AlertByEmail: payload.AlertByEmail,
+		AlertBySMS:   payload.AlertBySMS,
 	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("unable to send alert"), StatusCode: http.StatusInternalServerError})
 		return false
 	}
+	var wg sync.WaitGroup
+	wg.Add(1)
+	sendInAppNotifications(payload)
+	userRepo := userRepository.GetUserRepo()
+	if payload.AlertByEmail {
+		for _, id := range payload.UserIds {
+			wg.Add(1)
+			go func(id string) {
+				defer func() {
+					wg.Done()
+				}()
+				user, err := userRepo.FindById(id)
+				if err != nil {
+					return
+				}
+				emails.SendEmail(user.Email, fmt.Sprintf("Mize alert from %s", fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname"))), "alert_reminder", map[string]interface{}{
+					"TIME":    time.Unix(payload.CreatedAt.Time().Unix(), 0).Local().Format(time.UnixDate),
+					"DETAILS": payload.Message,
+					"NAME":    fmt.Sprintf("You have a new alert from %s.", ctx.GetString("WorkspaceName")),
+					"FROM":    fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")),
+				})
+
+			}(id.Hex())
+		}
+	}
+	if payload.AlertBySMS && (payload.Importance == notification_constants.NOTIFICATION_IMPORTANT || payload.Importance == notification_constants.NOTIFICATION_VERY_IMPORTANT) {
+		for _, id := range payload.UserIds {
+			wg.Add(1)
+			go func(id string) {
+				user, err := userRepo.FindById(id)
+				if err != nil || user.Phone == "" {
+					return
+				}
+				sms.SmsService.SendSms(user.Phone, fmt.Sprintf("Hi %s, you have a new %s alert from %s on the %s workspace.", user.FirstName, payload.Importance, fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")), ctx.GetString("WorkspaceName")))
+				wg.Done()
+			}(id.Hex())
+		}
+	}
+	wg.Wait()
+	return true
+}
+
+func sendInAppNotifications(payload models.Alert) {
 	for _, id := range payload.UserIds {
-		realtime.CentrifugoController.Publish(id, map[string]interface{}{
+		realtime.CentrifugoController.Publish(id.Hex(), map[string]interface{}{
 			"time":       time.Now(),
 			"resourceId": payload.ResourceId,
 			"importance": payload.Importance,
 			"message":    payload.Message,
 		})
 	}
-	return true
-}
-
-func parseResourceId(ctx *gin.Context, id *string) *primitive.ObjectID {
-	if id == nil {
-		return nil
-	} else {
-		return utils.HexToMongoId(ctx, *id)
-	}
-}
-
-func parseUserIds(ctx *gin.Context, ids []string) *[]primitive.ObjectID {
-	parsedIds := []primitive.ObjectID{}
-	for _, id := range ids {
-		parsedIds = append(parsedIds, *utils.HexToMongoId(ctx, id))
-	}
-	return &parsedIds
 }

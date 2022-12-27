@@ -120,7 +120,29 @@
                         {{ .DETAILS }}
                         <br />
                         <br />
+                        <br />
+                        <span style="font-weight: 500">Venue</span> - {{
+                        .LOCATION }}
+                        <br />
                         <span style="font-weight: 500">Time</span> - {{ .TIME }}
+                        <br />
+                        {{ if .URL }}
+                        <span style="color: #ffa507">
+                          <a
+                            href="{{ .URL }}"
+                            style="
+                              text-decoration: none;
+                              color: #ffffff;
+                              display: block;
+                              padding: 16px 96px;
+                              background: #04647a;
+                              border-radius: 4px;
+                              text-align: center;
+                            "
+                            >Meeting URL</a
+                          ></span
+                        >
+                        {{ end }}
                         <br />
                         <br />
                         - {{ .FROM }}

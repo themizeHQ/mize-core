@@ -10,14 +10,16 @@ import (
 )
 
 type Alert struct {
-	Id          primitive.ObjectID                                 `bson:"_id" json:"id"`
-	WorkspaceId primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
-	UserIds     []primitive.ObjectID                               `bson:"usersId" json:"userId"`
-	AdminId     primitive.ObjectID                                 `bson:"adminId" json:"adminId"`
-	ResourceId  *primitive.ObjectID                                `bson:"resourceId" json:"resourceId"`
-	ResourceUrl *string                                             `bson:"resourceUrl" json:"resourceUrl"`
-	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
-	Message     string                                             `bson:"message" json:"message"`
+	Id           primitive.ObjectID                                 `bson:"_id" json:"id"`
+	WorkspaceId  primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
+	UserIds      []primitive.ObjectID                               `bson:"usersId" json:"usersId"`
+	AdminId      primitive.ObjectID                                 `bson:"adminId" json:"adminId"`
+	ResourceId   *primitive.ObjectID                                `bson:"resourceId" json:"resourceId"`
+	ResourceUrl  *string                                            `bson:"resourceUrl" json:"resourceUrl"`
+	Importance   notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
+	Message      string                                             `bson:"message" json:"message"`
+	AlertByEmail bool                                               `bson:"alertByEmail" json:"alertbyEmail"`
+	AlertBySMS   bool                                               `bson:"alertBySMS" json:"alertbySMS"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
