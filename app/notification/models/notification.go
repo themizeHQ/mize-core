@@ -19,6 +19,7 @@ type Notification struct {
 	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
 	Type        notification_constants.NotificationType            `bson:"type" json:"type"`
 	Message     string                                             `bson:"message" json:"message"`
+	Reacted     *bool                                              `bson:"reacted" json:"reacted"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
