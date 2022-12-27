@@ -9,6 +9,7 @@ import (
 
 	"github.com/procyon-projects/chrono"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 
 	notificationModels "mize.app/app/notification/models"
@@ -168,15 +169,18 @@ func ScheduleSMS(payload *scheduleModels.Schedule, workspaceId string) {
 						wg.Done()
 					}()
 					if rcp.Type == scheduleModels.UserRecipient {
-						user, err := userRepo.FindById(rcp.RecipientId.Hex())
-						if err != nil {
+						user, err := userRepo.FindOneByFilter(map[string]interface{}{
+							"_id":   rcp.RecipientId.Hex(),
+							"phone": map[string]interface{}{"$ne": nil},
+						}, options.FindOne().SetProjection(map[string]interface{}{
+							"firstName": 1,
+							"phone":     1,
+						}))
+						if err != nil || user == nil {
 							logger.Error(errors.New("schedule error - could not find user"), zap.Error(err))
 							return
 						}
-						if user == nil || user.Phone == "" {
-							return
-						}
-						sms.SmsService.SendSms(user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s.\nVenue is %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
+						sms.SmsService.SendSms(*user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s.\nVenue is %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
 					} else if rcp.Type == scheduleModels.TeamRecipient {
 						members, err := teamMemberRepo.FindMany(map[string]interface{}{
 							"workspaceId": workspaceId,
@@ -193,15 +197,18 @@ func ScheduleSMS(payload *scheduleModels.Schedule, workspaceId string) {
 								defer func() {
 									wg.Done()
 								}()
-								user, err := userRepo.FindById(mem.UserId.String())
-								if err != nil {
-									logger.Error(errors.New("schedule error -could not find team member"), zap.Error(err))
+								user, err := userRepo.FindOneByFilter(map[string]interface{}{
+									"_id":   rcp.RecipientId.Hex(),
+									"phone": map[string]interface{}{"$ne": nil},
+								}, options.FindOne().SetProjection(map[string]interface{}{
+									"firstName": 1,
+									"phone":     1,
+								}))
+								if err != nil || user == nil {
+									logger.Error(errors.New("schedule error - could not find team member "), zap.Error(err))
 									return
 								}
-								if user == nil || user.Phone == "" {
-									return
-								}
-								sms.SmsService.SendSms(user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s at %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
+								sms.SmsService.SendSms(*user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s at %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
 							}(member)
 						}
 					}

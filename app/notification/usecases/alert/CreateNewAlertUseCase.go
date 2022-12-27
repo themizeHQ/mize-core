@@ -88,11 +88,17 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 		for _, id := range payload.UserIds {
 			wg.Add(1)
 			go func(id string) {
-				user, err := userRepo.FindById(id)
-				if err != nil || user.Phone == "" {
+				user, err := userRepo.FindOneByFilter(map[string]interface{}{
+					"_id":   id,
+					"phone": map[string]interface{}{"$ne": nil},
+				}, options.FindOne().SetProjection(map[string]interface{}{
+					"firstName": 1,
+					"phone":     1,
+				}))
+				if err != nil || user == nil {
 					return
 				}
-				sms.SmsService.SendSms(user.Phone, fmt.Sprintf("Hi %s, you have a new %s alert from %s on the %s workspace.", user.FirstName, payload.Importance, fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")), ctx.GetString("WorkspaceName")))
+				sms.SmsService.SendSms(*user.Phone, fmt.Sprintf("Hi %s, you have a new %s alert from %s on the %s workspace.", user.FirstName, payload.Importance, fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")), ctx.GetString("WorkspaceName")))
 				wg.Done()
 			}(id.Hex())
 		}

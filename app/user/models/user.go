@@ -23,7 +23,7 @@ type User struct {
 	Password        string                               `bson:"password" json:"password"`
 	Verified        bool                                 `bson:"verified" json:"verified"`
 	Language        string                               `bson:"language" json:"language"`
-	Phone           string                               `bson:"phone" json:"phone"`
+	Phone           *string                               `bson:"phone" json:"phone"`
 	Status          user_constants.UserStatusType        `bson:"status" json:"status"`
 	ProfileImage    *string                              `bson:"profileImage" json:"profileImage"`
 	ACSUserId       string                               `bson:"acsUserId" json:"acsUserId"`
