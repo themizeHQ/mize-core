@@ -201,7 +201,7 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		IssuedAt:      time.Now().Unix(),
 		Lastname:      lastName,
 		Role:          role,
-		ExpiresAt:     time.Now().Local().Add(time.Minute * time.Duration(10)).Unix(), // 10 mins
+		ExpiresAt:     time.Now().Local().Add(time.Hour * time.Duration(2)).Unix(), // 10 mins
 		UserId:        id,
 		Email:         email,
 		Workspace:     workspace_id,
