@@ -23,6 +23,8 @@ import (
 	"mize.app/network"
 	"mize.app/utils"
 
+	convRepo "mize.app/app/conversation/repository"
+	teamRepo "mize.app/app/teams/repository"
 	"mize.app/calls/azure"
 	"mize.app/emitter"
 	"mize.app/realtime"
@@ -229,10 +231,34 @@ func GenerateCentrifugoToken(ctx *gin.Context) {
 		return
 	}
 	if ctx.Query("channels") == "true" {
+		teamMembersRepo := teamRepo.GetTeamMemberRepo()
+		teams, err := teamMembersRepo.FindManyStripped(map[string]interface{}{
+			"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		}, options.Find().SetProjection(map[string]interface{}{
+			"teamId": 1,
+			"_id":    0,
+		}))
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
+			return
+		}
+		convMembersRepo := convRepo.GetConversationMemberRepo()
+		conv, err := convMembersRepo.FindManyStripped(map[string]interface{}{
+			"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		}, options.Find().SetProjection(map[string]interface{}{
+			"conversationId": 1,
+			"_id":            0,
+		}))
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
+			return
+		}
 		server_response.Response(ctx, http.StatusCreated, "token generated", true, map[string]interface{}{
 			"token": token,
 			"channels": map[string]interface{}{
 				"default_channels": realtime.DefaultChannels,
+				"teams":            teams,
+				"conversations":    conv,
 			},
 		})
 	} else {
