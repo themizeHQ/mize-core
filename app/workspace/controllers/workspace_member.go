@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -95,8 +96,9 @@ func FetchWorkspacesMembers(ctx *gin.Context) {
 			"lastName":     1,
 			"admin":        1,
 		}
-	}))
+	}()))
 	if err != nil {
+		fmt.Println(err)
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
 			Err: errors.New("could not retrieve your workspaces at this time")}, StatusCode: http.StatusBadRequest})
 		return
