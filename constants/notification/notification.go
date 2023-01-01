@@ -10,6 +10,8 @@ type NotificationType string
 var (
 	WORKSPACE_INVITE  NotificationType = "workspace_invite"
 	SCHEDULE_REMINDER NotificationType = "schedule_reminder"
+	MENTION_ALERT     NotificationType = "mention_alert"
+	REACTION_ALERT    NotificationType = "reaction_alert"
 )
 
 // NOTIFICATION CONSTANT
@@ -25,7 +27,7 @@ var (
 
 // NOTIFICATION CONSTANT
 //
-//  represents how important a notification is
+//	represents how important a notification is
 type NotificationImportanceLevel string
 
 var (

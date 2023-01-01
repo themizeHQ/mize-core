@@ -109,7 +109,7 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 
 func sendInAppNotifications(payload models.Alert) {
 	for _, id := range payload.UserIds {
-		realtime.CentrifugoController.Publish(id.Hex(), map[string]interface{}{
+		realtime.CentrifugoController.Publish(id.Hex(), realtime.MessageScope.ALERT, map[string]interface{}{
 			"time":       time.Now(),
 			"resourceId": payload.ResourceId,
 			"importance": payload.Importance,

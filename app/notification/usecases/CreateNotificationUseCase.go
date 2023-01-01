@@ -10,7 +10,7 @@ import (
 func CreateNotificationUseCase(ctx *gin.Context, data models.Notification) {
 	notificationRepo := repository.GetNotificationRepo()
 	notification, _ := notificationRepo.CreateOne(data)
-	realtime.CentrifugoController.Publish(notification.UserId.Hex(), map[string]interface{}{
+	realtime.CentrifugoController.Publish(notification.UserId.Hex(), realtime.MessageScope.NOTIFICATION, map[string]interface{}{
 		"time":       notification.CreatedAt,
 		"resourceId": notification.ResourceId,
 		"type":       notification.Type,

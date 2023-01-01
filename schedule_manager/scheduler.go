@@ -67,7 +67,7 @@ func Schedule(schedule *scheduleModels.Schedule, eventTime int64, opts Options) 
 		}
 		if schedule.Recipients != nil {
 			for _, recipient := range *schedule.Recipients {
-				realtime.CentrifugoController.Publish(recipient.RecipientId.Hex(), map[string]interface{}{
+				realtime.CentrifugoController.Publish(recipient.RecipientId.Hex(), realtime.MessageScope.NOTIFICATION, map[string]interface{}{
 					"time":        time.Now(),
 					"resourceUrl": opts.Url,
 					"importance":  schedule.Importance,

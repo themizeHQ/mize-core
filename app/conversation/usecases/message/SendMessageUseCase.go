@@ -70,7 +70,6 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				e <- errors.New("an error occured")
 				return
 			}
-			fmt.Println(payload.To)
 			if exist != 1 {
 				e <- errors.New("invalid conversation id provided")
 				return
@@ -303,7 +302,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			return err
 		}
 	}
-	realtime.CentrifugoController.Publish(payload.To.Hex(), map[string]interface{}{
+	realtime.CentrifugoController.Publish(payload.To.Hex(), realtime.MessageScope.CONVERSATION, map[string]interface{}{
 		"time":        time.Now(),
 		"from":        payload.From.Hex(),
 		"to":          payload.To.Hex(),
