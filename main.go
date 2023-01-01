@@ -63,6 +63,8 @@ func main() {
 
 			userV1.PUT("/update/profile-image", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdateProfileImage)
 
+			userV1.GET("/websocket/channels", middlewares.AuthenticationMiddleware(false, false), auth.FetchUserWebsocketChannels)
+
 			// can be called only 3 times per day
 			userV1.POST("/update/phone", middlewares.AuthenticationMiddleware(false, false), userControllers.UpdatePhone)
 			// userV1.POST("/update/phone", middlewares.RateLimiter(86400, 3, "phone-limiter"), middlewares.AuthenticationMiddleware(false, false), userControllers.UpdatePhone)

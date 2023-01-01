@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -220,6 +221,59 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	})
 }
 
+func FetchUserWebsocketChannels(ctx *gin.Context) {
+	var wg sync.WaitGroup
+	teams := make(chan *[]map[string]interface{})
+	wg.Add(1)
+	go func(teamsChan chan *[]map[string]interface{}) {
+		defer func() {
+			wg.Done()
+		}()
+		teamMembersRepo := teamRepo.GetTeamMemberRepo()
+		t, err := teamMembersRepo.FindManyStripped(map[string]interface{}{
+			"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		}, options.Find().SetProjection(map[string]interface{}{
+			"teamId": 1,
+			"_id":    0,
+		}))
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
+			teamsChan <- nil
+			return
+		}
+		teamsChan <- t
+	}(teams)
+
+	convs := make(chan *[]map[string]interface{})
+	wg.Add(1)
+	go func(convsChan chan *[]map[string]interface{}) {
+		defer func() {
+			wg.Done()
+		}()
+		convMembersRepo := convRepo.GetConversationMemberRepo()
+		conv, err := convMembersRepo.FindManyStripped(map[string]interface{}{
+			"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		}, options.Find().SetProjection(map[string]interface{}{
+			"conversationId": 1,
+			"_id":            0,
+		}))
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
+			convsChan <- nil
+			return
+		}
+		convsChan <- conv
+	}(convs)
+	server_response.Response(ctx, http.StatusCreated, "channels fetched", true, map[string]interface{}{
+		"channels": map[string]interface{}{
+			"default_channels": realtime.DefaultChannels,
+			"teams":            <-teams,
+			"conversations":    <-convs,
+		},
+	})
+	wg.Wait()
+}
+
 func GenerateCentrifugoToken(ctx *gin.Context) {
 	token, err := authentication.GenerateCentrifugoAuthToken(ctx, jwt.StandardClaims{
 		Subject:   ctx.GetString("UserId"),
@@ -230,40 +284,7 @@ func GenerateCentrifugoToken(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
 		return
 	}
-	if ctx.Query("channels") == "true" {
-		teamMembersRepo := teamRepo.GetTeamMemberRepo()
-		teams, err := teamMembersRepo.FindManyStripped(map[string]interface{}{
-			"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		}, options.Find().SetProjection(map[string]interface{}{
-			"teamId": 1,
-			"_id":    0,
-		}))
-		if err != nil {
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
-			return
-		}
-		convMembersRepo := convRepo.GetConversationMemberRepo()
-		conv, err := convMembersRepo.FindManyStripped(map[string]interface{}{
-			"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		}, options.Find().SetProjection(map[string]interface{}{
-			"conversationId": 1,
-			"_id":            0,
-		}))
-		if err != nil {
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate token"), StatusCode: http.StatusInternalServerError})
-			return
-		}
-		server_response.Response(ctx, http.StatusCreated, "token generated", true, map[string]interface{}{
-			"token": token,
-			"channels": map[string]interface{}{
-				"default_channels": realtime.DefaultChannels,
-				"teams":            teams,
-				"conversations":    conv,
-			},
-		})
-	} else {
-		server_response.Response(ctx, http.StatusCreated, "token generated", true, token)
-	}
+	server_response.Response(ctx, http.StatusCreated, "token generated", true, token)
 }
 
 func ResendOtp(ctx *gin.Context) {
