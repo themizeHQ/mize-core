@@ -58,6 +58,7 @@ func (network *NetworkController) Post(path string, headers *map[string]string, 
 		return nil, err
 	}
 	req, err := http.NewRequest("POST", network.BaseUrl+path, bytes.NewBuffer(parsed_body))
+	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

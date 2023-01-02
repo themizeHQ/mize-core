@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+
 	// "fmt"
 	"net/http"
 	"strings"
@@ -19,7 +20,6 @@ import (
 	"mize.app/authentication"
 	mediaConstants "mize.app/constants/media"
 	user_constants "mize.app/constants/user"
-	"mize.app/emitter"
 	"mize.app/server_response"
 	"mize.app/sms"
 	"mize.app/utils"
@@ -145,11 +145,6 @@ func UpdatePhone(ctx *gin.Context) {
 	}
 	authentication.SaveOTP(ctx, payload.Phone, otp, 5*time.Minute)
 	err = sms.SmsService.SendSms(payload.Phone, fmt.Sprintf("Your Mize otp is %s \n Valid for 5 minutes.", otp))
-	emitter.Emitter.Emit(emitter.Events.AUTH_EVENTS.RESEND_OTP, map[string]interface{}{
-		"email":  ctx.GetString("Email"),
-		"otp":    strings.Split(otp, ""),
-		"header": "OTP requested",
-	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not send otp"), StatusCode: http.StatusBadRequest})
 		return
