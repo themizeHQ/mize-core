@@ -35,7 +35,8 @@ func (t *TermiiService) SendSms(to string, message string) error {
 		return err
 	}
 	if res["code"] != "ok" {
-		logger.Info(fmt.Sprintf("termii - failed to send sms to %s", to))
+		err = fmt.Errorf("termii - failed to send sms to %s", to)
+		logger.Error(err, zap.Any("response", res))
 		return err
 	}
 	logger.Info(fmt.Sprintf("termii - sms sent to %s", to))
