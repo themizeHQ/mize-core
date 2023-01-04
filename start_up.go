@@ -23,6 +23,8 @@ func StartServices() {
 	// initialiae emitter listener
 	emitter.EmitterListener()
 
+	// eventsqueue.ConnectToEventStream()
+
 	logger.Info("all services started")
 }
 
