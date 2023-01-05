@@ -22,6 +22,7 @@ type WorkspaceMember struct {
 	AdminAccess   []workspace_member_constants.AdminAccessType  `bson:"adminAccess" json:"adminAccess"`
 	JoinDate      int64                                         `bson:"joinDate" json:"joinDate"`
 	Banned        bool                                          `bson:"banned" json:"banned"`
+	Deactivated   bool                                          `bson:"deactivated" json:"deactivated"`
 	Restricted    []workspace_member_constants.MemberActionType `bson:"restricted" json:"restricted"`
 	ProfileImage  *string                                       `bson:"profileImage" json:"profileImage"`
 

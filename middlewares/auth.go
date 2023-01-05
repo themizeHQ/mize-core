@@ -8,12 +8,17 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
 
 	"github.com/golang-jwt/jwt"
 
+	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	"mize.app/authentication"
+	"mize.app/logger"
 	"mize.app/repository/database/redis"
+	"mize.app/utils"
 )
 
 func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerFunc {
@@ -36,17 +41,31 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this route is for tokens given workspace access"), StatusCode: http.StatusUnauthorized})
 				return
 			}
+			if admin_route {
+				workspaceMemberRepo := repository.GetWorkspaceMember()
+				member, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{
+					"workspaceId": *utils.HexToMongoId(ctx, access_token_claims["Workspace"].(string)),
+					"userId":      *utils.HexToMongoId(ctx, access_token_claims["UserId"].(string)),
+				}, options.FindOne().SetProjection(map[string]interface{}{
+					"admin": 1,
+				}))
+				if err != nil {
+					e := errors.New("could not complete user authentication")
+					logger.Error(e, zap.Error(err))
+					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: e, StatusCode: http.StatusInternalServerError})
+					return
+				}
+				if !member.Admin {
+					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you are not authorized here"), StatusCode: http.StatusUnauthorized})
+					return
+				}
+			}
 		}
 		if access_token_claims["Type"] != "access_token" || access_token_claims["Issuer"] != os.Getenv("JWT_ISSUER") {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this is not an authorized access token"), StatusCode: http.StatusUnauthorized})
 			return
 		}
-		if admin_route {
-			if access_token_claims["Role"] != string(authentication.ADMIN) {
-				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you are not authorized here"), StatusCode: http.StatusUnauthorized})
-				return
-			}
-		}
+
 		accessRevoked := redis.RedisRepo.FindOne(ctx, access_token_claims["UserId"].(string)+access_token)
 		if accessRevoked != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this token has been revoked"), StatusCode: http.StatusUnauthorized})
