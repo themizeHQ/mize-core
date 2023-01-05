@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,6 +20,7 @@ type Workspace struct {
 	Type         workspace.WorkspaceType `bson:"type" json:"type"`
 	CreatedBy    primitive.ObjectID      `bson:"createdBy" json:"createdBy"`
 	ProfileImage *string                 `bson:"profileImage" json:"profileImage"`
+	MemberCount  int                     `bson:"memberCount" json:"memberCount"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`

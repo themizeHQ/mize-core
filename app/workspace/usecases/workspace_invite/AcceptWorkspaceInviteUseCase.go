@@ -13,6 +13,7 @@ import (
 
 func AcceptWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) (*string, *string, error) {
 	var workspaceInviteRepoInstance = repository.GetWorkspaceInviteRepo()
+	var workspaceRepoInstance = repository.GetWorkspaceRepo()
 	invite, err := workspaceInviteRepoInstance.FindOneByFilter(map[string]interface{}{
 		"_id":   workspace_invite_id,
 		"email": ctx.GetString("Email"),
@@ -59,5 +60,9 @@ func AcceptWorkspaceInviteUseCase(ctx *gin.Context, workspace_invite_id string) 
 	})
 	workspaceId := invite.WorkspaceId.Hex()
 	workspaceName := invite.WorkspaceName
+	workspaceRepoInstance.UpdatePartialById(ctx, workspaceId, map[string]interface{}{
+		"$inc": map[string]interface{}{
+			"memberCount": 1,
+		}})
 	return &workspaceId, &workspaceName, nil
 }
