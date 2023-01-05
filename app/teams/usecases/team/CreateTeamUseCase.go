@@ -9,6 +9,7 @@ import (
 	"mize.app/app/media"
 	"mize.app/app/teams/models"
 	"mize.app/app/teams/repository"
+	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	mediaConstants "mize.app/constants/media"
 	"mize.app/utils"
@@ -34,6 +35,12 @@ func CreateTeamUseCase(ctx *gin.Context, payload *models.Team, image multipart.F
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not create team"), StatusCode: http.StatusInternalServerError})
 		return err
 	}
+	workspaceRepoInstance := workspaceRepo.GetWorkspaceRepo()
+	workspaceRepoInstance.UpdatePartialById(ctx, payload.WorkspaceId.Hex(), map[string]interface{}{
+		"$inc": map[string]interface{}{
+			"teamCount": 1,
+		}})
+
 	if upload != nil {
 		uploadRepo := media.GetUploadRepo()
 		upload.UploadBy = team.Id

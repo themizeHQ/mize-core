@@ -21,6 +21,7 @@ type Workspace struct {
 	CreatedBy    primitive.ObjectID      `bson:"createdBy" json:"createdBy"`
 	ProfileImage *string                 `bson:"profileImage" json:"profileImage"`
 	MemberCount  int                     `bson:"memberCount" json:"memberCount"`
+	TeamsCount   int                     `bson:"teamCount" json:"teamCount"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
