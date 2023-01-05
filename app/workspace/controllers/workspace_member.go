@@ -198,3 +198,16 @@ func DeactivateWorkspaceMember(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "member deactivated", true, nil)
 }
+
+func ActivateWorkspaceMember(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a workspace member id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	success := workspace_member.ActivateWorkspaceMemberUseCase(ctx, id)
+	if !success {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "member activated", true, nil)
+}

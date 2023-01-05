@@ -95,6 +95,8 @@ func main() {
 
 			workspaceV1.PUT("/members/deactivate/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.DeactivateWorkspaceMember)
 
+			workspaceV1.PUT("/members/activate/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.ActivateWorkspaceMember)
+
 			workspaceV1.PUT("/update/workspace-image", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.UpdatWorkspaceProfileImage)
 
 			workspaceV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.FetchUserWorkspaces)
