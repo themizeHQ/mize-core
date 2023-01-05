@@ -24,7 +24,12 @@ type adminAccess struct {
 }
 
 var AdminAccess = adminAccess{
-	FULL_ACCESS: "full_access",
+	FULL_ACCESS:          "full_access",
+	ALERT_ACCESS:         "alert_access",
+	EDIT_CHANNELS_ACCESS: "edit_channels_access",
+	EDIT_MEMBERS_ACCESS:  "edit_members_access",
+	SCHEDULE_ACCESS:      "schedule_access",
+	TEAMS_ACCESS:         "teams_access",
 }
 
 type MemberActionType string

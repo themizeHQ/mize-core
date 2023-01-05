@@ -10,7 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"mize.app/app/workspace"
 	"mize.app/app/workspace/repository"
+	"mize.app/app/workspace/usecases/workspace_member"
 	"mize.app/app_errors"
 	"mize.app/authentication"
 	"mize.app/server_response"
@@ -165,4 +167,21 @@ func SearchWorkspaceMembers(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "search complete", true, profile)
+}
+
+func AddAdminAccess(ctx *gin.Context) {
+	var payload workspace.AddWorkspacePiviledges
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the appropraite payload"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	if err := payload.Validate(); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return
+	}
+	success := workspace_member.AddAdminAccessUseCase(ctx, payload.Id, payload.Permissions)
+	if !success {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "priviledges granted", true, nil)
 }
