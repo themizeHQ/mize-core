@@ -47,12 +47,17 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 					"workspaceId": *utils.HexToMongoId(ctx, access_token_claims["Workspace"].(string)),
 					"userId":      *utils.HexToMongoId(ctx, access_token_claims["UserId"].(string)),
 				}, options.FindOne().SetProjection(map[string]interface{}{
-					"admin": 1,
+					"admin":       1,
+					"deactivated": 1,
 				}))
 				if err != nil {
 					e := errors.New("could not complete user authentication")
 					logger.Error(e, zap.Error(err))
 					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: e, StatusCode: http.StatusInternalServerError})
+					return
+				}
+				if member.Deactivated {
+					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this account has been deactivated"), StatusCode: http.StatusUnauthorized})
 					return
 				}
 				if !member.Admin {
