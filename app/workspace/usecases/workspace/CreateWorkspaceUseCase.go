@@ -20,6 +20,7 @@ func CreateWorkspaceUseCase(ctx *gin.Context, payload models.Workspace) (name *s
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, nil, err
 	}
+	payload.MemberCount = 1
 	workspace, err := workspaceRepoInstance.CreateOne(payload)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("workspace creation failed"), StatusCode: http.StatusInternalServerError})
