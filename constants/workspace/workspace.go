@@ -15,7 +15,12 @@ var WorkspaceTypes = workspaceType{
 type AdminAccessType string
 
 type adminAccess struct {
-	FULL_ACCESS AdminAccessType
+	FULL_ACCESS          AdminAccessType
+	ALERT_ACCESS         AdminAccessType
+	EDIT_CHANNELS_ACCESS AdminAccessType
+	EDIT_MEMBERS_ACCESS  AdminAccessType
+	SCHEDULE_ACCESS      AdminAccessType
+	TEAMS_ACCESS         AdminAccessType
 }
 
 var AdminAccess = adminAccess{
