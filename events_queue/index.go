@@ -20,7 +20,10 @@ func ConnectToEventStream() {
 	if err != nil {
 		panic(err)
 	}
-	defer ProducerClient.Close(context.TODO())
+}
+
+func CloseProducerClient() {
+	ProducerClient.Close(context.TODO())
 }
 
 func createEvent(topic EventTopic, payload map[string]interface{}) (*azeventhubs.EventData, error) {
@@ -43,9 +46,13 @@ func emitEvent(event *azeventhubs.EventData) error {
 	// create a batch object and add sample events to the batch
 	newBatchOptions := &azeventhubs.EventDataBatchOptions{}
 
-	batch, _ := ProducerClient.NewEventDataBatch(context.TODO(), newBatchOptions)
+	batch, err := ProducerClient.NewEventDataBatch(context.TODO(), newBatchOptions)
+	if err != nil {
+		logger.Error(errors.New("eventsqueue - failed to create event databatch"), zap.Error(err), zap.Any("batch", batch), zap.Any("event", event))
+		return err
+	}
 
-	err := batch.AddEventData(event, nil)
+	err = batch.AddEventData(event, nil)
 	if err != nil {
 		logger.Error(errors.New("eventsqueue - failed to add event to batch"), zap.Error(err), zap.Any("batch", batch), zap.Any("event", event))
 		return err
