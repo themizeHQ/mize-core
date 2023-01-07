@@ -1,7 +1,6 @@
 package emitter
 
 import (
-	"mize.app/emails"
 	eventsqueue "mize.app/events_queue"
 	"mize.app/logger"
 )
@@ -19,18 +18,36 @@ func EmitterListener() {
 	// sms
 	Emitter.Listen(Events.SMS_EVENTS.SMS_SENT, HandleSMSSent)
 
+	// emails
+	Emitter.Listen(Events.EMAIL_EVENTS.EMAIL_SENT, HandleEmailSent)
+
 	logger.Info("emitter listening to all events")
 }
 
 // users
 func HandleUserCreated(data map[string]interface{}) {
-	emails.SendEmail(data["email"].(string), "Activate your Mize account", "otp", map[string]interface{}{"OTP": data["otp"], "HEADER": data["header"]})
+	Emitter.Emit(Events.EMAIL_EVENTS.EMAIL_SENT, map[string]interface{}{
+		"to":       data["email"].(string),
+		"subject":  "Activate your Mize account",
+		"template": "otp",
+		"opts":     map[string]interface{}{"OTP": data["otp"], "HEADER": data["header"]},
+	})
 }
 func HandleUserVerified(data map[string]string) {
-	emails.SendEmail(data["email"], "Welcome to Mize", "welcome", map[string]string{"FIRSTNAME": data["firstName"]})
+	Emitter.Emit(Events.EMAIL_EVENTS.EMAIL_SENT, map[string]interface{}{
+		"to":       data["email"],
+		"subject":  "Welcome to Mize",
+		"template": "welcome",
+		"opts":     map[string]string{"FIRSTNAME": data["firstName"]},
+	})
 }
 func HandleResendOtp(data map[string]interface{}) {
-	emails.SendEmail(data["email"].(string), "OTP sent", "otp", map[string]interface{}{"OTP": data["otp"], "HEADER": data["header"]})
+	Emitter.Emit(Events.EMAIL_EVENTS.EMAIL_SENT, map[string]interface{}{
+		"to":       data["email"].(string),
+		"subject":  "OTP request",
+		"template": "otp",
+		"opts":     map[string]interface{}{"OTP": data["otp"], "HEADER": data["header"]},
+	})
 }
 
 // messages
@@ -44,5 +61,15 @@ func HandleSMSSent(data map[string]interface{}) {
 	eventsqueue.CreateAndEmitEvent(eventsqueue.SMS_REQUEST, map[string]interface{}{
 		"to":      data["to"],
 		"message": data["message"],
+	})
+}
+
+// emails
+func HandleEmailSent(data map[string]interface{}) {
+	eventsqueue.CreateAndEmitEvent(eventsqueue.EMAIL_REQUEST, map[string]interface{}{
+		"to":       data["to"],
+		"subject":  data["subject"],
+		"template": data["template"],
+		"opts":     data["opts"],
 	})
 }
