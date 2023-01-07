@@ -222,6 +222,7 @@ func HasChannelAccess(ctx *gin.Context, channel_id string, accessToCheck []chann
 	channelMembership, err := channelMemberRepo.FindOneByFilter(map[string]interface{}{
 		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"channelId":   utils.HexToMongoId(ctx, channel_id),
 	})
 	if err != nil || channelMembership == nil {
 		err = errors.New("you are not a member of this channel")
