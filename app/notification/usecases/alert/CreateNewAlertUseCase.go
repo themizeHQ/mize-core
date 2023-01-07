@@ -18,8 +18,8 @@ import (
 	notification_constants "mize.app/constants/notification"
 	workspace_constants "mize.app/constants/workspace"
 	"mize.app/emails"
+	"mize.app/emitter"
 	"mize.app/realtime"
-	"mize.app/sms"
 	"mize.app/utils"
 )
 
@@ -98,7 +98,10 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 				if err != nil || user == nil {
 					return
 				}
-				sms.SmsService.SendSms(*user.Phone, fmt.Sprintf("Hi %s, you have a new %s alert from %s on the %s workspace.", user.FirstName, payload.Importance, fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")), ctx.GetString("WorkspaceName")))
+				emitter.Emitter.Emit(emitter.Events.SMS_EVENTS.SMS_SENT, map[string]interface{}{
+					"to":      *user.Phone,
+					"message": fmt.Sprintf("Hi %s, you have a new %s alert from %s on the %s workspace.", user.FirstName, payload.Importance, fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")), ctx.GetString("WorkspaceName")),
+				})
 				wg.Done()
 			}(id.Hex())
 		}

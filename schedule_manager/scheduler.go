@@ -20,9 +20,9 @@ import (
 	userRepo "mize.app/app/user/repository"
 	notification_constants "mize.app/constants/notification"
 	"mize.app/emails"
+	"mize.app/emitter"
 	"mize.app/logger"
 	"mize.app/realtime"
-	"mize.app/sms"
 )
 
 type Options struct {
@@ -180,7 +180,10 @@ func ScheduleSMS(payload *scheduleModels.Schedule, workspaceId string) {
 							logger.Error(errors.New("schedule error - could not find user"), zap.Error(err))
 							return
 						}
-						sms.SmsService.SendSms(*user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s.\nVenue is %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
+						emitter.Emitter.Emit(emitter.Events.SMS_EVENTS.SMS_SENT, map[string]interface{}{
+							"to":      *user.Phone,
+							"message": fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s.\nVenue is %s.", user.FirstName, payload.Name, formatedTime, payload.Location),
+						})
 					} else if rcp.Type == scheduleModels.TeamRecipient {
 						members, err := teamMemberRepo.FindMany(map[string]interface{}{
 							"workspaceId": workspaceId,
@@ -208,7 +211,10 @@ func ScheduleSMS(payload *scheduleModels.Schedule, workspaceId string) {
 									logger.Error(errors.New("schedule error - could not find team member "), zap.Error(err))
 									return
 								}
-								sms.SmsService.SendSms(*user.Phone, fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s at %s.", user.FirstName, payload.Name, formatedTime, payload.Location))
+								emitter.Emitter.Emit(emitter.Events.SMS_EVENTS.SMS_SENT, map[string]interface{}{
+									"to":      *user.Phone,
+									"message": fmt.Sprintf("Hi %s, you've got an event '%s' scheduled for %s at %s.", user.FirstName, payload.Name, formatedTime, payload.Location),
+								})
 							}(member)
 						}
 					}

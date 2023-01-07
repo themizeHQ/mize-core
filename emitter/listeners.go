@@ -1,11 +1,9 @@
 package emitter
 
 import (
-	// "fmt"
-
 	"mize.app/emails"
+	eventsqueue "mize.app/events_queue"
 	"mize.app/logger"
-	// "mize.app/realtime"
 )
 
 func EmitterListener() {
@@ -17,6 +15,9 @@ func EmitterListener() {
 	// messages
 	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_SENT, HandleMessageSent)
 	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_DELETED, HandleMessageDeleted)
+
+	// sms
+	Emitter.Listen(Events.SMS_EVENTS.SMS_SENT, HandleSMSSent)
 
 	logger.Info("emitter listening to all events")
 }
@@ -37,3 +38,11 @@ func HandleMessageSent(data interface{}) {
 	// realtime.CentrifugoController.Publish(fmt.Sprintf("%s-chat", data.(map[string]interface{})["to"]), data)
 }
 func HandleMessageDeleted() {}
+
+// sms
+func HandleSMSSent(data map[string]interface{}) {
+	eventsqueue.CreateAndEmitEvent(eventsqueue.SMS_REQUEST, map[string]interface{}{
+		"to":      data["to"],
+		"message": data["message"],
+	})
+}

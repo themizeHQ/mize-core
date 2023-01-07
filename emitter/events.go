@@ -4,6 +4,7 @@ type events struct {
 	MESSAGES_EVENTS     messageEvents
 	AUTH_EVENTS         authEvents
 	NOTIFICATION_EVENTS notificationEvents
+	SMS_EVENTS          smsEvents
 }
 
 type messageEvents struct {
@@ -22,6 +23,10 @@ type authEvents struct {
 	RESEND_OTP    string
 }
 
+type smsEvents struct {
+	SMS_SENT string
+}
+
 var Events = events{
 	MESSAGES_EVENTS: messageEvents{
 		MESSAGE_SENT:    "MESSAGE_SENT",
@@ -35,5 +40,8 @@ var Events = events{
 	NOTIFICATION_EVENTS: notificationEvents{
 		NOTIFICATION_CREATED: "NOTIFICATION_CREATED",
 		NOTIFICATION_DELETED: "NOTIFICATION_DELETED",
+	},
+	SMS_EVENTS: smsEvents{
+		SMS_SENT: "SMS_SENT",
 	},
 }
