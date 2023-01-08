@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,6 +15,7 @@ import (
 	"mize.app/app/conversation/models"
 	"mize.app/app/conversation/repository"
 	types "mize.app/app/conversation/types"
+	convUsecases "mize.app/app/conversation/usecases/conversation"
 	messages "mize.app/app/conversation/usecases/message"
 	"mize.app/app/media"
 	channelsRepo "mize.app/app/workspace/repository"
@@ -45,6 +47,64 @@ func SendMessage(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return
 	}
+	new := ctx.Query("new")
+	if new == "true" {
+		reciepientId := ctx.Query("reciepientId")
+		if reciepientId == "" {
+			server_response.Response(ctx, http.StatusBadRequest, "pass in a recipientID to be able to create a conversation", false, nil)
+			return
+		}
+		if reciepientId == ctx.GetString("UserId") {
+			server_response.Response(ctx, http.StatusBadRequest, "you cannot send a message to yourself", false, nil)
+			return
+		}
+		convRepo := repository.GetConversationMemberRepo()
+		exists, err := convRepo.CountDocs(map[string]interface{}{
+			"participants": map[string]interface{}{
+				"$in": []interface{}{reciepientId, *utils.HexToMongoId(ctx, ctx.GetString("UserId"))},
+			},
+		})
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not create conversation"), StatusCode: http.StatusBadRequest})
+			return
+		}
+		if exists == 0 {
+			convId, reciepientName, recipientImage, err := convUsecases.CreateConversationUseCase(ctx, reciepientId)
+			if err != nil {
+				return
+			}
+			var wg sync.WaitGroup
+			chan1 := make(chan error)
+			wg.Add(1)
+			go func(e chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				_, err := convUsecases.CreateConversationMemberUseCase(ctx, convId, *reciepientName, ctx.GetString("UserId"), recipientImage)
+				e <- err
+			}(chan1)
+			wg.Add(1)
+			chan2 := make(chan error)
+			go func(e chan error) {
+				defer func() {
+					wg.Done()
+				}()
+				profileImage := ctx.GetString("ProfileImage")
+				_, err := convUsecases.CreateConversationMemberUseCase(ctx, convId, ctx.GetString("Username"), reciepientId, &profileImage)
+				e <- err
+			}(chan2)
+
+			err1 := <-chan1
+			err2 := <-chan2
+			if err1 != nil || err2 != nil {
+				server_response.Response(ctx, http.StatusInternalServerError, "could not create conversation members", true, nil)
+				return
+			}
+			wg.Wait()
+			message.To = *convId
+		}
+	}
+
 	file, fileHeader, err := ctx.Request.FormFile("resource")
 	if err != nil {
 		if err.Error() == "http: no such file" {

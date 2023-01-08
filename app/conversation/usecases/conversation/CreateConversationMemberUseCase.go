@@ -9,17 +9,16 @@ import (
 
 	"mize.app/app/conversation/models"
 	"mize.app/app/conversation/repository"
-	"mize.app/app/conversation/types"
 	"mize.app/app_errors"
 	"mize.app/utils"
 )
 
-func CreateConversationMemberUseCase(ctx *gin.Context, payload *types.CreateConv, convId *primitive.ObjectID, recipientName string, userId string, reciepientId primitive.ObjectID, profileImage *string) (*string, error) {
+func CreateConversationMemberUseCase(ctx *gin.Context, convId *primitive.ObjectID, recipientName string, userId string, profileImage *string) (*string, error) {
 	member := models.ConversationMember{
 		ConversationId: *convId,
 		UserId:         *utils.HexToMongoId(ctx, userId),
 		ReciepientName: recipientName,
-		ReciepientId:   reciepientId,
+		ReciepientId:   *utils.HexToMongoId(ctx, userId),
 		ProfileImage: func() string {
 			if profileImage == nil {
 				return ""

@@ -215,9 +215,6 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				}()
 				success, err := convMemberRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
 					"conversationId": utils.HexToMongoId(ctx, payload.To.Hex()),
-					"userId": map[string]interface{}{
-						"$ne": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-					},
 				}, map[string]interface{}{
 					"lastMessage":     payload.Text,
 					"lastMessageSent": primitive.NewDateTimeFromTime(time.Now()),
@@ -255,7 +252,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				success, err := convMemberRepository.UpdateWithOperator(map[string]interface{}{
 					"conversationId": utils.HexToMongoId(ctx, payload.To.Hex()),
 					"_id": map[string]interface{}{
-						"$ne": payload.From,
+						"$ne": payload.To,
 					},
 				}, map[string]interface{}{
 					"$inc": map[string]interface{}{

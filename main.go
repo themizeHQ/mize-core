@@ -157,8 +157,6 @@ func main() {
 
 		conversationV1 := v1.Group("/conversation")
 		{
-			conversationV1.POST("/start", middlewares.AuthenticationMiddleware(false, false), conversationControllers.StartConversation)
-
 			conversationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchConversation)
 		}
 
