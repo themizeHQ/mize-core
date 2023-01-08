@@ -53,5 +53,6 @@ func LoginUserUseCase(ctx *gin.Context, payload types.LoginDetails) (refreshToke
 	if err != nil {
 		return
 	}
+	profile.Password = ""
 	return &rT, &aT, profile
 }
