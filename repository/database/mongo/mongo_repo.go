@@ -327,7 +327,7 @@ func (repo *MongoRepository[T]) UpdatePartialByFilter(ctx *gin.Context, filter m
 		cancel()
 	}()
 
-	_, err := repo.Model.UpdateOne(c, filter, bson.D{primitive.E{Key: "$set", Value: payload}}, opts...)
+	_, err := repo.Model.UpdateMany(c, filter, bson.D{primitive.E{Key: "$set", Value: payload}}, opts...)
 	if err != nil {
 		return false, err
 	}
