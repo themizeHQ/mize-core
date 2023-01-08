@@ -19,3 +19,17 @@ func (p *AddWorkspacePiviledges) Validate() error {
 			workspace_member_constants.AdminAccess.SCHEDULE_ACCESS, workspace_member_constants.AdminAccess.TEAMS_ACCESS).Error("pass in a valid permission"))),
 	)
 }
+
+type UpdateChannelType struct {
+	Name        string `bson:"name,omitempty" json:"name,omitempty"`
+	Description string `bson:"description,omitempty" json:"description,omitempty"`
+	Private     bool   `bson:"private,omitempty" json:"private,omitempty"`
+	Compulsory  bool   `bson:"compulsory,omitempty" json:"compulsory,omitempty"`
+}
+
+func (c *UpdateChannelType) Validate() error {
+	return validation.ValidateStruct(c,
+		validation.Field(&c.Description, validation.Length(0, 1000)),
+		validation.Field(&c.Name, validation.Length(0, 50)),
+	)
+}

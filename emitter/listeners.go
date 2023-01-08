@@ -21,6 +21,9 @@ func EmitterListener() {
 	// emails
 	Emitter.Listen(Events.EMAIL_EVENTS.EMAIL_SENT, HandleEmailSent)
 
+	// channels
+	Emitter.Listen(Events.CHANNEL_EVENTS.CHANNEL_UPDATED, HandleChannelUpdated)
+
 	logger.Info("emitter listening to all events")
 }
 
@@ -71,5 +74,12 @@ func HandleEmailSent(data map[string]interface{}) {
 		"subject":  data["subject"],
 		"template": data["template"],
 		"opts":     data["opts"],
+	})
+}
+
+func HandleChannelUpdated(data map[string]interface{}) {
+	eventsqueue.CreateAndEmitEvent(eventsqueue.CHANNEL_UPDATED, map[string]interface{}{
+		"id":   data["id"],
+		"data": data["data"],
 	})
 }

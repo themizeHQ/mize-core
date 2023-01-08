@@ -12,6 +12,7 @@ import (
 
 	convRepo "mize.app/app/conversation/repository"
 	"mize.app/app/media"
+	"mize.app/app/workspace"
 	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/repository"
 	channelUseCases "mize.app/app/workspace/usecases/channel"
@@ -57,6 +58,27 @@ func DeleteChannel(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "channel deleted successfully", success, nil)
+}
+
+func UpdateChannelInfo(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the channel id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	var payload workspace.UpdateChannelType
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the required payload"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	if err := payload.Validate(); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+	}
+	err := channelUseCases.UpdateChannelInfoUseCase(ctx, id, payload)
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "channel updated", true, nil)
 }
 
 func UpdateChannelProfileImage(ctx *gin.Context) {
