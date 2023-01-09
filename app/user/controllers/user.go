@@ -101,7 +101,8 @@ func UpdateProfileImage(ctx *gin.Context) {
 	}
 	var data *media.Upload
 	if profileImageUpload == nil {
-		data, err = media.UploadToCloudinary(ctx, file, "/core/profile-images", nil)
+		userId := ctx.GetString("UserId")
+		data, err = media.UploadToCloudinary(ctx, file, "/core/profile-images", &userId)
 		if err != nil {
 			return
 		}
