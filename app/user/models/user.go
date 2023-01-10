@@ -5,7 +5,7 @@ import (
 	// "fmt"
 	"time"
 
-	"github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,20 +14,21 @@ import (
 )
 
 type User struct {
-	Id              primitive.ObjectID                   `bson:"_id" json:"id"`
-	FirstName       string                               `bson:"firstName" json:"firstName"`
-	LastName        string                               `bson:"lastName" json:"lastName"`
-	UserName        string                               `bson:"userName" json:"userName"`
-	Email           string                               `bson:"email" json:"email"`
-	Region          string                               `bson:"region" json:"region"`
-	Password        string                               `bson:"password" json:"password"`
-	Verified        bool                                 `bson:"verified" json:"verified"`
-	Language        string                               `bson:"language" json:"language"`
-	Phone           *string                               `bson:"phone" json:"phone"`
-	Status          user_constants.UserStatusType        `bson:"status" json:"status"`
-	ProfileImage    *string                              `bson:"profileImage" json:"profileImage"`
-	ACSUserId       string                               `bson:"acsUserId" json:"acsUserId"`
-	Discoverability []user_constants.UserDiscoverability `bson:"discoverability" json:"discoverability"`
+	Id                    primitive.ObjectID                   `bson:"_id" json:"id"`
+	FirstName             string                               `bson:"firstName" json:"firstName"`
+	LastName              string                               `bson:"lastName" json:"lastName"`
+	UserName              string                               `bson:"userName" json:"userName"`
+	Email                 string                               `bson:"email" json:"email"`
+	Region                string                               `bson:"region" json:"region"`
+	Password              string                               `bson:"password" json:"password"`
+	Verified              bool                                 `bson:"verified" json:"verified"`
+	Language              string                               `bson:"language" json:"language"`
+	Phone                 *string                              `bson:"phone" json:"phone"`
+	Status                user_constants.UserStatusType        `bson:"status" json:"status"`
+	ProfileImage          *string                              `bson:"profileImage" json:"profileImage"`
+	ProfileImageThumbNail *string                              `bson:"profileImageThumbnail" json:"profileImageThumbnail"`
+	ACSUserId             string                               `bson:"acsUserId" json:"acsUserId"`
+	Discoverability       []user_constants.UserDiscoverability `bson:"discoverability" json:"discoverability"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
