@@ -43,6 +43,9 @@ func HandleUserVerified(data map[string]string) {
 		"template": "welcome",
 		"opts":     map[string]string{"FIRSTNAME": data["firstName"]},
 	})
+	eventsqueue.CreateAndEmitEvent(eventsqueue.CREATE_ACS_USER, map[string]interface{}{
+		"id": data["id"],
+	})
 }
 func HandleResendOtp(data map[string]interface{}) {
 	Emitter.Emit(Events.EMAIL_EVENTS.EMAIL_SENT, map[string]interface{}{
