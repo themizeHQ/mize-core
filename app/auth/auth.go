@@ -202,7 +202,7 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 	workspace := ctx.Query("workspace_id")
 	if workspace == "" {
 		accessToken, err := authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
-			refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), refresh_token_claims["Firstname"].(string), refresh_token_claims["Lastname"].(string), nil, refresh_token_claims["ACSUserId"].(string))
+			refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), refresh_token_claims["Firstname"].(string), refresh_token_claims["Lastname"].(string), nil)
 		if err != nil {
 			return
 		}
@@ -212,7 +212,7 @@ func GenerateAccessTokenFromRefresh(ctx *gin.Context) {
 		return
 	}
 	accessToken, err := authentication.GenerateAccessToken(ctx, refresh_token_claims["UserId"].(string),
-		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), refresh_token_claims["Firstname"].(string), refresh_token_claims["Lastname"].(string), &workspace, refresh_token_claims["ACSUserId"].(string))
+		refresh_token_claims["Email"].(string), refresh_token_claims["Username"].(string), refresh_token_claims["Firstname"].(string), refresh_token_claims["Lastname"].(string), &workspace)
 	if err != nil {
 		return
 	}
@@ -387,12 +387,12 @@ func GoogleCallBack(ctx *gin.Context) {
 		})
 		return
 	}
-	rT, err := authentication.GenerateRefreshToken(ctx, userExists.Id.Hex(), userExists.Email, userExists.UserName, userExists.FirstName, userExists.LastName, userExists.ACSUserId)
+	rT, err := authentication.GenerateRefreshToken(ctx, userExists.Id.Hex(), userExists.Email, userExists.UserName, userExists.FirstName, userExists.LastName)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete request"), StatusCode: http.StatusInternalServerError})
 		return
 	}
-	aT, err := authentication.GenerateAccessToken(ctx, userExists.Id.Hex(), userExists.Email, userExists.UserName, userExists.FirstName, userExists.LastName, nil, userExists.ACSUserId)
+	aT, err := authentication.GenerateAccessToken(ctx, userExists.Id.Hex(), userExists.Email, userExists.UserName, userExists.FirstName, userExists.LastName, nil)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not complete request"), StatusCode: http.StatusInternalServerError})
 		return

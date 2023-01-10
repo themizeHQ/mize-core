@@ -45,11 +45,11 @@ func LoginUserUseCase(ctx *gin.Context, payload types.LoginDetails) (refreshToke
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("incorrect password"), StatusCode: http.StatusUnauthorized})
 		return
 	}
-	rT, err := authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName, profile.ACSUserId)
+	rT, err := authentication.GenerateRefreshToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName)
 	if err != nil {
 		return
 	}
-	aT, err := authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName, nil, profile.ACSUserId)
+	aT, err := authentication.GenerateAccessToken(ctx, profile.Id.Hex(), profile.Email, profile.UserName, profile.FirstName, profile.LastName, nil)
 	if err != nil {
 		return
 	}

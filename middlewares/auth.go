@@ -97,7 +97,6 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 		ctx.Set("Email", access_token_claims["Email"])
 		ctx.Set("Username", access_token_claims["Username"])
 		ctx.Set("Workspace", access_token_claims["Workspace"])
-		ctx.Set("ACSUserId", access_token_claims["ACSUserId"])
 		ctx.Set("Firstname", access_token_claims["Firstname"])
 		ctx.Set("Lastname", access_token_claims["Lastname"])
 		ctx.Set("WorkspaceName", access_token_claims["WorkspaceName"])

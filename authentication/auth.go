@@ -82,7 +82,6 @@ type ClaimsData struct {
 	ExpiresAt     int64
 	IssuedAt      int64
 	Type          TokenType
-	ACSUserId     string
 	Workspace     *string
 	WorkspaceName *string
 	jwt.StandardClaims
@@ -102,7 +101,6 @@ func GenerateAuthToken(ctx *gin.Context, claimsData ClaimsData) (*string, error)
 		"Email":         claimsData.Email,
 		"Workspace":     claimsData.Workspace,
 		"WorkspaceName": claimsData.WorkspaceName,
-		"ACSUserId":     claimsData.ACSUserId,
 		"iat":           claimsData.IssuedAt,
 	}).SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 	if err != nil {
@@ -150,7 +148,7 @@ func SaveAuthToken(ctx *gin.Context, key string, score float64, payload string) 
 	return redis.RedisRepo.CreateInSet(ctx, key, score, payload)
 }
 
-func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, acsUserId string) (string, error) {
+func GenerateRefreshToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string) (string, error) {
 	refreshToken, err := GenerateAuthToken(ctx, ClaimsData{
 		Issuer:    os.Getenv("JWT_ISSUER"),
 		Type:      REFRESH_TOKEN,
@@ -159,7 +157,6 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 		IssuedAt:  time.Now().Unix(),
 		UserId:    id,
 		Email:     email,
-		ACSUserId: acsUserId,
 		Firstname: firstName,
 		Lastname:  lastName,
 	})
@@ -171,7 +168,7 @@ func GenerateRefreshToken(ctx *gin.Context, id string, email string, username st
 	return *refreshToken, nil
 }
 
-func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, workspace_id *string, acsUserId string) (string, error) {
+func GenerateAccessToken(ctx *gin.Context, id string, email string, username string, firstName string, lastName string, workspace_id *string) (string, error) {
 	var role RoleType = USER
 	var workspaceName string
 	if workspace_id != nil {
@@ -206,7 +203,6 @@ func GenerateAccessToken(ctx *gin.Context, id string, email string, username str
 		Email:         email,
 		Workspace:     workspace_id,
 		WorkspaceName: &workspaceName,
-		ACSUserId:     acsUserId,
 	})
 	if err != nil {
 		logger.Error(err)

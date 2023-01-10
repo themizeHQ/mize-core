@@ -32,11 +32,11 @@ func CreateUserUseCase(ctx *gin.Context, payload models.User) (accessToken *stri
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("something went wrong while creating user"), StatusCode: http.StatusNotFound})
 		return nil, nil, nil
 	}
-	rT, err := authentication.GenerateRefreshToken(ctx, user.Id.Hex(), payload.Email, payload.UserName, payload.FirstName, payload.Language, acsData.User.CommunicationUserId)
+	rT, err := authentication.GenerateRefreshToken(ctx, user.Id.Hex(), payload.Email, payload.UserName, payload.FirstName, payload.Language)
 	if err != nil {
 		return nil, nil, nil
 	}
-	aT, err := authentication.GenerateAccessToken(ctx, user.Id.Hex(), payload.Email, payload.UserName, payload.FirstName, payload.LastName, nil, acsData.User.CommunicationUserId)
+	aT, err := authentication.GenerateAccessToken(ctx, user.Id.Hex(), payload.Email, payload.UserName, payload.FirstName, payload.LastName, nil)
 	if err != nil {
 		return nil, nil, nil
 	}
