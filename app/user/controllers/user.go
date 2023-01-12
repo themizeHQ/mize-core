@@ -102,12 +102,13 @@ func UpdateProfileImage(ctx *gin.Context) {
 	var data *media.Upload
 	if profileImageUpload == nil {
 		userId := ctx.GetString("UserId")
-		data, err = media.UploadToCloudinary(ctx, file, "/core/profile-images", &userId)
+		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/profile-images/%s", userId), nil)
 		if err != nil {
 			return
 		}
 	} else {
-		data, err = media.UploadToCloudinary(ctx, file, "/core/profile-images", &profileImageUpload.PublicID)
+		userId := ctx.GetString("UserId")
+		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/profile-images/%s", userId), &profileImageUpload.PublicID)
 		if err != nil {
 			return
 		}
