@@ -89,7 +89,7 @@ func UpdateProfileImage(ctx *gin.Context) {
 	}
 	uploadRepo := media.GetUploadRepo()
 	profileImageUpload, err := uploadRepo.FindOneByFilter(map[string]interface{}{
-		"uploadBy": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"uploadBy": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		"type":     mediaConstants.PROFILE_IMAGE,
 	}, options.FindOne().SetProjection(map[string]interface{}{
 		"publicId": 1,
@@ -107,8 +107,7 @@ func UpdateProfileImage(ctx *gin.Context) {
 			return
 		}
 	} else {
-		userId := ctx.GetString("UserId")
-		data, err = media.UploadToCloudinary(ctx, file, fmt.Sprintf("/core/profile-images/%s", userId), &profileImageUpload.PublicID)
+		data, err = media.UploadToCloudinary(ctx, file, "", &profileImageUpload.PublicID)
 		if err != nil {
 			return
 		}
