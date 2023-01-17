@@ -12,7 +12,8 @@ type Conversation struct {
 	Id            primitive.ObjectID   `bson:"_id" json:"id"`
 	Participants  []primitive.ObjectID `bson:"participants" json:"participants"`
 	WorkspaceConv bool                 `bson:"workspaceConv" json:"workspaceConv"`
-	WorkspaceId   *primitive.ObjectID   `bson:"workspaceId" json:"workspaceId"`
+	Pinned        bool                 `bson:"pinned" json:"pinned"`
+	WorkspaceId   *primitive.ObjectID  `bson:"workspaceId" json:"workspaceId"`
 	CreatedAt     primitive.DateTime   `bson:"createdAt" json:"createdAt"`
 	UpdatedAt     primitive.DateTime   `bson:"updatedAt" json:"updatedAt"`
 }
