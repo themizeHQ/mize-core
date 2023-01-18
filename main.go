@@ -160,6 +160,8 @@ func main() {
 			conversationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchConversation)
 
 			conversationV1.PUT("/pin", middlewares.AuthenticationMiddleware(false, false), conversationControllers.PinConversation)
+
+			conversationV1.PUT("/unpin", middlewares.AuthenticationMiddleware(false, false), conversationControllers.UnPinConversation)
 		}
 
 		teamV1 := v1.Group("/team")

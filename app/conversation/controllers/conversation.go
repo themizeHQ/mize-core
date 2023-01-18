@@ -56,3 +56,16 @@ func PinConversation(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "conversation pinned", true, nil)
 }
+
+func UnPinConversation(ctx *gin.Context) {
+	id := ctx.Query("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in conversation member id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	pinned := convUseCases.UnPinConversationMember(ctx, &id)
+	if pinned != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "conversation unpinned", true, nil)
+}
