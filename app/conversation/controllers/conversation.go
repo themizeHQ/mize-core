@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/conversation/repository"
+	convUseCases "mize.app/app/conversation/usecases/conversation"
 	"mize.app/app_errors"
 	"mize.app/server_response"
 	"mize.app/utils"
@@ -41,4 +42,17 @@ func FetchConversation(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "conversations fetched", true, conversations)
+}
+
+func PinConversation(ctx *gin.Context) {
+	id := ctx.Query("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in conversation member id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	pinned := convUseCases.PinConversationUseCase(ctx, &id)
+	if pinned != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "conversation pinned", true, nil)
 }

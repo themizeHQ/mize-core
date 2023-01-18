@@ -158,6 +158,8 @@ func main() {
 		conversationV1 := v1.Group("/conversation")
 		{
 			conversationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchConversation)
+
+			conversationV1.PUT("/pin", middlewares.AuthenticationMiddleware(false, false), conversationControllers.PinConversation)
 		}
 
 		teamV1 := v1.Group("/team")
