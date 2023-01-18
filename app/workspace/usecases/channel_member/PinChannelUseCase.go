@@ -26,8 +26,8 @@ func PinChannelMember(ctx *gin.Context, id *string) bool {
 		return false
 	}
 	pinnedCount, err := channelMemberRepo.CountDocs(map[string]interface{}{
-		"userId":      utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 		"pinned":      true,
 	})
 	if err != nil {
