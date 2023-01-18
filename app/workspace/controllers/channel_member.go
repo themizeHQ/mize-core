@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"mize.app/app/workspace"
 	"mize.app/app/workspace/repository"
 	channelMemberUseCases "mize.app/app/workspace/usecases/channel_member"
 	"mize.app/app_errors"
@@ -194,4 +195,26 @@ func FetchPinnedChannels(ctx *gin.Context) {
 		return
 	}
 	server_response.Response(ctx, http.StatusOK, "channels retrieved", true, channels)
+}
+
+func AddChannelAdminAccess(ctx *gin.Context) {
+	channel_id := ctx.Params.ByName("id")
+	if channel_id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the channel id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	var payload workspace.AddChannelPiviledges
+	if err := ctx.ShouldBind(&payload); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the appropraite payload"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	if err := payload.Validate(); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		return
+	}
+	err := channelMemberUseCases.AddChannelAdminAccessUseCase(ctx, payload.Id, channel_id, payload.Permissions)
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "priviledges updated", true, nil)
 }

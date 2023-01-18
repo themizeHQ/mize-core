@@ -122,6 +122,8 @@ func main() {
 
 			channelV1.PUT("/update/channel-info/:id", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.UpdateChannelInfo)
 
+			channelV1.PUT("/members/add-priviledges/:id", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.AddChannelAdminAccess)
+
 			channelV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannels)
 
 			channelV1.GET("/fetch/all", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchAllChannels)
