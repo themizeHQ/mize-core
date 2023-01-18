@@ -159,6 +159,8 @@ func main() {
 		{
 			conversationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchConversation)
 
+			conversationV1.GET("/pinned/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchPinnedConversations)
+
 			conversationV1.PUT("/pin", middlewares.AuthenticationMiddleware(false, false), conversationControllers.PinConversation)
 
 			conversationV1.PUT("/unpin", middlewares.AuthenticationMiddleware(false, false), conversationControllers.UnPinConversation)

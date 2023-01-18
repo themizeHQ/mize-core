@@ -69,3 +69,29 @@ func UnPinConversation(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "conversation unpinned", true, nil)
 }
+
+func FetchPinnedConversations(ctx *gin.Context) {
+	convRepo := repository.GetConversationMemberRepo()
+	var page int64 = 1
+	var limit int64 = 5
+	skip := (page - 1) * limit
+	convs, err := convRepo.FindManyStripped(map[string]interface{}{
+		"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"pinned": true,
+	}, &options.FindOptions{
+		Limit: &limit,
+		Skip:  &skip,
+	}, options.Find().SetProjection(
+		map[string]interface{}{
+			"reciepientId":   1,
+			"reciepientName": 1,
+			"profileImage":   1,
+		},
+	))
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
+			Err: errors.New("could not retrieve your conversations at this time")}, StatusCode: http.StatusBadRequest})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "conversations retrieved", true, convs)
+}
