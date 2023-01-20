@@ -16,6 +16,7 @@ import (
 	"mize.app/app/media"
 	channelRepository "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	"mize.app/emitter"
 	"mize.app/realtime"
 	"mize.app/utils"
 )
@@ -309,5 +310,12 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 		"resourceUrl": payload.ResourceUrl,
 		"type":        payload.Type,
 	})
+	if channel == "true" {
+		emitter.Emitter.Emit(emitter.Events.MESSAGES_EVENTS.MESSAGE_SENT, map[string]interface{}{
+			"channel": payload.To.Hex(),
+			"by":      payload.Username,
+			"msg":     payload.Text,
+		})
+	}
 	return nil
 }

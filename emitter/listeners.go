@@ -12,8 +12,8 @@ func EmitterListener() {
 	Emitter.Listen(Events.AUTH_EVENTS.RESEND_OTP, HandleResendOtp)
 
 	// messages
-	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_SENT, HandleMessageSent)
 	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_DELETED, HandleMessageDeleted)
+	Emitter.Listen(Events.MESSAGES_EVENTS.MESSAGE_SENT, HandleNotifyTaggedUsers)
 
 	// sms
 	Emitter.Listen(Events.SMS_EVENTS.SMS_SENT, HandleSMSSent)
@@ -57,9 +57,6 @@ func HandleResendOtp(data map[string]interface{}) {
 }
 
 // messages
-func HandleMessageSent(data interface{}) {
-	// realtime.CentrifugoController.Publish(fmt.Sprintf("%s-chat", data.(map[string]interface{})["to"]), data)
-}
 func HandleMessageDeleted() {}
 
 // sms
@@ -84,5 +81,13 @@ func HandleChannelUpdated(data map[string]interface{}) {
 	eventsqueue.CreateAndEmitEvent(eventsqueue.CHANNEL_UPDATED, map[string]interface{}{
 		"id":   data["id"],
 		"data": data["data"],
+	})
+}
+
+func HandleNotifyTaggedUsers(data map[string]interface{}) {
+	eventsqueue.CreateAndEmitEvent(eventsqueue.NOTIFY_TAGGED, map[string]interface{}{
+		"channel": data["channel"],
+		"by":      data["by"],
+		"msg":     data["msg"],
 	})
 }
