@@ -26,7 +26,9 @@ func SendInvitesUseCase(ctx *gin.Context, user_emails []string) error {
 			success := emails.SendEmail(e, fmt.Sprintf("You are invited to join the workspace, %s", ctx.GetString("WorkspaceName")),
 				"workspace_invite", map[string]string{"WORKSPACE_NAME": ctx.GetString("WorkspaceName"), "LINK": fmt.Sprintf("https://mize.app/invite?%s&?%s", ctx.GetString("Workspace"), e)})
 			er := workspace_invite.CreateWorkspaceInviteUseCase(ctx, map[string]interface{}{
-				"email": e, "workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+				"email":       e,
+				"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+				"image":       fmt.Sprintf("https://res.cloudinary.com/themizehq/image/upload/w_40/core/workspace-images/%s/file.png", ctx.GetString("Workspace")),
 			}, models.WorkspaceInvite{Email: e, Success: success, WorkspaceName: ctx.GetString("WorkspaceName"), WorkspaceId: *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))})
 			if !success || er != nil {
 				failed++

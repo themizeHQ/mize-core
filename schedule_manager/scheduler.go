@@ -55,6 +55,7 @@ func Schedule(schedule *scheduleModels.Schedule, eventTime int64, opts Options) 
 			createdAtPointer := schedule.CreatedBy
 			_, err = notifiRepo.CreateOne(notificationModels.Notification{
 				Message:     schedule.Details,
+				Header:      "You have a new schedule reminder",
 				Type:        notification_constants.SCHEDULE_REMINDER,
 				Importance:  schedule.Importance,
 				Scope:       notification_constants.USER_NOTIFICATION,

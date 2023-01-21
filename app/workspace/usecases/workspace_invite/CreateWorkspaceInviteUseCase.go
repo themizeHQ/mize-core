@@ -41,14 +41,15 @@ func CreateWorkspaceInviteUseCase(ctx *gin.Context, filter map[string]interface{
 	}
 	reacted := false
 	notificationUseCases.CreateNotificationUseCase(ctx, notificationModels.Notification{
-		WorkspaceId: nil,
-		UserId:      utils.HexToMongoId(ctx, user.Id.Hex()),
-		ResourceId:  utils.HexToMongoId(ctx, *inviteId),
-		Importance:  notification_constants.NOTIFICATION_NORMAL,
-		Type:        notification_constants.WORKSPACE_INVITE,
-		Scope:       notification_constants.USER_NOTIFICATION,
-		Message:     fmt.Sprintf("%s added you to %s", ctx.GetString("Firstname"), ctx.GetString("WorkspaceName")),
-		Reacted:     &reacted,
+		UserId:     utils.HexToMongoId(ctx, user.Id.Hex()),
+		ResourceId: utils.HexToMongoId(ctx, *inviteId),
+		Importance: notification_constants.NOTIFICATION_NORMAL,
+		ImageURL:   filter["image"].(string),
+		Type:       notification_constants.WORKSPACE_INVITE,
+		Scope:      notification_constants.USER_NOTIFICATION,
+		Header:     fmt.Sprintf("%s added you to %s", ctx.GetString("Firstname"), ctx.GetString("WorkspaceName")),
+		Message:    fmt.Sprintf("Accept or Reject your invitation to %s", ctx.GetString("WorkspaceName")),
+		Reacted:    &reacted,
 	})
 	return nil
 }
