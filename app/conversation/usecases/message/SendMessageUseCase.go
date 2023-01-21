@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"mize.app/app/conversation/models"
 	conversationRepository "mize.app/app/conversation/repository"
 	"mize.app/app/media"
@@ -26,29 +27,35 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 	convMemberRepository := conversationRepository.GetConversationMemberRepo()
 	channelRepository := channelRepository.GetChannelMemberRepo()
 	var wg sync.WaitGroup
+	senderImgURL := make(chan *string)
 	if channel == "true" {
 		payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		chan1 := make(chan error)
 		wg.Add(1)
-		go func(e chan error) {
+		go func(e chan error, img chan *string) {
 			defer func() {
 				wg.Done()
 			}()
 
-			exist, err := channelRepository.CountDocs(map[string]interface{}{
-				"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
-				"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-			})
+			exist, err := channelRepository.FindOneByFilter(map[string]interface{}{
+				"channelId": *utils.HexToMongoId(ctx, payload.To.Hex()),
+				"userId":    *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+			}, options.FindOne().SetProjection(map[string]interface{}{
+				"profileImage": 1,
+			}))
 			if err != nil {
 				e <- errors.New("an error occured")
+				img <- nil
 				return
 			}
-			if exist != 1 {
+			if exist == nil {
 				e <- errors.New("you are not a member of this channel")
+				img <- nil
 				return
 			}
+			img <- exist.ProfileImage
 			e <- nil
-		}(chan1)
+		}(chan1, senderImgURL)
 		err1 := <-chan1
 		if err1 != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
