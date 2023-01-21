@@ -15,5 +15,8 @@ func CreateNotificationUseCase(ctx *gin.Context, data models.Notification) {
 		"resourceId": notification.ResourceId,
 		"type":       notification.Type,
 		"message":    notification.Message,
+		"image":      notification.ImageURL,
+		"header":     notification.Header,
+		"reacted":    notification.Reacted,
 	})
 }
