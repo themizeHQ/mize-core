@@ -319,9 +319,11 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 	})
 	if channel == "true" {
 		emitter.Emitter.Emit(emitter.Events.MESSAGES_EVENTS.MESSAGE_SENT, map[string]interface{}{
-			"channel": payload.To.Hex(),
-			"by":      payload.Username,
-			"msg":     payload.Text,
+			"channel":      payload.To.Hex(),
+			"by":           payload.Username,
+			"msg":          payload.Text,
+			"resourceID":   payload.Id,
+			"profileImage": senderImgURL,
 		})
 	}
 	return nil
