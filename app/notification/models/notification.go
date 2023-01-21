@@ -18,6 +18,7 @@ type Notification struct {
 	Scope       notification_constants.NotificationScope           `bson:"scope" json:"scope"`
 	Importance  notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
 	Type        notification_constants.NotificationType            `bson:"type" json:"type"`
+	ImageURL    string                                             `bson:"imageUrl" json:"imageUrl"`
 	Header      string                                             `bson:"header" json:"header"`
 	Message     string                                             `bson:"message" json:"message"`
 	Reacted     *bool                                              `bson:"reacted" json:"reacted"`
