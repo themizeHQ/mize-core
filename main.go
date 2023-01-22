@@ -152,6 +152,8 @@ func main() {
 		{
 			messageV1.POST("/send", middlewares.AuthenticationMiddleware(false, false), conversationControllers.SendMessage)
 
+			messageV1.POST("/react/:id", middlewares.AuthenticationMiddleware(false, false), conversationControllers.CreateReaction)
+
 			messageV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchMessages)
 
 			messageV1.DELETE("/channel/delete", middlewares.AuthenticationMiddleware(true, false), conversationControllers.DeleteMessages)
