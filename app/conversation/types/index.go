@@ -12,3 +12,8 @@ type Reaction struct {
 	Reaction       string             `json:"reaction"`
 	ConversationID primitive.ObjectID `json:"conversationId"`
 }
+
+type RemoveReaction struct {
+	MessageID      primitive.ObjectID `json:"messageID"`
+	ConversationID primitive.ObjectID `json:"conversationId"`
+}

@@ -24,3 +24,16 @@ func CreateReaction(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "reacted", true, nil)
 }
+
+func RemoveReaction(ctx *gin.Context) {
+	var data types.RemoveReaction
+	if err := ctx.ShouldBind(&data); err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the valid payload"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	err := reactionUseCases.RemoveReactionUseCase(ctx, data, ctx.Params.ByName("channel") == "true")
+	if err != nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "reacted", true, nil)
+}
