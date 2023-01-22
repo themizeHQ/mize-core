@@ -33,6 +33,7 @@ var (
 	Message            *mongo.Collection
 	Conversation       *mongo.Collection
 	ConversationMember *mongo.Collection
+	Reaction           *mongo.Collection
 
 	// media
 	Upload *mongo.Collection
@@ -192,6 +193,19 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "format", Value: 1}},
+		},
+	})
+
+	Reaction = db.Collection("Reaction")
+	Reaction.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "messageId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "conversationId", Value: 1}},
 		},
 	})
 
