@@ -97,8 +97,8 @@ func RemoveReactionUseCase(ctx *gin.Context, data types.RemoveReaction, channel 
 				"_id": data.MessageID,
 				"to":  data.ConversationID,
 			}, map[string]interface{}{
-				"$dec": map[string]interface{}{
-					"reactionsCount": 1,
+				"$inc": map[string]interface{}{
+					"reactionsCount": -1,
 				}})
 			if err != nil {
 				(*sc).AbortTransaction(*c)
