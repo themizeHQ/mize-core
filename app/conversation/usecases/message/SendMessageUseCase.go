@@ -3,7 +3,7 @@ package messages
 import (
 	"context"
 	"errors"
-	"fmt"
+
 	"net/http"
 	"sync"
 	"time"
@@ -27,7 +27,8 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 	convMemberRepository := conversationRepository.GetConversationMemberRepo()
 	channelRepository := channelRepository.GetChannelMemberRepo()
 	var wg sync.WaitGroup
-	senderImgURL := make(chan *string)
+	senderImgURLChan := make(chan *string)
+	var senderImgURL *string
 	if channel == "true" {
 		payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		chan1 := make(chan error)
@@ -53,14 +54,15 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				img <- nil
 				return
 			}
-			img <- exist.ProfileImage
 			e <- nil
-		}(chan1, senderImgURL)
+			img <- exist.ProfileImage
+		}(chan1, senderImgURLChan)
 		err1 := <-chan1
 		if err1 != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
 			return err1
 		}
+		senderImgURL = <-senderImgURLChan
 		payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 	} else {
 		chan1 := make(chan error)
@@ -255,7 +257,6 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			go func(ch chan error) {
 				defer func() {
 					wg.Done()
-					fmt.Println("dne 2")
 				}()
 				success, err := convMemberRepository.UpdateWithOperator(map[string]interface{}{
 					"conversationId": utils.HexToMongoId(ctx, payload.To.Hex()),
