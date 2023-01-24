@@ -19,11 +19,6 @@ import (
 )
 
 func CreateReactionUseCase(ctx *gin.Context, data types.Reaction, channel bool) error {
-	if len(data.Reaction) != 1 {
-		err := errors.New("reaction cannot be more than 1 value")
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
-		return err
-	}
 	if !utils.IsEmoji(data.Reaction) {
 		err := errors.New("reaction must be an emoji")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
@@ -134,6 +129,7 @@ func CreateReactionUseCase(ctx *gin.Context, data types.Reaction, channel bool) 
 			"conversationId": data.ConversationID,
 			"workspaceId":    *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 			"userName":       ctx.GetString("Username"),
+			"reaction":       data.Reaction,
 		}, options.Update().SetUpsert(true))
 		if err != nil {
 			(*sc).AbortTransaction(*c)

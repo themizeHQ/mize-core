@@ -15,6 +15,7 @@ type Reaction struct {
 	ConversationID primitive.ObjectID `bson:"conversationId" json:"conversationId"`
 	WorkspaceId    primitive.ObjectID `bson:"workspaceId" json:"workspaceId"`
 	UserName       string             `bson:"userName" json:"userName"`
+	Reaction       string             `bson:"reaction" json:"reaction"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`

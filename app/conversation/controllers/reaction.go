@@ -18,7 +18,7 @@ func CreateReaction(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the valid payload"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	err := reactionUseCases.CreateReactionUseCase(ctx, data, ctx.Params.ByName("channel") == "true")
+	err := reactionUseCases.CreateReactionUseCase(ctx, data, ctx.Query("channel") == "true")
 	if err != nil {
 		return
 	}
