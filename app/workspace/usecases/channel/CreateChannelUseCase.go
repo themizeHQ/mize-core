@@ -9,6 +9,7 @@ import (
 	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
+	"mize.app/emitter"
 	"mize.app/utils"
 )
 
@@ -37,6 +38,14 @@ func CreateChannelUseCase(ctx *gin.Context, payload []models.Channel) ([]*models
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("channel creation failed"), StatusCode: http.StatusInternalServerError})
 		return nil, err
+	}
+	for _, ch := range ids {
+		if ch.Compulsory {
+			emitter.Emitter.Emit(emitter.Events.CHANNEL_EVENTS.COMPULSORY_CHANNEL_CREATED, map[string]interface{}{
+				"channelId":   ch.Id.Hex(),
+				"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			})
+		}
 	}
 	return ids, nil
 }

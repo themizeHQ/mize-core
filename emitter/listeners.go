@@ -91,3 +91,10 @@ func HandleNotifyTaggedUsers(data map[string]interface{}) {
 		"msg":     data["msg"],
 	})
 }
+
+func HandleCompulsoryChannelCreated(data map[string]interface{}) {
+	eventsqueue.CreateAndEmitEvent(eventsqueue.EventTopic(eventsqueue.ADD_MEMBERS_TO_COMPULSORY_CHANNEL), map[string]interface{}{
+		"channelId":   data["channelId"],
+		"workspaceId": data["workspaceId"],
+	})
+}

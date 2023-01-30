@@ -6,7 +6,7 @@ type events struct {
 	NOTIFICATION_EVENTS notificationEvents
 	SMS_EVENTS          smsEvents
 	EMAIL_EVENTS        emailEvents
-	CHANNEL_EVENTS      channelUpdate
+	CHANNEL_EVENTS      channelEvents
 }
 
 type messageEvents struct {
@@ -29,8 +29,9 @@ type smsEvents struct {
 	SMS_SENT string
 }
 
-type channelUpdate struct {
-	CHANNEL_UPDATED string
+type channelEvents struct {
+	CHANNEL_UPDATED            string
+	COMPULSORY_CHANNEL_CREATED string
 }
 
 type emailEvents struct {
@@ -57,7 +58,8 @@ var Events = events{
 	EMAIL_EVENTS: emailEvents{
 		EMAIL_SENT: "EMAIL_SENT",
 	},
-	CHANNEL_EVENTS: channelUpdate{
-		CHANNEL_UPDATED: "CHANNEL_UPDATED",
+	CHANNEL_EVENTS: channelEvents{
+		CHANNEL_UPDATED:            "CHANNEL_UPDATED",
+		COMPULSORY_CHANNEL_CREATED: "COMPULSORY_CHANNEL_CREATED",
 	},
 }
