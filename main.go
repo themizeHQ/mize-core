@@ -136,6 +136,8 @@ func main() {
 
 			channelV1.GET("/members/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannelMembers)
 
+			channelV1.GET("/search/channels", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.SearchUserChannels)
+
 			channelV1.DELETE("/leave", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.LeaveChannel)
 
 			channelV1.PUT("/pin", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.PinChannel)
