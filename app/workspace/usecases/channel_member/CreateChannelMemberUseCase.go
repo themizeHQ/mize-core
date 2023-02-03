@@ -19,17 +19,16 @@ import (
 func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *string, admin bool) (*string, error) {
 	channelMemberRepo := repository.GetChannelMemberRepo()
 	channelRepo := repository.GetChannelRepo()
-	channel, err := channelRepo.FindById(channel_id, options.FindOne().SetProjection(map[string]int{
+	channel, err := channelRepo.FindOneByFilter(map[string]interface{}{
+		"_id":         *utils.HexToMongoId(ctx, channel_id),
+		"private":     false,
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	}, options.FindOne().SetProjection(map[string]int{
 		"workspaceId": 1,
 		"name":        1,
 	}))
 	if channel == nil {
 		err = errors.New("channel does not exist")
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
-		return nil, err
-	}
-	if channel.WorkspaceId != *utils.HexToMongoId(ctx, ctx.GetString("Workspace")) {
-		err = errors.New("you do not have access to this channel")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
 		return nil, err
 	}
