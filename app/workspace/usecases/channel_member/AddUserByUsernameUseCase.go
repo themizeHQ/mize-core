@@ -21,7 +21,7 @@ import (
 	"mize.app/utils"
 )
 
-func AddUserByUsernameUseCase(ctx *gin.Context, id string, channel_id string, addBy string) bool {
+func AdminAddUserUseCase(ctx *gin.Context, id string, channel_id string, addBy string) bool {
 	var wg sync.WaitGroup
 	channelMemberRepo := repository.GetChannelMemberRepo()
 

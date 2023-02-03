@@ -37,7 +37,7 @@ func AdminAddUserToChannel(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a username, type and channel id"), StatusCode: http.StatusBadGateway})
 		return
 	}
-	success := channelMemberUseCases.AddUserByUsernameUseCase(ctx, username, channel_id, addBy)
+	success := channelMemberUseCases.AdminAddUserUseCase(ctx, username, channel_id, addBy)
 	if !success {
 		return
 	}
