@@ -44,6 +44,33 @@ func FetchConversation(ctx *gin.Context) {
 	server_response.Response(ctx, http.StatusOK, "conversations fetched", true, conversations)
 }
 
+func SearchWorkspaceDM(ctx *gin.Context) {
+	term := ctx.Query("term")
+	convRepo := repository.GetConversationMemberRepo()
+
+	conversations, err := convRepo.FindManyStripped(map[string]interface{}{
+		"workspaceId":    *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"userId":         *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"reciepientName": map[string]interface{}{"$regex": term, "$options": "im"},
+	}, options.Find().SetProjection(
+		map[string]interface{}{
+			"lastMessage":     1,
+			"unreadMessages":  1,
+			"reciepientId":    1,
+			"reciepientName":  1,
+			"lastMessageSent": 1,
+			"profileImage":    1,
+			"conversationId":  1,
+		},
+	))
+
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in message data"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "conversations search comepleted", true, conversations)
+}
+
 func PinConversation(ctx *gin.Context) {
 	id := ctx.Query("id")
 	if id == "" {

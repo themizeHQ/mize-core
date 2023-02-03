@@ -167,6 +167,8 @@ func main() {
 		{
 			conversationV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchConversation)
 
+			conversationV1.GET("/search/workspace/dm", middlewares.AuthenticationMiddleware(false, false), conversationControllers.SearchWorkspaceDM)
+
 			conversationV1.GET("/pinned/fetch", middlewares.AuthenticationMiddleware(false, false), conversationControllers.FetchPinnedConversations)
 
 			conversationV1.PUT("/pin", middlewares.AuthenticationMiddleware(false, false), conversationControllers.PinConversation)
