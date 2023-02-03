@@ -41,21 +41,25 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this route is for tokens given workspace access"), StatusCode: http.StatusUnauthorized})
 				return
 			}
+			workspaceMemberRepo := repository.GetWorkspaceMember()
+			member, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{
+				"workspaceId": *utils.HexToMongoId(ctx, access_token_claims["Workspace"].(string)),
+				"userId":      *utils.HexToMongoId(ctx, access_token_claims["UserId"].(string)),
+			}, options.FindOne().SetProjection(map[string]interface{}{
+				"admin":       1,
+				"deactivated": 1,
+			}))
+			if err != nil {
+				e := errors.New("could not complete user authentication")
+				logger.Error(e, zap.Error(err))
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: e, StatusCode: http.StatusInternalServerError})
+				return
+			}
+			if member == nil {
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this account no longer exists"), StatusCode: http.StatusNotFound})
+				return
+			}
 			if admin_route {
-				workspaceMemberRepo := repository.GetWorkspaceMember()
-				member, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{
-					"workspaceId": *utils.HexToMongoId(ctx, access_token_claims["Workspace"].(string)),
-					"userId":      *utils.HexToMongoId(ctx, access_token_claims["UserId"].(string)),
-				}, options.FindOne().SetProjection(map[string]interface{}{
-					"admin":       1,
-					"deactivated": 1,
-				}))
-				if err != nil {
-					e := errors.New("could not complete user authentication")
-					logger.Error(e, zap.Error(err))
-					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: e, StatusCode: http.StatusInternalServerError})
-					return
-				}
 				if member.Deactivated {
 					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this account has been deactivated"), StatusCode: http.StatusUnauthorized})
 					return
