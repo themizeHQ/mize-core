@@ -8,32 +8,44 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
 
 	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	channel_constants "mize.app/constants/channel"
+	"mize.app/logger"
 	"mize.app/utils"
 )
 
-func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *string, admin bool) (*string, error) {
+func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *string, created bool) (*string, error) {
 	channelMemberRepo := repository.GetChannelMemberRepo()
 	channelRepo := repository.GetChannelRepo()
 	channel, err := channelRepo.FindOneByFilter(map[string]interface{}{
-		"_id":         *utils.HexToMongoId(ctx, channel_id),
-		"private":     false,
+		"_id":         channel_id,
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 	}, options.FindOne().SetProjection(map[string]int{
 		"workspaceId": 1,
 		"name":        1,
+		"private":     1,
 	}))
 	if channel == nil {
 		err = errors.New("channel does not exist")
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
 		return nil, err
 	}
 	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		logger.Error(errors.New("could not create channel member"), zap.Error(err))
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
+		return nil, err
+	}
+	if channel.Private && !created && !ctx.GetBool("Admin") {
+		err = errors.New("you do not have access to this private channel")
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
 		return nil, err
 	}
 	exists, err := channelMemberRepo.CountDocs(map[string]interface{}{
@@ -41,12 +53,17 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 		"channelId": *utils.HexToMongoId(ctx, channel_id),
 	})
 	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		logger.Error(errors.New("could not create channel member"), zap.Error(err))
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
 		return nil, err
 	}
 	if exists > 0 {
 		err = errors.New("you are already a member of this channel")
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
 		return nil, err
 	}
 	if name == nil {
@@ -58,10 +75,10 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 		Username:    ctx.GetString("Username"),
 		UserId:      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		LastSent:    primitive.NewDateTimeFromTime(time.Now()),
-		Admin:       admin,
+		Admin:       ctx.GetBool("Admin"),
 		ChannelName: *name,
 		AdminAccess: func() []channel_constants.ChannelAdminAccess {
-			if admin {
+			if !created {
 				return []channel_constants.ChannelAdminAccess{channel_constants.CHANNEL_FULL_ACCESS}
 			}
 			return []channel_constants.ChannelAdminAccess{}
@@ -69,12 +86,18 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 		JoinDate: primitive.NewDateTimeFromTime(time.Now()),
 	}
 	if err := member.Validate(); err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		logger.Error(errors.New("could not create channel member"), zap.Error(err))
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
 		return nil, err
 	}
 	m, err := channelMemberRepo.CreateOne(member)
 	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		logger.Error(errors.New("could not create channel member"), zap.Error(err))
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
 		return nil, err
 	}
 	id := m.Id.Hex()
