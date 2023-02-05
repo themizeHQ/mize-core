@@ -23,6 +23,7 @@ func EmitterListener() {
 
 	// channels
 	Emitter.Listen(Events.CHANNEL_EVENTS.CHANNEL_UPDATED, HandleChannelUpdated)
+	Emitter.Listen(Events.CHANNEL_EVENTS.COMPULSORY_CHANNEL_CREATED, HandleCompulsoryChannelCreated)
 
 	logger.Info("emitter listening to all events")
 }
