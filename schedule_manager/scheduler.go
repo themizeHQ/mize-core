@@ -149,9 +149,7 @@ func ScheduleEmail(payload *scheduleModels.Schedule, workspaceId string) {
 			}
 			wg.Wait()
 		}
-		// remind 30 mins before time
-	}, chrono.WithTime(time.Unix(payload.Time-1800, 0)))
-
+	}, chrono.WithTime(time.Unix(payload.Time-1800, 0)), chrono.WithLocation(payload.TimeZone))
 }
 
 func ScheduleSMS(payload *scheduleModels.Schedule, workspaceId string) {
