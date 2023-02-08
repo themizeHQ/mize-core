@@ -36,6 +36,7 @@ type Schedule struct {
 	Url           *string                                            `bson:"url" json:"url"`
 	Details       string                                             `bson:"details" json:"details"`
 	From          string                                             `bson:"from" json:"from"`
+	TimeZone      string                                             `bson:"timeZone" json:"timeZone"`
 	WorkspaceId   *primitive.ObjectID                                `bson:"workspaceId" json:"workspaceId"`
 	CreatedBy     primitive.ObjectID                                 `bson:"createdBy" json:"createdBy"`
 	Recipients    *[]Recipients                                      `bson:"recipient" json:"recipient"`

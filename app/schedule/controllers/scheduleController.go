@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"mize.app/app/schedule/models"
 	schedulesRepo "mize.app/app/schedule/repository"
+	"mize.app/app/schedule/types"
 	"mize.app/app/schedule/usecases"
 	"mize.app/utils"
 
@@ -18,12 +19,13 @@ import (
 )
 
 func CreateSchedule(ctx *gin.Context) {
-	var payload models.Schedule
+	var payload types.SchedulePayload
 	if err := ctx.ShouldBind(&payload); err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a valid schedule"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	usecases.CreateScheduleUseCase(ctx, &payload)
+	payload.SetScheduleTime()
+	usecases.CreateScheduleUseCase(ctx, &payload.Payload)
 	server_response.Response(ctx, http.StatusCreated, "schedule created", true, nil)
 }
 

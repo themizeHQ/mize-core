@@ -2,8 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -239,6 +241,7 @@ func main() {
 		server_response.Response(ctx, http.StatusNotFound, "this route does not exist", false, nil)
 	})
 
+	fmt.Println(time.Now())
 	gin_mode := os.Getenv("GIN_MODE")
 	port := os.Getenv("PORT")
 	if gin_mode == "debug" {
