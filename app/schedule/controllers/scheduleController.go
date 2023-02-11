@@ -2,12 +2,11 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"mize.app/app/schedule/models"
 	schedulesRepo "mize.app/app/schedule/repository"
 	"mize.app/app/schedule/types"
 	"mize.app/app/schedule/usecases"
@@ -31,30 +30,26 @@ func CreateSchedule(ctx *gin.Context) {
 
 func FetchUserSchedule(ctx *gin.Context) {
 	scheduleRepository := schedulesRepo.GetScheduleRepo()
-	teamRepository := teamsRepo.GetTeamMemberRepo()
-	teamMembers, err := teamRepository.FindMany(map[string]interface{}{}, options.Find().SetProjection(map[string]interface{}{
-		"_id": 1,
+	teamMemberRepository := teamsRepo.GetTeamMemberRepo()
+	teamMembers, err := teamMemberRepository.FindMany(map[string]interface{}{}, options.Find().SetProjection(map[string]interface{}{
+		"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch schedule"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	var recipientFilter []map[string]interface{}
+	var recipientIdFilter []primitive.ObjectID
 	for _, member := range *teamMembers {
-		recipientFilter = append(recipientFilter, map[string]interface{}{
-			"recipientId": member.Id.Hex(),
-			"type":        models.TeamRecipient,
-			"name":        member.TeamName,
-		})
+		recipientIdFilter = append(recipientIdFilter, member.Id)
 	}
-	recipientFilter = append(recipientFilter, map[string]interface{}{
-		"recipientId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		"type":        models.UserRecipient,
-		"name":        fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")),
-	})
+	recipientIdFilter = append(recipientIdFilter, *utils.HexToMongoId(ctx, ctx.GetString("UserId")))
 	events, err := scheduleRepository.FindManyStripped(map[string]interface{}{
-		"recipient.recipientId": map[string]interface{}{
-			"$in": recipientFilter,
+		"recipient": map[string]interface{}{
+			"$elemMatch": map[string]interface{}{
+				"recipientId": map[string]interface{}{
+					"$in": recipientIdFilter,
+				},
+			},
 		},
 	}, options.Find().SetProjection(map[string]interface{}{
 		"name":     1,
@@ -66,6 +61,5 @@ func FetchUserSchedule(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch schedule"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	fmt.Println(events)
-	server_response.Response(ctx, http.StatusCreated, "schedule fetched", true, events)
+	server_response.Response(ctx, http.StatusOK, "schedule fetched", true, events)
 }
