@@ -63,3 +63,16 @@ func FetchUserSchedule(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "schedule fetched", true, events)
 }
+
+func DeleteSchedule(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a valid schedule id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	err := usecases.DeleteScheduleUseCase(ctx, id)
+	if err == nil {
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "schedule removed", true, nil)
+}

@@ -200,6 +200,8 @@ func main() {
 			schduleV1.POST("/create", middlewares.AuthenticationMiddleware(true, false), scheduleControllers.CreateSchedule)
 
 			schduleV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), scheduleControllers.FetchUserSchedule)
+
+			schduleV1.DELETE("/remove/:id", middlewares.AuthenticationMiddleware(true, true), scheduleControllers.DeleteSchedule)
 		}
 
 		authV1 := v1.Group("/auth")
