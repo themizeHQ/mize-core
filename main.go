@@ -103,6 +103,8 @@ func main() {
 
 			workspaceV1.GET("/fetch", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.FetchUserWorkspaces)
 
+			workspaceV1.GET("/fetch/:id", middlewares.AuthenticationMiddleware(false, false), workspaceControllers.FetchWorkspaceDetails)
+
 			workspaceV1.GET("/members/fetch", middlewares.AuthenticationMiddleware(true, true), workspaceControllers.FetchWorkspacesMembers)
 
 			workspaceV1.GET("/search/members", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.SearchWorkspaceMembers)

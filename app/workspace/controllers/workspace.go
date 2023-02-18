@@ -7,13 +7,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
 
 	"mize.app/app/media"
 	"mize.app/app/workspace/models"
+	"mize.app/app/workspace/repository"
 	workspaceUseCases "mize.app/app/workspace/usecases/workspace"
 	workspaceMemberUseCases "mize.app/app/workspace/usecases/workspace_member"
 	"mize.app/app_errors"
 	mediaConstants "mize.app/constants/media"
+	"mize.app/logger"
 	"mize.app/server_response"
 	"mize.app/utils"
 )
@@ -36,6 +39,22 @@ func CreateWorkspace(ctx *gin.Context) {
 		"workspace_id":        id,
 		"workspace_member_id": *member_id,
 	})
+}
+
+func FetchWorkspaceDetails(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a valid workspace id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	workspaceRepo := repository.GetWorkspaceRepo()
+	workspace, err := workspaceRepo.FindById(id)
+	if err != nil {
+		logger.Error(errors.New("fetch workspace details"), zap.Error(err))
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch workspace"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "workspace fetched", true, workspace)
 }
 
 func UpdatWorkspaceProfileImage(ctx *gin.Context) {
