@@ -130,6 +130,8 @@ func main() {
 
 			channelV1.GET("/fetch", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannels)
 
+			channelV1.GET("/fetch/:id", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchChannelDetails)
+
 			channelV1.GET("/fetch/all", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.FetchAllChannels)
 
 			channelV1.POST("/join/:id", middlewares.AuthenticationMiddleware(true, false), workspaceControllers.CreateChannelMember)

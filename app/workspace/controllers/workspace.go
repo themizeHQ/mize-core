@@ -54,6 +54,10 @@ func FetchWorkspaceDetails(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch workspace"), StatusCode: http.StatusInternalServerError})
 		return
 	}
+	if workspace == nil {
+		server_response.Response(ctx, http.StatusNotFound, "workspace not fetched", false, workspace)
+		return
+	}
 	server_response.Response(ctx, http.StatusOK, "workspace fetched", true, workspace)
 }
 

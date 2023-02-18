@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
 
 	convRepo "mize.app/app/conversation/repository"
 	"mize.app/app/media"
@@ -22,6 +23,7 @@ import (
 	channelConstants "mize.app/constants/channel"
 	mediaConstants "mize.app/constants/media"
 	"mize.app/constants/message"
+	"mize.app/logger"
 	"mize.app/server_response"
 	"mize.app/utils"
 )
@@ -271,4 +273,27 @@ func FetchAllChannels(ctx *gin.Context) {
 	}
 	server_response.Response(ctx, http.StatusOK, "channels retrieved", true, channels)
 
+}
+
+func FetchChannelDetails(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a valid channel id"), StatusCode: http.StatusBadRequest})
+		return
+	}
+	channelRepo := repository.GetChannelRepo()
+	channel, err := channelRepo.FindOneByFilter(map[string]interface{}{
+		"_id":         id,
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	})
+	if err != nil {
+		logger.Error(errors.New("fetch workspace details"), zap.Error(err))
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch workspace"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	if channel == nil {
+		server_response.Response(ctx, http.StatusNotFound, "channel not fetched", false, nil)
+		return
+	}
+	server_response.Response(ctx, http.StatusOK, "channel fetched", true, channel)
 }
