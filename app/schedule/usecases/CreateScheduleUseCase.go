@@ -11,9 +11,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"mize.app/app/schedule/models"
 	"mize.app/app/schedule/repository"
+	teamRepository "mize.app/app/teams/repository"
+	userRepository "mize.app/app/user/repository"
 	workspaceRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	workspace_member_constants "mize.app/constants/workspace"
+	"mize.app/logger"
 	"mize.app/schedule_manager"
 	"mize.app/utils"
 )
@@ -41,10 +44,52 @@ func CreateScheduleUseCase(ctx *gin.Context, payload *models.Schedule) {
 			return
 		}
 	}
+	wg := sync.WaitGroup{}
+	userRepo := userRepository.GetUserRepo()
+	teamRepo := teamRepository.GetTeamRepo()
+	recipients := *payload.Recipients
+	for index, recipient := range recipients {
+		wg.Add(1)
+		go func(r models.Recipients, i int) {
+			defer func() {
+				wg.Done()
+			}()
+			if r.Type == models.UserRecipient {
+				user, err := userRepo.FindById(r.RecipientId.Hex(), options.FindOne().SetProjection(map[string]interface{}{
+					"firstName": 1,
+					"lastName":  1,
+				}))
+				if err != nil {
+					logger.Error(errors.New("an error occured while fetching user after schedule was created. name not populated"))
+					return
+				}
+				r.Name = fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+				recipients[i] = r
+			} else if r.Type == models.TeamRecipient {
+				team, err := teamRepo.FindOneByFilter(map[string]interface{}{
+					"_id":         r.RecipientId.Hex(),
+					"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+				}, options.FindOne().SetProjection(map[string]interface{}{
+					"name": 1,
+				}))
+				if err != nil {
+					logger.Error(errors.New("an error occured while fetching team after schedule was created. name not populated"))
+					return
+				}
+				r.Name = team.Name
+				recipients[i] = r
+			} else {
+				logger.Error(errors.New("illegal recipient type passed for schedule"))
+				return
+			}
+		}(recipient, index)
+	}
+	wg.Wait()
+	payload.Recipients = &recipients
 	scheduleRepository.CreateOne(*payload)
 	now := time.Now().Unix()
 	end := time.Now().Add(time.Hour * 1).Unix()
-	wg := sync.WaitGroup{}
+	wg = sync.WaitGroup{}
 	if payload.Time >= now && payload.Time <= end {
 		schedule_manager.Schedule(payload, payload.Time, schedule_manager.Options{
 			Url: payload.Url,
