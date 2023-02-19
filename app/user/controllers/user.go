@@ -139,6 +139,19 @@ func UpdatePhone(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a valid phone number with country code"), StatusCode: http.StatusBadRequest})
 		return
 	}
+	userRepo := userRepo.GetUserRepo()
+	profile, err := userRepo.CountDocs(map[string]interface{}{
+		"phone": payload.Phone,
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("something went wrong while adding number"), StatusCode: http.StatusInternalServerError})
+		return
+	}
+	fmt.Println(profile)
+	if profile != 0 {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("user with mobile number already exists"), StatusCode: http.StatusConflict})
+		return
+	}
 	otp, err := authentication.GenerateOTP(6)
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not generate otp"), StatusCode: http.StatusBadRequest})
