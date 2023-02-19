@@ -39,7 +39,6 @@ type UpdateUser struct {
 	LastName        string                               `json:"lastName" bson:"lastName,omitempty"`
 	Region          string                               `json:"region" bson:"region,omitempty"`
 	Language        string                               `json:"language" bson:"language,omitempty"`
-	Phone           *string                              `json:"phone" bson:"phone,omitempty"`
 	Status          user_constants.UserStatusType        `json:"status" bson:"status,omitempty"`
 	Discoverability []user_constants.UserDiscoverability `json:"discoverability" bson:"discoverability,omitempty"`
 }
@@ -76,7 +75,6 @@ func (user *User) Validate() error {
 func (user *UpdateUser) ValidateUpdate() error {
 	return validation.ValidateStruct(user,
 		validation.Field(&user.Region, is.CountryCode2.Error("provide a valid ISO3166 country code")),
-		validation.Field(&user.Phone, validation.NotIn("")),
 		validation.Field(&user.Region, is.CountryCode2.Error("provide a valid ISO3166 country code")),
 		validation.Field(&user.Language, validation.In(user_constants.AvailableUserLanguage...).Error("language selected is not available on mize")),
 		validation.Field(&user.Discoverability, validation.Each(validation.In(user_constants.DISCOVERABILITY_EMAIL, user_constants.DISCOVERABILITY_PHONE, user_constants.DISCOVERABILITY_USERNAME).Error("invalid discoverability setting selected"))),

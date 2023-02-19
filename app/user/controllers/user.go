@@ -65,7 +65,6 @@ func UpdateUserData(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in a json with valid fields"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	payload.Phone = nil
 	err := payload.ValidateUpdate()
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
