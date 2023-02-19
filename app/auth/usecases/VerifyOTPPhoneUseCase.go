@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"mize.app/app/auth/types"
-	"mize.app/app/user/models"
 	userUseCases "mize.app/app/user/usecases/user"
 	"mize.app/app_errors"
 	"mize.app/authentication"
@@ -23,7 +22,7 @@ func VerifyOTPPhoneUsecase(ctx *gin.Context, payload types.VerifyPhoneData) erro
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
 		return err
 	}
-	success := userUseCases.UpdateUserUseCase(ctx, models.UpdateUser{Phone: &payload.Phone})
+	success := userUseCases.UpdatePhoneUseCase(ctx, payload.Phone)
 	if !success {
 		err = errors.New("could not update phone number")
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusUnauthorized})
