@@ -18,6 +18,7 @@ import (
 	convUsecases "mize.app/app/conversation/usecases/conversation"
 	messages "mize.app/app/conversation/usecases/message"
 	"mize.app/app/media"
+	userRepository "mize.app/app/user/repository"
 	channelsRepo "mize.app/app/workspace/repository"
 	"mize.app/app_errors"
 	mediaConstants "mize.app/constants/media"
@@ -69,7 +70,7 @@ func SendMessage(ctx *gin.Context) {
 			return
 		}
 		if exists == 0 {
-			convId, reciepientName, recipientImage, err := convUsecases.CreateConversationUseCase(ctx, reciepientId)
+			convId, reciepientName, recipientImage, recipientImageThumbnail, err := convUsecases.CreateConversationUseCase(ctx, reciepientId)
 			if err != nil {
 				return
 			}
@@ -80,7 +81,7 @@ func SendMessage(ctx *gin.Context) {
 				defer func() {
 					wg.Done()
 				}()
-				_, err := convUsecases.CreateConversationMemberUseCase(ctx, convId, *reciepientName, ctx.GetString("UserId"), recipientImage)
+				_, err := convUsecases.CreateConversationMemberUseCase(ctx, convId, *reciepientName, ctx.GetString("UserId"), recipientImage, recipientImageThumbnail)
 				e <- err
 			}(chan1)
 			wg.Add(1)
@@ -89,8 +90,16 @@ func SendMessage(ctx *gin.Context) {
 				defer func() {
 					wg.Done()
 				}()
-				profileImage := ctx.GetString("ProfileImage")
-				_, err := convUsecases.CreateConversationMemberUseCase(ctx, convId, ctx.GetString("Username"), reciepientId, &profileImage)
+				userRepo := userRepository.GetUserRepo()
+				user, err := userRepo.FindById(ctx.GetString("UserId"), options.FindOne().SetProjection(map[string]interface{}{
+					"profileImage":          1,
+					"profileImageThumbnail": 1,
+				}))
+				if err != nil {
+					e <- err
+					return
+				}
+				_, err = convUsecases.CreateConversationMemberUseCase(ctx, convId, ctx.GetString("Username"), reciepientId, user.ProfileImage, user.ProfileImageThumbNail)
 				e <- err
 			}(chan2)
 

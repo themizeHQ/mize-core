@@ -1,16 +1,30 @@
 package workspace_member
 
 import (
+	"errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
+	userRepository "mize.app/app/user/repository"
 	"mize.app/app/workspace/models"
 	"mize.app/app/workspace/repository"
 	workspace_constants "mize.app/constants/workspace"
+	"mize.app/logger"
 	"mize.app/utils"
 )
 
 func CreateWorkspaceMemberUseCase(ctx *gin.Context, workspace_id *string, name *string, admin bool) (*string, error) {
+	userRepo := userRepository.GetUserRepo()
+	user, err := userRepo.FindById(ctx.GetString("UserId"), options.FindOne().SetProjection(map[string]interface{}{
+		"profileImage":          1,
+		"profileImageThumbnail": 1,
+	}))
+	if err != nil {
+		logger.Error(errors.New("could not fetch user to create workspace member"), zap.Error(err))
+		return nil, errors.New("could not join workspace")
+	}
 	workspaceMemberRepo := repository.GetWorkspaceMember()
 	workspace_id_hex := *utils.HexToMongoId(ctx, *workspace_id)
 	payload := models.WorkspaceMember{
@@ -27,7 +41,9 @@ func CreateWorkspaceMemberUseCase(ctx *gin.Context, workspace_id *string, name *
 			}
 			return []workspace_constants.AdminAccessType{}
 		}(),
-		JoinDate: time.Now().Unix()}
+		ProfileImage:          user.ProfileImage,
+		ProfileImageThumbNail: user.ProfileImageThumbNail,
+		JoinDate:              time.Now().Unix()}
 	if err := payload.Validate(); err != nil {
 		return nil, err
 	}

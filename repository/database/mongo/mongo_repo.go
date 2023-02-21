@@ -260,6 +260,20 @@ func (repo *MongoRepository[T]) UpdateWithOperator(filter map[string]interface{}
 	return true, err
 }
 
+func (repo *MongoRepository[T]) UpdateManyWithOperator(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
+	c, cancel := createCtx()
+
+	defer func() {
+		cancel()
+	}()
+
+	_, err := repo.Model.UpdateMany(c, filter, payload, opts...)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
 func (repo *MongoRepository[T]) UpdateOrCreateByField(filter map[string]interface{}, payload map[string]interface{}, opts ...*options.UpdateOptions) (bool, error) {
 	c, cancel := createCtx()
 

@@ -13,7 +13,7 @@ type Message struct {
 	Id             primitive.ObjectID  `bson:"_id" json:"id"`
 	To             primitive.ObjectID  `bson:"to" json:"to"`
 	From           primitive.ObjectID  `bson:"from" json:"from"`
-	WorkspaceId    primitive.ObjectID  `bson:"workspaceId" json:"workspaceId"`
+	WorkspaceId    *primitive.ObjectID  `bson:"workspaceId" json:"workspaceId"`
 	Text           string              `bson:"text" json:"text"`
 	ReactionsCount int                 `bson:"reactionsCount" json:"reactionCount"`
 	ReplyTo        *primitive.ObjectID `bson:"replyTo" json:"replyTo"`

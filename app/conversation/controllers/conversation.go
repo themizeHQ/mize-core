@@ -28,13 +28,14 @@ func FetchConversation(ctx *gin.Context) {
 		"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 	}, options.Find().SetProjection(
 		map[string]interface{}{
-			"lastMessage":     1,
-			"unreadMessages":  1,
-			"reciepientId":    1,
-			"reciepientName":  1,
-			"lastMessageSent": 1,
-			"profileImage":    1,
-			"conversationId":  1,
+			"lastMessage":           1,
+			"unreadMessages":        1,
+			"reciepientId":          1,
+			"reciepientName":        1,
+			"lastMessageSent":       1,
+			"profileImage":          1,
+			"profileImageThumbnail": 1,
+			"conversationId":        1,
 		},
 	))
 	if err != nil {

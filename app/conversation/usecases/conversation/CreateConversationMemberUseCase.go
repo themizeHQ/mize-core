@@ -13,18 +13,14 @@ import (
 	"mize.app/utils"
 )
 
-func CreateConversationMemberUseCase(ctx *gin.Context, convId *primitive.ObjectID, recipientName string, userId string, profileImage *string) (*string, error) {
+func CreateConversationMemberUseCase(ctx *gin.Context, convId *primitive.ObjectID, recipientName string, userId string, profileImage *string, profileImageThumbnail *string) (*string, error) {
 	member := models.ConversationMember{
-		ConversationId: *convId,
-		UserId:         *utils.HexToMongoId(ctx, userId),
-		ReciepientName: recipientName,
-		ReciepientId:   *utils.HexToMongoId(ctx, userId),
-		ProfileImage: func() string {
-			if profileImage == nil {
-				return ""
-			}
-			return *profileImage
-		}(),
+		ConversationId:        *convId,
+		UserId:                *utils.HexToMongoId(ctx, userId),
+		ReciepientName:        recipientName,
+		ReciepientId:          *utils.HexToMongoId(ctx, userId),
+		ProfileImage:          *profileImage,
+		ProfileImageThumbNail: *profileImageThumbnail,
 		WorkspaceId: func() *primitive.ObjectID {
 			if ctx.GetString("Workspace") == "" {
 				return nil

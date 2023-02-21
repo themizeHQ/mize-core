@@ -25,20 +25,21 @@ import (
 func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string, upload *media.Upload) error {
 	messageRepository := conversationRepository.GetMessageRepo()
 	convMemberRepository := conversationRepository.GetConversationMemberRepo()
-	channelRepository := channelRepository.GetChannelMemberRepo()
+	channelMemberRepository := channelRepository.GetChannelMemberRepo()
 	var wg sync.WaitGroup
 	senderImgURLChan := make(chan *string)
+	channelMemberID := make(chan string)
 	var senderImgURL *string
 	if channel == "true" {
-		payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
+		payload.WorkspaceId = utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		chan1 := make(chan error)
 		wg.Add(1)
-		go func(e chan error, img chan *string) {
+		go func(e chan error, img chan *string, cmID chan string) {
 			defer func() {
 				wg.Done()
 			}()
 
-			exist, err := channelRepository.FindOneByFilter(map[string]interface{}{
+			exist, err := channelMemberRepository.FindOneByFilter(map[string]interface{}{
 				"channelId": *utils.HexToMongoId(ctx, payload.To.Hex()),
 				"userId":    *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 			}, options.FindOne().SetProjection(map[string]interface{}{
@@ -47,46 +48,57 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			if err != nil {
 				e <- errors.New("an error occured")
 				img <- nil
+				channelMemberID <- ""
 				return
 			}
 			if exist == nil {
 				e <- errors.New("you are not a member of this channel")
 				img <- nil
+				channelMemberID <- ""
 				return
 			}
 			e <- nil
 			img <- exist.ProfileImage
-		}(chan1, senderImgURLChan)
+			channelMemberID <- exist.Id.Hex()
+		}(chan1, senderImgURLChan, channelMemberID)
 		err1 := <-chan1
 		if err1 != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
 			return err1
 		}
 		senderImgURL = <-senderImgURLChan
-		payload.WorkspaceId = *utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
+		payload.From = *utils.HexToMongoId(ctx, <-channelMemberID)
+		payload.WorkspaceId = utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 	} else {
 		chan1 := make(chan error)
+		convMemberID := make(chan string)
 		wg.Add(1)
-		go func(e chan error) {
+		go func(e chan error, cmID chan string) {
 			defer func() {
 				wg.Done()
 			}()
 
-			exist, err := convMemberRepository.CountDocs(map[string]interface{}{
+			exist, err := convMemberRepository.FindOneByFilter(map[string]interface{}{
 				"userId":         *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 				"conversationId": payload.To,
-			})
+			}, options.FindOne().SetProjection(map[string]interface{}{
+				"_id": 1,
+			}))
 			if err != nil {
 				e <- errors.New("an error occured")
+				cmID <- ""
 				return
 			}
-			if exist != 1 {
+			if exist == nil {
 				e <- errors.New("invalid conversation id provided")
+				cmID <- ""
 				return
 			}
 			e <- nil
-		}(chan1)
+			cmID <- exist.Id.Hex()
+		}(chan1, convMemberID)
 		err1 := <-chan1
+		payload.From = *utils.HexToMongoId(ctx, <-convMemberID)
 		if err1 != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
 			return err1
@@ -130,7 +142,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				defer func() {
 					wg.Done()
 				}()
-				success, err := channelRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
+				success, err := channelMemberRepository.UpdatePartialByFilter(ctx, map[string]interface{}{
 					"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
 				}, map[string]interface{}{
 					"lastMessage":     payload.Text,
@@ -166,7 +178,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				defer func() {
 					wg.Done()
 				}()
-				success, err := channelRepository.UpdateWithOperator(map[string]interface{}{
+				success, err := channelMemberRepository.UpdateWithOperator(map[string]interface{}{
 					"channelId": utils.HexToMongoId(ctx, payload.To.Hex()),
 					"userId": map[string]interface{}{
 						"$ne": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
@@ -258,10 +270,10 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				defer func() {
 					wg.Done()
 				}()
-				success, err := convMemberRepository.UpdateWithOperator(map[string]interface{}{
+				success, err := convMemberRepository.UpdateManyWithOperator(map[string]interface{}{
 					"conversationId": utils.HexToMongoId(ctx, payload.To.Hex()),
 					"_id": map[string]interface{}{
-						"$ne": payload.To,
+						"$ne": payload.From,
 					},
 				}, map[string]interface{}{
 					"$inc": map[string]interface{}{

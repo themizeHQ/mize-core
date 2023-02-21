@@ -11,20 +11,21 @@ import (
 )
 
 type WorkspaceMember struct {
-	Id            primitive.ObjectID                            `bson:"_id" json:"id"`
-	WorkspaceId   primitive.ObjectID                            `bson:"workspaceId" json:"workspace"`
-	WorkspaceName string                                        `bson:"workspaceName" json:"workspaceName"`
-	Username      string                                        `bson:"userName" json:"userName"`
-	Firstname     string                                        `bson:"firstName" json:"firstName"`
-	Lastname      string                                        `bson:"lastName" json:"lastName"`
-	UserId        primitive.ObjectID                            `bson:"userId" json:"userId"`
-	Admin         bool                                          `bson:"admin" json:"admin"`
-	AdminAccess   []workspace_member_constants.AdminAccessType  `bson:"adminAccess" json:"adminAccess"`
-	JoinDate      int64                                         `bson:"joinDate" json:"joinDate"`
-	Banned        bool                                          `bson:"banned" json:"banned"`
-	Deactivated   bool                                          `bson:"deactivated" json:"deactivated"`
-	Restricted    []workspace_member_constants.MemberActionType `bson:"restricted" json:"restricted"`
-	ProfileImage  *string                                       `bson:"profileImage" json:"profileImage"`
+	Id                    primitive.ObjectID                            `bson:"_id" json:"id"`
+	WorkspaceId           primitive.ObjectID                            `bson:"workspaceId" json:"workspace"`
+	WorkspaceName         string                                        `bson:"workspaceName" json:"workspaceName"`
+	Username              string                                        `bson:"userName" json:"userName"`
+	Firstname             string                                        `bson:"firstName" json:"firstName"`
+	Lastname              string                                        `bson:"lastName" json:"lastName"`
+	UserId                primitive.ObjectID                            `bson:"userId" json:"userId"`
+	Admin                 bool                                          `bson:"admin" json:"admin"`
+	AdminAccess           []workspace_member_constants.AdminAccessType  `bson:"adminAccess" json:"adminAccess"`
+	JoinDate              int64                                         `bson:"joinDate" json:"joinDate"`
+	Banned                bool                                          `bson:"banned" json:"banned"`
+	Deactivated           bool                                          `bson:"deactivated" json:"deactivated"`
+	Restricted            []workspace_member_constants.MemberActionType `bson:"restricted" json:"restricted"`
+	ProfileImage          *string                                       `bson:"profileImage" json:"profileImage"`
+	ProfileImageThumbNail *string                                       `bson:"profileImageThumbnail" json:"profileImageThumbnail"`
 
 	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
 	UpdatedAt primitive.DateTime `bson:"updatedAt" json:"updatedAt"`
