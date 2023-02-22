@@ -211,10 +211,19 @@ func FetchMessages(ctx *gin.Context) {
 	}(msgChan)
 	if page == 1 {
 		go func() {
-			channelsRepo := channelsRepo.GetChannelMemberRepo()
-			channelsRepo.UpdatePartialByFilter(ctx, map[string]interface{}{
+			channelMemberRepo := channelsRepo.GetChannelMemberRepo()
+			channelMemberRepo.UpdatePartialByFilter(ctx, map[string]interface{}{
 				"channelId": utils.HexToMongoId(ctx, to),
 				"userId":    utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+			}, map[string]interface{}{
+				"unreadMessages": 0,
+			})
+		}()
+		go func() {
+			convMemberRepo := repository.GetConversationMemberRepo()
+			convMemberRepo.UpdatePartialByFilter(ctx, map[string]interface{}{
+				"conversationId": utils.HexToMongoId(ctx, to),
+				"userId":         utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 			}, map[string]interface{}{
 				"unreadMessages": 0,
 			})
