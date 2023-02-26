@@ -80,6 +80,9 @@ func VerifyAccountUseCase(ctx *gin.Context) {
 	var data models.User
 	json.Unmarshal([]byte(*cached_user), &data)
 	accessToken, refreshToken, user := authUseCases.CreateUserUseCase(ctx, data)
+	if user == nil {
+		return
+	}
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-user", payload.Email))
 	redis.RedisRepo.DeleteOne(ctx, fmt.Sprintf("%s-otp", payload.Email))
 	server_response.Response(ctx, http.StatusCreated, "account verified", true, map[string]interface{}{

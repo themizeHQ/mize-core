@@ -3,6 +3,7 @@ package reaction
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -28,10 +29,11 @@ func CreateReactionUseCase(ctx *gin.Context, data types.Reaction, channel bool) 
 	convMemberRepository := repository.GetConversationMemberRepo()
 	channelRepository := channelRepository.GetChannelMemberRepo()
 	var wg sync.WaitGroup
+	var convId = make(chan string)
 	if channel {
 		chan1 := make(chan error)
 		wg.Add(1)
-		go func(e chan error) {
+		go func(e chan error, cID chan string) {
 			defer func() {
 				wg.Done()
 			}()
@@ -40,18 +42,21 @@ func CreateReactionUseCase(ctx *gin.Context, data types.Reaction, channel bool) 
 				"channelId": data.ConversationID,
 				"userId":    *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 			}, options.FindOne().SetProjection(map[string]interface{}{
-				"profileImage": 1,
+				"_id": 1,
 			}))
 			if err != nil {
 				e <- errors.New("an error occured")
+				cID <- ""
 				return
 			}
 			if exist == nil {
 				e <- errors.New("you are not a member of this channel")
+				cID <- ""
 				return
 			}
 			e <- nil
-		}(chan1)
+			cID <- exist.Id.Hex()
+		}(chan1, convId)
 		err1 := <-chan1
 		if err1 != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
@@ -60,31 +65,38 @@ func CreateReactionUseCase(ctx *gin.Context, data types.Reaction, channel bool) 
 	} else {
 		chan1 := make(chan error)
 		wg.Add(1)
-		go func(e chan error) {
+		go func(e chan error, cID chan string) {
 			defer func() {
 				wg.Done()
 			}()
 
-			exist, err := convMemberRepository.CountDocs(map[string]interface{}{
-				"userId":         *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+			exist, err := convMemberRepository.FindOneByFilter(map[string]interface{}{
+				// "userId":         *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 				"conversationId": data.ConversationID,
-			})
+			}, options.FindOne().SetProjection(map[string]interface{}{
+				"_id": 1,
+			}))
+
 			if err != nil {
 				e <- errors.New("an error occured")
+				cID <- ""
 				return
 			}
-			if exist != 1 {
+			if exist == nil {
 				e <- errors.New("invalid conversation id provided")
+				cID <- ""
 				return
 			}
 			e <- nil
-		}(chan1)
+			cID <- exist.Id.Hex()
+		}(chan1, convId)
 		err1 := <-chan1
 		if err1 != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err1, StatusCode: http.StatusInternalServerError})
 			return err1
 		}
 	}
+	// convMemberID := <-convId
 
 	reactionRepo := repository.GetReactionRepo()
 	return reactionRepo.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
@@ -120,30 +132,39 @@ func CreateReactionUseCase(ctx *gin.Context, data types.Reaction, channel bool) 
 				return err
 			}
 		}
-		success, err := reactionRepo.UpdateOrCreateByField(map[string]interface{}{
-			"messageId": data.MessageID,
-			"userId":    *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-		}, map[string]interface{}{
-			"messageId":      data.MessageID,
-			"userId":         *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-			"conversationId": data.ConversationID,
-			"workspaceId":    *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-			"userName":       ctx.GetString("Username"),
-			"reaction":       data.Reaction,
-		}, options.Update().SetUpsert(true))
-		if err != nil {
-			(*sc).AbortTransaction(*c)
-			logger.Error(errors.New("could not update message reaction count"), zap.Error(err))
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-			return err
-		}
-		if !success {
-			(*sc).AbortTransaction(*c)
-			err = errors.New("could not update message reaction count")
-			logger.Error(err)
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-			return err
-		}
+		fmt.Println(map[string]interface{}{
+			// "messageId":      data.MessageID,
+			// "userId":         convMemberID,
+			// "conversationId": data.ConversationID,
+			// "workspaceId":    *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+			// "userName": ctx.GetString("Username"),
+			// "reaction": data.Reaction,
+		})
+		// success, err := reactionRepo.UpdateOrCreateByField(map[string]interface{}{
+		// 	"messageId": data.MessageID,
+		// 	"userId":    convMemberID,
+		// }, map[string]interface{}{
+		// 	"messageId":      data.MessageID,
+		// 	"userId":         convMemberID,
+		// 	"conversationId": data.ConversationID,
+		// 	"workspaceId":    *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		// 	"userName":       ctx.GetString("Username"),
+		// 	"reaction":       data.Reaction,
+		// }, options.Update().SetUpsert(true))
+		// if err != nil {
+		// 	fmt.Println("the error", err)
+		// 	(*sc).AbortTransaction(*c)
+		// 	logger.Error(errors.New("could not update message reaction count"), zap.Error(err))
+		// 	app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		// 	return err
+		// }
+		// if !success {
+		// 	(*sc).AbortTransaction(*c)
+		// 	err = errors.New("could not update message reaction count")
+		// 	logger.Error(err)
+		// 	app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		// 	return err
+		// }
 		return (*sc).CommitTransaction(*c)
 	})
 }
