@@ -33,7 +33,12 @@ func main() {
 	server := gin.Default()
 
 	// CORS
-	server.Use(cors.Default())
+	server.Use(cors.New(cors.Config{
+		AllowFiles:       false,
+		AllowWebSockets:  true,
+		AllowCredentials: true,
+		AllowOrigins:     []string{"http://localhost:8100"},
+	}))
 
 	// start all services
 	StartServices()
