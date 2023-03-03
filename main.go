@@ -38,6 +38,7 @@ func main() {
 		AllowWebSockets:  true,
 		AllowCredentials: true,
 		AllowOrigins:     []string{"http://localhost:8100"},
+		AllowHeaders:     []string{"Authorization"},
 	}))
 
 	// start all services
