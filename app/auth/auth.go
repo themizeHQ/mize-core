@@ -319,8 +319,8 @@ func VerifyPhone(ctx *gin.Context) {
 
 func SignOut(ctx *gin.Context) {
 	allDevices := ctx.Query("all")
-	refreshToken := ctx.GetHeader("RefreshToken")
-	accessToken := ctx.GetHeader("AccessToken")
+	refreshToken := ctx.Query("RefreshToken")
+	accessToken := ctx.Query("AccessToken")
 	authUseCases.SignOutUseCase(ctx, allDevices, refreshToken, accessToken)
 	server_response.Response(ctx, http.StatusOK, "signout success", true, nil)
 }

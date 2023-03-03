@@ -13,6 +13,6 @@ func SignOutUseCase(ctx *gin.Context, allDevices string, refreshToken string, ac
 	}
 	if refreshToken != "" {
 		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+refreshToken, refreshToken, 2400*time.Hour)
-		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+accessToken, accessToken, 10*time.Minute)
+		redis.RedisRepo.CreateEntry(ctx, ctx.GetString("UserId")+accessToken, accessToken, 4*time.Hour)
 	}
 }
