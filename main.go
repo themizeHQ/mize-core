@@ -37,7 +37,7 @@ func main() {
 		AllowFiles:       false,
 		AllowWebSockets:  true,
 		AllowCredentials: true,
-		AllowOrigins:     []string{"http://localhost:8100"},
+		AllowOrigins:     []string{"*"},
 		AllowHeaders:     []string{"Authorization", "Content-Type", "Access-Control-Allow-Headers", "Origin,Accept", "X-Requested-With", "Access-Control-Request-Method", "Access-Control-Request-Headers"},
 		AllowMethods:     []string{"GET", "PUT", "PATCH", "POST", "OPTIONS", "DELETE"},
 	}))
