@@ -11,7 +11,6 @@ import (
 	notification "mize.app/app/notification/repository"
 	notificationUseCases "mize.app/app/notification/usecases"
 	"mize.app/app_errors"
-	constnotif "mize.app/constants/notification"
 	"mize.app/server_response"
 	"mize.app/utils"
 )
@@ -29,47 +28,41 @@ func FetchUserNotifications(ctx *gin.Context) {
 		limit = 15
 	}
 	skip := (page - 1) * limit
-	if ctx.GetString("Workspace") == "" {
-		notifications, err = notificationRepo.FindMany(map[string]interface{}{
-			"userId": map[string]interface{}{
-				"$in": []interface{}{utils.HexToMongoId(ctx, ctx.GetString("UserId")), nil},
-			},
-			"scope": map[string]interface{}{
-				"$in": []constnotif.NotificationScope{
-					constnotif.APP_WIDE_NOTIFICATION,
-					constnotif.USER_NOTIFICATION,
-				},
-			},
-		}, &options.FindOptions{
-			Limit: &limit,
-			Skip:  &skip,
-		})
-		if err != nil {
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-			return
-		}
-	} else {
-		notifications, err = notificationRepo.FindMany(map[string]interface{}{
-			"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-			"userId": map[string]interface{}{
-				"$in": []interface{}{utils.HexToMongoId(ctx, ctx.GetString("UserId")), nil},
-			},
-			"scope": map[string]interface{}{
-				"$in": []constnotif.NotificationScope{
-					constnotif.APP_WIDE_NOTIFICATION,
-					constnotif.USER_NOTIFICATION,
-					constnotif.WORKSPACE_NOTIFICATION,
-				},
-			},
-		}, &options.FindOptions{
-			Limit: &limit,
-			Skip:  &skip,
-		})
-		if err != nil {
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
-			return
-		}
+	// if ctx.GetString("Workspace") == "" {
+	notifications, err = notificationRepo.FindMany(map[string]interface{}{
+		"userId": map[string]interface{}{
+			"$in": []interface{}{*utils.HexToMongoId(ctx, ctx.GetString("UserId")), nil},
+		},
+	}, &options.FindOptions{
+		Limit: &limit,
+		Skip:  &skip,
+	})
+	if err != nil {
+		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+		return
 	}
+	// } else {
+	// notifications, err = notificationRepo.FindMany(map[string]interface{}{
+	// 	"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+	// 	"userId": map[string]interface{}{
+	// 		"$in": []interface{}{utils.HexToMongoId(ctx, ctx.GetString("UserId")), nil},
+	// 	},
+	// 	"scope": map[string]interface{}{
+	// 		"$in": []constnotif.NotificationScope{
+	// 			constnotif.APP_WIDE_NOTIFICATION,
+	// 			constnotif.USER_NOTIFICATION,
+	// 			constnotif.WORKSPACE_NOTIFICATION,
+	// 		},
+	// 	},
+	// }, &options.FindOptions{
+	// 	Limit: &limit,
+	// 	Skip:  &skip,
+	// })
+	// if err != nil {
+	// 	app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
+	// 	return
+	// }
+	// }
 	server_response.Response(ctx, http.StatusOK, "notifications fetched", true, notifications)
 }
 
