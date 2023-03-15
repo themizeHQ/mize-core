@@ -89,6 +89,8 @@ func main() {
 
 			// alert routes
 			notificationV1.POST("/alert/send", middlewares.AuthenticationMiddleware(true, true), notificationControllers.SendAlert)
+
+			notificationV1.GET("/alert/fetch", middlewares.AuthenticationMiddleware(false, false), notificationControllers.FetchAlerts)
 		}
 
 		appV1 := v1.Group("/application", middlewares.AuthenticationMiddleware(false, false))
