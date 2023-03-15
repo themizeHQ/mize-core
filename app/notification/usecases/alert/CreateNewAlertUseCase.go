@@ -30,7 +30,8 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 		"workspaceId": utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 	}, options.FindOne().SetProjection(
 		map[string]int{
-			"adminAccess": 1,
+			"adminAccess":           1,
+			"profileImageThumbnail": 1,
 		},
 	))
 	if err != nil {
@@ -44,6 +45,8 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you do not have this permission"), StatusCode: http.StatusUnauthorized})
 		return false
 	}
+	payload.AdminName = fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname"))
+	payload.ImageURL = *admin.ProfileImageThumbNail
 	alertRepo := repository.GetAlertRepo()
 	_, err = alertRepo.CreateOne(models.Alert{
 		Message:      payload.Message,
@@ -85,13 +88,13 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 
 			}(id.Hex())
 		}
-	wg.Wait()
+		wg.Wait()
 	}
 	if payload.AlertBySMS && (payload.Importance == notification_constants.NOTIFICATION_IMPORTANT || payload.Importance == notification_constants.NOTIFICATION_VERY_IMPORTANT) {
 		for _, id := range payload.UserIds {
 			wg.Add(1)
 			go func(id string) {
-				defer func ()  {
+				defer func() {
 					wg.Done()
 				}()
 				user, err := userRepo.FindOneByFilter(map[string]interface{}{

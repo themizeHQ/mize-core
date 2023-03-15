@@ -14,10 +14,12 @@ type Alert struct {
 	WorkspaceId  primitive.ObjectID                                 `bson:"workspaceId" json:"workspaceId"`
 	UserIds      []primitive.ObjectID                               `bson:"usersId" json:"usersId"`
 	AdminId      primitive.ObjectID                                 `bson:"adminId" json:"adminId"`
+	AdminName    string                                             `bson:"adminName" json:"adminName"`
 	ResourceId   *primitive.ObjectID                                `bson:"resourceId" json:"resourceId"`
 	ResourceUrl  *string                                            `bson:"resourceUrl" json:"resourceUrl"`
 	Importance   notification_constants.NotificationImportanceLevel `bson:"importance" json:"importance"`
 	Message      string                                             `bson:"message" json:"message"`
+	ImageURL     string                                             `bson:"imageUrl" json:"imageUrl"`
 	AlertByEmail bool                                               `bson:"alertByEmail" json:"alertbyEmail"`
 	AlertBySMS   bool                                               `bson:"alertBySMS" json:"alertbySMS"`
 
