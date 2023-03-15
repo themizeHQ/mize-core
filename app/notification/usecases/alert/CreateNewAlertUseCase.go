@@ -60,7 +60,6 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 		return false
 	}
 	var wg sync.WaitGroup
-	wg.Add(1)
 	sendInAppNotifications(payload)
 	userRepo := userRepository.GetUserRepo()
 	if payload.AlertByEmail {
@@ -74,6 +73,9 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 				if err != nil {
 					return
 				}
+				if user == nil {
+					return
+				}
 				emails.SendEmail(user.Email, fmt.Sprintf("Mize alert from %s", fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname"))), "alert_reminder", map[string]interface{}{
 					"TIME":    time.Unix(payload.CreatedAt.Time().Unix(), 0).Local().Format(time.UnixDate),
 					"DETAILS": payload.Message,
@@ -83,11 +85,15 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 
 			}(id.Hex())
 		}
+	wg.Wait()
 	}
 	if payload.AlertBySMS && (payload.Importance == notification_constants.NOTIFICATION_IMPORTANT || payload.Importance == notification_constants.NOTIFICATION_VERY_IMPORTANT) {
 		for _, id := range payload.UserIds {
 			wg.Add(1)
 			go func(id string) {
+				defer func ()  {
+					wg.Done()
+				}()
 				user, err := userRepo.FindOneByFilter(map[string]interface{}{
 					"_id":   id,
 					"phone": map[string]interface{}{"$ne": nil},
@@ -102,11 +108,10 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 					"to":      *user.Phone,
 					"message": fmt.Sprintf("Hi %s, you have a new %s alert from %s on the %s workspace.", user.FirstName, payload.Importance, fmt.Sprintf("%s %s", ctx.GetString("Firstname"), ctx.GetString("Lastname")), ctx.GetString("WorkspaceName")),
 				})
-				wg.Done()
 			}(id.Hex())
 		}
+		wg.Wait()
 	}
-	wg.Wait()
 	return true
 }
 
