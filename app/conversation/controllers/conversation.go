@@ -26,7 +26,9 @@ func FetchConversation(ctx *gin.Context) {
 			return utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		}(),
 		"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-	}, options.Find().SetProjection(
+	}, options.Find().SetSort(map[string]interface{}{
+		"lastMessageSent": -1,
+	}), options.Find().SetProjection(
 		map[string]interface{}{
 			"lastMessage":           1,
 			"unreadMessages":        1,

@@ -199,7 +199,9 @@ func FetchMessages(ctx *gin.Context) {
 		m, err := messageRepository.FindMany(map[string]interface{}{
 			"to":      utils.HexToMongoId(ctx, to),
 			"replyTo": replyTo,
-		}, &options.FindOptions{
+		}, options.Find().SetSort(map[string]interface{}{
+			"createdAt": -1,
+		}), &options.FindOptions{
 			Limit: &limit,
 			Skip:  &skip,
 		})

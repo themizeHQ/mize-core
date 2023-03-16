@@ -147,6 +147,9 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		{
 			Keys: bson.D{{Key: "pinned", Value: 1}},
 		},
+		{
+			Keys: bson.D{{Key: "lastMessageSent", Value: 1}},
+		},
 	})
 
 	Notification = db.Collection("Notifications")
@@ -154,12 +157,18 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		{
 			Keys: bson.D{{Key: "userId", Value: 1}},
 		},
+		{
+			Keys: bson.D{{Key: "updatedAt", Value: 1}},
+		},
 	})
 
 	Alert = db.Collection("Alerts")
 	Alert.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "workspaceId", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "updatedAt", Value: 1}},
 		},
 	})
 
@@ -173,6 +182,9 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 		},
 		{
 			Keys: bson.D{{Key: "userName", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "createdAt", Value: 1}},
 		},
 	})
 
@@ -213,6 +225,9 @@ func setUpIndexes(ctx context.Context, db *mongo.Database) {
 	ConversationMember.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys: bson.D{{Key: "workspaceConv", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "lastMessageSent", Value: 1}},
 		},
 	})
 

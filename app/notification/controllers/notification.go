@@ -33,12 +33,12 @@ func FetchUserNotifications(ctx *gin.Context) {
 		"userId": map[string]interface{}{
 			"$in": []interface{}{*utils.HexToMongoId(ctx, ctx.GetString("UserId")), nil},
 		},
-	}, &options.FindOptions{
+	}, options.Find().SetSort(map[string]interface{}{
+		"updatedAt": -1,
+	}), &options.FindOptions{
 		Limit: &limit,
 		Skip:  &skip,
-	}, options.Find().SetSort(map[string]interface{}{
-		"createdAt": -1,
-	}))
+	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return

@@ -62,7 +62,7 @@ func FetchChannels(ctx *gin.Context) {
 		Limit: &limit,
 		Skip:  &skip,
 	}, options.Find().SetSort(map[string]interface{}{
-		"updatedAt": -1,
+		"lastMessageSent": -1,
 	}), options.Find().SetProjection(
 		map[string]interface{}{
 			"lastMessage":     1,

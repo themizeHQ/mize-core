@@ -50,9 +50,7 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 	}, &options.FindOptions{
 		Limit: &limit,
 		Skip:  &skip,
-	}, options.Find().SetSort(map[string]interface{}{
-		"updatedAt": -1,
-	}), options.Find().SetProjection(map[string]int{
+	}, options.Find().SetProjection(map[string]int{
 		"workspaceName": 1,
 		"profileImage":  1,
 		"workspaceId":   1,
