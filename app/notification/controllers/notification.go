@@ -36,7 +36,9 @@ func FetchUserNotifications(ctx *gin.Context) {
 	}, &options.FindOptions{
 		Limit: &limit,
 		Skip:  &skip,
-	})
+	}, options.Find().SetSort(map[string]interface{}{
+		"createdAt": -1,
+	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
 		return

@@ -31,7 +31,9 @@ func FetchAlerts(ctx *gin.Context) {
 	alertRepo := repository.GetAlertRepo()
 	alerts, err := alertRepo.FindManyStripped(map[string]interface{}{
 		"usersId": []interface{}{utils.HexToMongoId(ctx, ctx.GetString("UserId"))},
-	}, options.Find().SetProjection(map[string]interface{}{
+	}, options.Find().SetSort(map[string]interface{}{
+		"createdAt": -1,
+	}), options.Find().SetProjection(map[string]interface{}{
 		"message":     1,
 		"importance":  1,
 		"resourceUrl": 1,
