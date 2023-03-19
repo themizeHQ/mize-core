@@ -76,6 +76,8 @@ func (network *NetworkController) Post(path string, headers *map[string]string, 
 		fmt.Println(err)
 		return nil, err
 	}
+	var t interface{}
+	json.Unmarshal(res_body, &t)
 	res_json := string(res_body)
 	return &res_json, nil
 }

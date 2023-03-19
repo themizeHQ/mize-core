@@ -1,6 +1,8 @@
 package centrifugo
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 
 	"mize.app/network"
@@ -11,10 +13,12 @@ type CentrifugoController struct {
 }
 
 func (c *CentrifugoController) Publish(channel string, scope string, data interface{}) error {
+	fmt.Println(channel)
 	network := network.NetworkController{BaseUrl: c.BaseUrl}
-	_, err := network.Post("", &map[string]string{
-		"Authorization": os.Getenv("CENTRIFUGO_API_KEY"),
+	res, err := network.Post("", &map[string]string{
+		"Authorization": fmt.Sprintf("apikey %s", os.Getenv("CENTRIFUGO_API_KEY")),
 	}, &map[string]interface{}{
+		"method": "publish",
 		"params": map[string]interface{}{
 			"data": map[string]interface{}{
 				"payload": data,
@@ -23,6 +27,8 @@ func (c *CentrifugoController) Publish(channel string, scope string, data interf
 			"channel": channel,
 		},
 	}, nil)
+	var t map[string]interface{}
+	json.Unmarshal([]byte(*res), &t)
 	if err != nil {
 		return err
 	}
