@@ -127,7 +127,7 @@ func sendInAppNotifications(payload models.Alert) {
 				wg.Done()
 			}()
 			realtime.CentrifugoController.Publish(i, realtime.MessageScope.ALERT, map[string]interface{}{
-				"time":       time.Now(),
+				"createdAt":  payload.CreatedAt,
 				"resourceId": payload.ResourceId,
 				"importance": payload.Importance,
 				"message":    payload.Message,
