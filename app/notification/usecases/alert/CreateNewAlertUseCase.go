@@ -119,12 +119,20 @@ func CreateNewAlertUseCase(ctx *gin.Context, payload models.Alert) bool {
 }
 
 func sendInAppNotifications(payload models.Alert) {
+	var wg sync.WaitGroup
 	for _, id := range payload.UserIds {
-		realtime.CentrifugoController.Publish(id.Hex(), realtime.MessageScope.ALERT, map[string]interface{}{
-			"time":       time.Now(),
-			"resourceId": payload.ResourceId,
-			"importance": payload.Importance,
-			"message":    payload.Message,
-		})
+		wg.Add(1)
+		go func(i string) {
+			defer func() {
+				wg.Done()
+			}()
+			realtime.CentrifugoController.Publish(i, realtime.MessageScope.ALERT, map[string]interface{}{
+				"time":       time.Now(),
+				"resourceId": payload.ResourceId,
+				"importance": payload.Importance,
+				"message":    payload.Message,
+			})
+		}(id.Hex())
 	}
+	wg.Wait()
 }

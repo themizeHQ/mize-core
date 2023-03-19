@@ -28,6 +28,9 @@ func (c *CentrifugoController) Publish(channel string, scope string, data interf
 		},
 	}, nil)
 	var t map[string]interface{}
+	if res == nil {
+		return nil
+	}
 	json.Unmarshal([]byte(*res), &t)
 	if err != nil {
 		return err
