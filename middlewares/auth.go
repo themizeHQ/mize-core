@@ -59,16 +59,16 @@ func AuthenticationMiddleware(has_workspace bool, admin_route bool) gin.HandlerF
 				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this account no longer exists"), StatusCode: http.StatusNotFound})
 				return
 			}
+			if member.Deactivated {
+				app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this account has been deactivated"), StatusCode: http.StatusUnauthorized})
+				return
+			}
+			ctx.Set("Admin", member.Admin)
 			if admin_route {
-				if member.Deactivated {
-					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("this account has been deactivated"), StatusCode: http.StatusUnauthorized})
-					return
-				}
 				if !member.Admin {
 					app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you are not authorized here"), StatusCode: http.StatusUnauthorized})
 					return
 				}
-				ctx.Set("Admin", false)
 			}
 		}
 		if access_token_claims["Type"] != "access_token" || access_token_claims["Issuer"] != os.Getenv("JWT_ISSUER") {

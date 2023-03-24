@@ -34,14 +34,8 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 	payload, err := workspaceMemberRepo.FindManyStripped(map[string]interface{}{
 		"userId": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		"admin": func() interface{} {
-			if admin != "" {
-				adminBool, err := strconv.ParseBool(admin)
-				if err != nil {
-					return map[string]interface{}{
-						"$in": []bool{true, false},
-					}
-				}
-				return adminBool
+			if admin == "true" {
+				return true
 			}
 			return map[string]interface{}{
 				"$in": []bool{true, false},

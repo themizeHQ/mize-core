@@ -235,7 +235,7 @@ func FetchAllChannels(ctx *gin.Context) {
 	channels, err := channelsRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 		"private": func() map[string]interface{} {
-			if admin == "true" && authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+			if ctx.GetBool("Admin") {
 				return map[string]interface{}{
 					"$in": []bool{true, false},
 				}
@@ -248,7 +248,7 @@ func FetchAllChannels(ctx *gin.Context) {
 		Limit: &limit,
 		Skip:  &skip,
 	}, options.Find().SetProjection(func() map[string]int {
-		if admin == "true" && authentication.RoleType(ctx.GetString("Role")) == authentication.ADMIN {
+		if admin == "true" && ctx.GetBool("Admin") {
 			return map[string]int{
 				"compulsory":   1,
 				"private":      1,
