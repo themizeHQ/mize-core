@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/workspace"
@@ -46,23 +47,26 @@ func AdminAddUserToChannel(ctx *gin.Context) {
 
 func FetchChannels(ctx *gin.Context) {
 	channelsRepo := repository.GetChannelMemberRepo()
-	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
-	if err != nil || page == 0 {
-		page = 1
-	}
 	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page - 1) * limit
+	startID := ctx.Query("id")
 	channels, err := channelsRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
 	}, &options.FindOptions{
 		Limit: &limit,
-		Skip:  &skip,
 	}, options.Find().SetSort(map[string]interface{}{
 		"lastMessageSent": -1,
+	}), options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
 	}), options.Find().SetProjection(
 		map[string]interface{}{
 			"lastMessage":     1,
