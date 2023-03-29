@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	notificationModel "mize.app/app/notification/models"
 	notification "mize.app/app/notification/repository"
@@ -19,25 +20,28 @@ func FetchUserNotifications(ctx *gin.Context) {
 	notificationRepo := notification.GetNotificationRepo()
 	var notifications *[]notificationModel.Notification
 	var err error
-	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
-	if err != nil || page == 0 {
-		page = 1
-	}
+	startID := ctx.Query("id")
 	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page - 1) * limit
 	// if ctx.GetString("Workspace") == "" {
 	notifications, err = notificationRepo.FindMany(map[string]interface{}{
 		"userId": map[string]interface{}{
 			"$in": []interface{}{*utils.HexToMongoId(ctx, ctx.GetString("UserId")), nil},
 		},
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
 	}, options.Find().SetSort(map[string]interface{}{
 		"updatedAt": -1,
+	}), options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
 	}), &options.FindOptions{
 		Limit: &limit,
-		Skip:  &skip,
 	})
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusInternalServerError})
