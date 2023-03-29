@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 
@@ -165,54 +167,36 @@ func FetchChannelMedia(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("valid media types are image, video, audio, docs, links"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
-	if err != nil || page == 0 {
-		page = 1
-	}
 	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page - 1) * limit
+
+	startID := ctx.Query("id")
+	fmt.Println(map[string]interface{}{
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"to":          *utils.HexToMongoId(ctx, channel),
+		"type":        message.MessageType(mediaType),
+		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId"))})
 	messageRepo := convRepo.GetMessageRepo()
-	var resources *[]map[string]interface{}
-	if mediaType == "image" {
-		resources, err = messageRepo.FindManyStripped(map[string]interface{}{
-			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-			"to":          *utils.HexToMongoId(ctx, channel),
-			"type":        message.IMAGE_MESSAGE,
-		}, &options.FindOptions{
-			Limit: &limit,
-			Skip:  &skip,
-		}, options.Find().SetProjection(map[string]int{
-			"resourceUrl": 1,
-			"userName":    1,
-		}))
-	} else if mediaType == "video" {
-		resources, err = messageRepo.FindManyStripped(map[string]interface{}{
-			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-			"to":          *utils.HexToMongoId(ctx, channel),
-			"type":        message.VIDEO_MESSAGE,
-		}, &options.FindOptions{
-			Limit: &limit,
-			Skip:  &skip,
-		}, options.Find().SetProjection(map[string]int{
-			"resourceUrl": 1,
-			"userName":    1,
-		}))
-	} else if mediaType == "audio" {
-		resources, err = messageRepo.FindManyStripped(map[string]interface{}{
-			"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
-			"to":          *utils.HexToMongoId(ctx, channel),
-			"type":        message.AUDIO_MESSAGE,
-		}, &options.FindOptions{
-			Limit: &limit,
-			Skip:  &skip,
-		}, options.Find().SetProjection(map[string]int{
-			"resourceUrl": 1,
-			"userName":    1,
-		}))
-	}
+	resources, err := messageRepo.FindManyStripped(map[string]interface{}{
+		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
+		"to":          *utils.HexToMongoId(ctx, channel),
+		"type":        message.MessageType(mediaType),
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
+	}, &options.FindOptions{
+		Limit: &limit,
+	}, options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
+	}), options.Find().SetProjection(map[string]int{
+		"resourceUrl": 1,
+		"userName":    1,
+	}))
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch resources"), StatusCode: http.StatusBadRequest})
 		return
@@ -223,15 +207,11 @@ func FetchChannelMedia(ctx *gin.Context) {
 func FetchAllChannels(ctx *gin.Context) {
 	admin := ctx.Query("admin")
 	channelsRepo := repository.GetChannelRepo()
-	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
-	if err != nil || page == 0 {
-		page = 1
-	}
 	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page - 1) * limit
+	startID := ctx.Query("id")
 	channels, err := channelsRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 		"private": func() map[string]interface{} {
@@ -244,10 +224,17 @@ func FetchAllChannels(ctx *gin.Context) {
 				"$in": []bool{false},
 			}
 		}(),
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
 	}, &options.FindOptions{
 		Limit: &limit,
-		Skip:  &skip,
-	}, options.Find().SetProjection(func() map[string]int {
+	}, options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
+	}), options.Find().SetProjection(func() map[string]int {
 		if admin == "true" && ctx.GetBool("Admin") {
 			return map[string]int{
 				"compulsory":   1,
