@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -368,7 +369,7 @@ func (repo MongoRepository[T]) StartTransaction(ctx *gin.Context, payload func(s
 
 func parseFilter(f interface{}) interface{} {
 	filter := (f).(map[string]interface{})
-	if filter["_id"] != nil {
+	if filter["_id"] != nil && reflect.TypeOf(filter).String() == "string" {
 		id := fmt.Sprintf("%v", filter["_id"])
 		filter["_id"] = parseStringToMongo(&id)
 	}

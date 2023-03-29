@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"mize.app/app/workspace"
@@ -30,7 +31,7 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page - 1) * limit
+	startID := ctx.Query("id")
 	payload, err := workspaceMemberRepo.FindManyStripped(map[string]interface{}{
 		"userId": utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		"admin": func() interface{} {
@@ -41,14 +42,22 @@ func FetchUserWorkspaces(ctx *gin.Context) {
 				"$in": []bool{true, false},
 			}
 		}(),
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
 	}, &options.FindOptions{
 		Limit: &limit,
-		Skip:  &skip,
-	}, options.Find().SetProjection(map[string]int{
+	}, options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
+	}), options.Find().SetProjection(map[string]int{
 		"workspaceName": 1,
 		"profileImage":  1,
 		"workspaceId":   1,
 	}))
+
 	if err != nil {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: app_errors.RequestError{StatusCode: http.StatusInternalServerError,
 			Err: errors.New("could not retrieve your workspaces at this time")}, StatusCode: http.StatusBadRequest})
