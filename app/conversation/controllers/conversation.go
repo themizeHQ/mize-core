@@ -18,6 +18,7 @@ import (
 func FetchConversation(ctx *gin.Context) {
 	convRepo := repository.GetConversationMemberRepo()
 
+	startID := ctx.Query("id")
 	conversations, err := convRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": func() *primitive.ObjectID {
 			if ctx.GetString("Workspace") == "" {
@@ -25,9 +26,17 @@ func FetchConversation(ctx *gin.Context) {
 			}
 			return utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		}(),
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
 		"userId": *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 	}, options.Find().SetSort(map[string]interface{}{
 		"lastMessageSent": -1,
+	}), options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
 	}), options.Find().SetProjection(
 		map[string]interface{}{
 			"lastMessage":           1,
