@@ -174,20 +174,17 @@ func SendMessage(ctx *gin.Context) {
 func FetchMessages(ctx *gin.Context) {
 	to := ctx.Query("to")
 	r := ctx.Query("replyTo")
+	new := ctx.Query("new")
 	var replyTo *primitive.ObjectID
 	if to == "" {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in the conversation id"), StatusCode: http.StatusBadRequest})
 		return
 	}
-	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
-	if err != nil || page == 0 {
-		page = 1
-	}
+	startID := ctx.Query("id")
 	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page - 1) * limit
 	if r == "" {
 		replyTo = nil
 	} else {
@@ -199,11 +196,21 @@ func FetchMessages(ctx *gin.Context) {
 		m, err := messageRepository.FindMany(map[string]interface{}{
 			"to":      utils.HexToMongoId(ctx, to),
 			"replyTo": replyTo,
+			"_id": func() map[string]interface{} {
+				if new == "true" {
+					return map[string]interface{}{"$gt": *utils.HexToMongoId(ctx, startID)}
+				}
+				if startID == "" {
+					return map[string]interface{}{"$gt": primitive.NilObjectID}
+				}
+				return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+			}(),
 		}, options.Find().SetSort(map[string]interface{}{
 			"createdAt": -1,
+		}), options.Find().SetSort(map[string]interface{}{
+			"_id": -1,
 		}), &options.FindOptions{
 			Limit: &limit,
-			Skip:  &skip,
 		})
 		if err != nil {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not fetch messages"), StatusCode: http.StatusBadRequest})
@@ -211,7 +218,7 @@ func FetchMessages(ctx *gin.Context) {
 		}
 		msg <- m
 	}(msgChan)
-	if page == 1 {
+	if new == "true" || startID == "" {
 		go func() {
 			channelMemberRepo := channelsRepo.GetChannelMemberRepo()
 			channelMemberRepo.UpdatePartialByFilter(ctx, map[string]interface{}{
