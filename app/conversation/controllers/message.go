@@ -197,11 +197,11 @@ func FetchMessages(ctx *gin.Context) {
 			"to":      utils.HexToMongoId(ctx, to),
 			"replyTo": replyTo,
 			"_id": func() map[string]interface{} {
-				if new == "true" {
-					return map[string]interface{}{"$gt": *utils.HexToMongoId(ctx, startID)}
-				}
 				if startID == "" {
 					return map[string]interface{}{"$gt": primitive.NilObjectID}
+				}
+				if new == "true" {
+					return map[string]interface{}{"$gt": *utils.HexToMongoId(ctx, startID)}
 				}
 				return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
 			}(),
