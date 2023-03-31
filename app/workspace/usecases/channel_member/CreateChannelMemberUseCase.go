@@ -59,7 +59,7 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 		}
 		return nil, err
 	}
-	if exists > 0 {
+	if exists != 0 {
 		err = errors.New("you are already a member of this channel")
 		if !created {
 			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
@@ -68,6 +68,28 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 	}
 	if name == nil {
 		name = &channel.Name
+	}
+	workspaceMemberRepo := repository.GetWorkspaceMember()
+	workspaceMember, err := workspaceMemberRepo.FindOneByFilter(map[string]interface{}{
+		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
+		"workspaceId": channel.WorkspaceId,
+	}, options.FindOne().SetProjection(map[string]interface{}{
+		"profileImageThumbnail": 1,
+		"profileImage":          1,
+	}))
+	if err != nil {
+		logger.Error(errors.New("could not create channel member"), zap.Error(err))
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
+		return nil, err
+	}
+	if workspaceMember == nil {
+		logger.Error(errors.New("could not create channel member"), zap.Error(err))
+		if !created {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+		}
+		return nil, err
 	}
 	member := models.ChannelMember{
 		ChannelId:   *utils.HexToMongoId(ctx, channel_id),
@@ -83,7 +105,9 @@ func CreateChannelMemberUseCase(ctx *gin.Context, channel_id string, name *strin
 			}
 			return []channel_constants.ChannelAdminAccess{}
 		}(),
-		JoinDate: primitive.NewDateTimeFromTime(time.Now()),
+		JoinDate:              primitive.NewDateTimeFromTime(time.Now()),
+		ProfileImage:          workspaceMember.ProfileImage,
+		ProfileImageThumbNail: *workspaceMember.ProfileImageThumbNail,
 	}
 	if err := member.Validate(); err != nil {
 		logger.Error(errors.New("could not create channel member"), zap.Error(err))

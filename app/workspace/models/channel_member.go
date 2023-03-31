@@ -14,24 +14,25 @@ import (
 type ChannelMemberActions string
 
 type ChannelMember struct {
-	Id             primitive.ObjectID           `bson:"_id" json:"id"`
-	ChannelId      primitive.ObjectID           `bson:"channelId" json:"channelId"`
-	ChannelName    string                       `bson:"channelName" json:"channelName"`
-	WorkspaceId    primitive.ObjectID           `bson:"workspaceId" json:"workspaceId"`
-	Username       string                       `bson:"userName" json:"userName"`
-	UserId         primitive.ObjectID           `bson:"userId" json:"userId"`
-	Admin          bool                         `bson:"admin" json:"admin"`
-	AdminAccess    []channel.ChannelAdminAccess `bson:"adminAccess" json:"adminAccess"`
-	JoinDate       primitive.DateTime           `bson:"joinDate" json:"joinDate"`
-	Banned         bool                         `bson:"banned" json:"banned"`
-	Restricted     []ChannelMemberActions       `bson:"restricted" json:"restricted"`
-	Pinned         bool                         `bson:"pinned" json:"pinned"`
-	LastMessage    string                       `bson:"lastMessage" json:"lastMessage"`
-	LastSent       primitive.DateTime           `bson:"lastMessageSent" json:"lastMessageSent"`
-	UnreadMessages int                          `bson:"unreadMessages" json:"unreadMessage"`
-	ProfileImage   *string                      `bson:"profileImage" json:"profileImage"`
-	CreatedAt      primitive.DateTime           `bson:"createdAt" json:"createdAt"`
-	UpdatedAt      primitive.DateTime           `bson:"updatedAt" json:"updatedAt"`
+	Id                    primitive.ObjectID           `bson:"_id" json:"id"`
+	ChannelId             primitive.ObjectID           `bson:"channelId" json:"channelId"`
+	ChannelName           string                       `bson:"channelName" json:"channelName"`
+	WorkspaceId           primitive.ObjectID           `bson:"workspaceId" json:"workspaceId"`
+	Username              string                       `bson:"userName" json:"userName"`
+	UserId                primitive.ObjectID           `bson:"userId" json:"userId"`
+	Admin                 bool                         `bson:"admin" json:"admin"`
+	AdminAccess           []channel.ChannelAdminAccess `bson:"adminAccess" json:"adminAccess"`
+	JoinDate              primitive.DateTime           `bson:"joinDate" json:"joinDate"`
+	Banned                bool                         `bson:"banned" json:"banned"`
+	Restricted            []ChannelMemberActions       `bson:"restricted" json:"restricted"`
+	Pinned                bool                         `bson:"pinned" json:"pinned"`
+	LastMessage           string                       `bson:"lastMessage" json:"lastMessage"`
+	LastSent              primitive.DateTime           `bson:"lastMessageSent" json:"lastMessageSent"`
+	UnreadMessages        int                          `bson:"unreadMessages" json:"unreadMessage"`
+	ProfileImage          *string                      `bson:"profileImage" json:"profileImage"`
+	ProfileImageThumbNail string                       `bson:"profileImageThumbnail" json:"profileImageThumbnail"`
+	CreatedAt             primitive.DateTime           `bson:"createdAt" json:"createdAt"`
+	UpdatedAt             primitive.DateTime           `bson:"updatedAt" json:"updatedAt"`
 }
 
 func (member *ChannelMember) MarshalBinary() ([]byte, error) {

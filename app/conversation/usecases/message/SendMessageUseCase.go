@@ -42,9 +42,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			exist, err := channelMemberRepository.FindOneByFilter(map[string]interface{}{
 				"channelId": *utils.HexToMongoId(ctx, payload.To.Hex()),
 				"userId":    *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
-			}, options.FindOne().SetProjection(map[string]interface{}{
-				"profileImage": 1,
-			}))
+			})
 			if err != nil {
 				e <- errors.New("an error occured")
 				img <- nil
@@ -58,7 +56,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 				return
 			}
 			e <- nil
-			img <- exist.ProfileImage
+			img <- &exist.ProfileImageThumbNail
 			channelMemberID <- exist.Id.Hex()
 		}(chan1, senderImgURLChan, channelMemberID)
 		err1 := <-chan1
@@ -134,6 +132,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 			return err1
 		}
 	}
+	payload.Id = primitive.NewObjectID()
 	if channel == "true" {
 		chan1 := make(chan error)
 		err := messageRepository.StartTransaction(ctx, func(sc *mongo.SessionContext, c *context.Context) error {
