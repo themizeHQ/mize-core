@@ -87,9 +87,11 @@ func HandleChannelUpdated(data map[string]interface{}) {
 
 func HandleNotifyTaggedUsers(data map[string]interface{}) {
 	eventsqueue.CreateAndEmitEvent(eventsqueue.NOTIFY_TAGGED, map[string]interface{}{
-		"channel": data["channel"],
-		"by":      data["by"],
-		"msg":     data["msg"],
+		"channel":      data["channel"],
+		"by":           data["by"],
+		"msg":          data["msg"],
+		"profileImage": data["profileImage"],
+		"resourceID":   data["resourceID"],
 	})
 }
 
