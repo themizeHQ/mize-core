@@ -124,6 +124,7 @@ func FetchChannelMembers(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in channel id"), StatusCode: http.StatusBadRequest})
 		return
 	}
+	startID := ctx.Query("id")
 	channelMemberRepo := repository.GetChannelMemberRepo()
 	exists, err := channelMemberRepo.CountDocs(map[string]interface{}{
 		"channelId":   *utils.HexToMongoId(ctx, channel_id),
@@ -138,22 +139,24 @@ func FetchChannelMembers(ctx *gin.Context) {
 		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("you are not a member of this channel"), StatusCode: http.StatusUnauthorized})
 		return
 	}
-	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
-	if err != nil || page == 0 {
-		page = 1
-	}
 	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
 	if err != nil || limit == 0 {
 		limit = 15
 	}
-	skip := (page - 1) * limit
 
 	members, err := channelMemberRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 		"channelId":   *utils.HexToMongoId(ctx, channel_id),
-	}, &options.FindOptions{
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
+	}, options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
+	}), &options.FindOptions{
 		Limit: &limit,
-		Skip:  &skip,
 	}, options.Find().SetProjection(
 		map[string]interface{}{
 			"userName": 1,
