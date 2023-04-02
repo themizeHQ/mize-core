@@ -333,11 +333,15 @@ func GoogleLogin(ctx *gin.Context) {
 }
 
 func GoogleCallBack(ctx *gin.Context) {
-	state := redis.RedisRepo.FindOne(ctx, ctx.ClientIP()+"GOOGLE_OAUTH_STATE")
-	if ctx.Query("state") != *state {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("unrecognised state used"), StatusCode: http.StatusBadRequest})
-		return
+	notWeb := ctx.Query("notWeb")
+	if notWeb != "true" {
+		state := redis.RedisRepo.FindOne(ctx, ctx.ClientIP()+"GOOGLE_OAUTH_STATE")
+		if ctx.Query("state") != *state {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("unrecognised state used"), StatusCode: http.StatusBadRequest})
+			return
+		}
 	}
+
 	code := ctx.Query("code")
 	config := authentication.SetUpConfig()
 
