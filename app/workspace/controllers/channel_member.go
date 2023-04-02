@@ -211,16 +211,16 @@ func UnPinChannel(ctx *gin.Context) {
 
 func FetchPinnedChannels(ctx *gin.Context) {
 	channelsRepo := repository.GetChannelMemberRepo()
-	var page int64 = 1
 	var limit int64 = 5
-	skip := (page - 1) * limit
 	channels, err := channelsRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": *utils.HexToMongoId(ctx, ctx.GetString("Workspace")),
 		"userId":      *utils.HexToMongoId(ctx, ctx.GetString("UserId")),
 		"pinned":      true,
-	}, &options.FindOptions{
+		"_id":         map[string]interface{}{"$gt": primitive.NilObjectID},
+	}, options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
+	}), &options.FindOptions{
 		Limit: &limit,
-		Skip:  &skip,
 	}, options.Find().SetProjection(
 		map[string]interface{}{
 			"channelId":    1,
