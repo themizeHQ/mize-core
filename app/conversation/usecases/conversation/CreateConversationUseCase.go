@@ -67,6 +67,7 @@ func CreateConversationUseCase(ctx *gin.Context, reciepientId string) (*primitiv
 		profileImageThumbnail = user.ProfileImageThumbNail
 	}
 	exists, err := convRepo.CountDocs(map[string]interface{}{
+		"workspaceConv": workspaceConv,
 		"participants": []primitive.ObjectID{*utils.HexToMongoId(ctx, reciepientId), *utils.HexToMongoId(ctx, ctx.GetString("UserId"))},
 	})
 	if err != nil {
