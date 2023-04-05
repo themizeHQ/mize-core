@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,6 +20,10 @@ func FetchConversation(ctx *gin.Context) {
 	convRepo := repository.GetConversationMemberRepo()
 
 	startID := ctx.Query("id")
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
 	conversations, err := convRepo.FindManyStripped(map[string]interface{}{
 		"workspaceId": func() *primitive.ObjectID {
 			if ctx.GetString("Workspace") == "" {
@@ -37,7 +42,9 @@ func FetchConversation(ctx *gin.Context) {
 		"lastMessageSent": -1,
 	}), options.Find().SetSort(map[string]interface{}{
 		"_id": -1,
-	}), options.Find().SetProjection(
+	}),&options.FindOptions{
+		Limit: &limit,
+	},  options.Find().SetProjection(
 		map[string]interface{}{
 			"lastMessage":           1,
 			"unreadMessages":        1,
