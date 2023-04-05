@@ -325,7 +325,7 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 		"to":          payload.To.Hex(),
 		"text":        payload.Text,
 		"replyTo":     replyTo,
-		"username":    payload.Username,
+		"userName":    payload.Username,
 		"resourceUrl": payload.ResourceUrl,
 		"type":        payload.Type,
 	})
