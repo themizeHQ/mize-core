@@ -7,13 +7,14 @@ var (
 	AWAY      UserStatusType = "away"
 	BUSY      UserStatusType = "busy"
 	MEETING   UserStatusType = "meeting"
+	CLASS     UserStatusType = "class"
 )
 
 var AvailableUserLanguage = []interface{}{"english"}
 
 // User Discoverability
 //
-//  set methods their profile can be found
+//	set methods their profile can be found
 type UserDiscoverability string
 
 var (
