@@ -3,8 +3,10 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"mize.app/app/notification/models"
 	"mize.app/app/notification/repository"
@@ -29,10 +31,23 @@ func SendAlert(ctx *gin.Context) {
 
 func FetchAlerts(ctx *gin.Context) {
 	alertRepo := repository.GetAlertRepo()
+	startID := ctx.Query("id")
+	limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+	if err != nil || limit == 0 {
+		limit = 15
+	}
 	alerts, err := alertRepo.FindManyStripped(map[string]interface{}{
 		"usersId": []interface{}{utils.HexToMongoId(ctx, ctx.GetString("UserId"))},
+		"_id": func() map[string]interface{} {
+			if startID == "" {
+				return map[string]interface{}{"$gt": primitive.NilObjectID}
+			}
+			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
 	}, options.Find().SetSort(map[string]interface{}{
 		"updatedAt": -1,
+	}), options.Find().SetSort(map[string]interface{}{
+		"_id": -1,
 	}), options.Find().SetProjection(map[string]interface{}{
 		"message":     1,
 		"importance":  1,
