@@ -18,6 +18,7 @@ import (
 
 func FetchUserNotifications(ctx *gin.Context) {
 	notificationRepo := notification.GetNotificationRepo()
+	notificationType := ctx.Query("type")
 	var notifications *[]notificationModel.Notification
 	var err error
 	startID := ctx.Query("id")
@@ -35,6 +36,14 @@ func FetchUserNotifications(ctx *gin.Context) {
 				return map[string]interface{}{"$gt": primitive.NilObjectID}
 			}
 			return map[string]interface{}{"$lt": *utils.HexToMongoId(ctx, startID)}
+		}(),
+		"type": func() interface{} {
+			if notificationType != "" {
+				return notificationType
+			}
+			return map[string]interface{}{
+				"$nin": []interface{}{},
+			}
 		}(),
 	}, options.Find().SetSort(map[string]interface{}{
 		"updatedAt": -1,
