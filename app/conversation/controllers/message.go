@@ -146,6 +146,14 @@ func SendMessage(ctx *gin.Context) {
 		}
 		data.Type = mediaConstants.MESSAGE_AUDIO
 	}
+	if message.Type == messageConstants.MessageType(messageConstants.GIF_MESSAGE) {
+		data, err = media.UploadToCloudinaryRAW(ctx, file, fmt.Sprintf("/core/message-gif/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil, "gif")
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("could not send gif"), StatusCode: http.StatusInternalServerError})
+			return
+		}
+		data.Type = mediaConstants.MESSAGE_GIF
+	}
 	if message.Type == messageConstants.MessageType(messageConstants.VIDEO_MESSAGE) {
 		data, err = media.UploadToCloudinaryRAW(ctx, file, fmt.Sprintf("/core/message-video/%s/%s", ctx.GetString("Workspace"), message.To.Hex()), nil, "mp4")
 		if err != nil {
