@@ -31,6 +31,11 @@ func SendMessageUseCase(ctx *gin.Context, payload models.Message, channel string
 	channelMemberID := make(chan string)
 	var senderImgURL *string
 	if channel == "true" {
+		if ctx.GetString("Workspace") == "" {
+			err := errors.New("use a workspace id to send messages to channels and workspace dms")
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+			return err
+		}
 		payload.WorkspaceId = utils.HexToMongoId(ctx, ctx.GetString("Workspace"))
 		chan1 := make(chan error)
 		wg.Add(1)

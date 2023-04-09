@@ -29,24 +29,31 @@ import (
 
 func SendMessage(ctx *gin.Context) {
 	raw_form, err := ctx.MultipartForm()
-	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: errors.New("pass in message data"), StatusCode: http.StatusBadRequest})
-		return
-	}
-	parsed_form := map[string]interface{}{}
-	for key, value := range raw_form.Value {
-		parsed_form[key] = value[0]
-	}
 	message := models.Message{}
-	pJson, err := json.Marshal(parsed_form)
+	jsonData := false
 	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
-		return
+		if err := ctx.ShouldBind(&message); err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+			return
+		} else {
+			jsonData = true
+		}
 	}
-	err = json.Unmarshal(pJson, &message)
-	if err != nil {
-		app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
-		return
+	if !jsonData {
+		parsed_form := map[string]interface{}{}
+		for key, value := range raw_form.Value {
+			parsed_form[key] = value[0]
+		}
+		pJson, err := json.Marshal(parsed_form)
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+			return
+		}
+		err = json.Unmarshal(pJson, &message)
+		if err != nil {
+			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
+			return
+		}
 	}
 	new := ctx.Query("new")
 	if new == "true" {
@@ -116,13 +123,7 @@ func SendMessage(ctx *gin.Context) {
 
 	file, fileHeader, err := ctx.Request.FormFile("resource")
 	if err != nil {
-		if err.Error() == "http: no such file" {
-			message.Type = messageConstants.TEXT_MESSAGE
-		} else {
-			err := errors.New("could not process media file")
-			app_errors.ErrorHandler(ctx, app_errors.RequestError{Err: err, StatusCode: http.StatusBadRequest})
-			return
-		}
+		message.Type = messageConstants.TEXT_MESSAGE
 	}
 	defer func() {
 		if file != nil {
